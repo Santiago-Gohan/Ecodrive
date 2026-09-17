@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoDrive - Panel Administrador</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="banner-alerta" class="banner-alerta oculto">
+    <span class="banner-ico">&#9888;</span>
+    <span id="banner-texto">Alerta</span>
+    <button id="banner-cerrar" class="banner-cerrar">&times;</button>
+  </div>
+
+  <header id="header" class="oculto">
+    <h1>EcoDrive</h1>
+    <span>Sistema de Gestión Inteligente y Mantenimiento Predictivo</span>
+    <nav id="nav-admin" class="nav-admin">
+      <button data-vista="dashboard" class="nav-btn activo">Dashboard</button>
+      <button data-vista="flota" class="nav-btn">Flota</button>
+      <button data-vista="historial" class="nav-btn">Historial</button>
+    </nav>
+    <button id="btn-salir" class="btn-secundario">Salir</button>
+  </header>
+
+  <main id="vista-login">
+    <section id="panel-login">
+      <h2>Panel Administrador</h2>
+      <p>Inicia sesión para monitorear la flota</p>
+      <form id="form-login">
+        <input type="text" id="usuario" placeholder="Usuario (admin)" autocomplete="username" />
+        <input type="password" id="password" placeholder="Contraseña (admin123)" autocomplete="current-password" />
+        <button type="submit" class="btn-primario">Ingresar</button>
+      </form>
+      <p id="error-login" class="error oculto">Credenciales inválidas</p>
+    </section>
+  </main>
+
+  <main id="vista-dashboard" class="vista oculto">
+    <section class="tarjeta">
+      <div class="tarjeta-cabecera">
+        <h2>Flota vehicular - estado en tiempo real</h2>
+        <div class="cabecera-derecha">
+          <button id="btn-simular" class="btn-simular">Simular alerta (ECT 109°C)</button>
+          <div class="conexion" id="conexion">
+            <span class="punto"></span> Conectando...
+          </div>
+        </div>
+      </div>
+      <table id="tabla-flota">
+        <thead>
+          <tr>
+            <th>Placa</th>
+            <th>Vehículo</th>
+            <th>ECT (°C)</th>
+            <th>RPM</th>
+            <th>Última lectura</th>
+            <th>Alertas</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-flota">
+          <tr><td colspan="6" class="vacio">Cargando flota...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <main id="vista-flota" class="vista oculto">
+    <section class="tarjeta">
+      <div class="tarjeta-cabecera">
+        <h2>Gestión de flota</h2>
+      </div>
+      <div class="form-alta">
+        <input type="text" id="nueva-placa" placeholder="Placa (ej: DEF-456)" />
+        <input type="text" id="nuevo-nombre" placeholder="Nombre del vehículo" />
+        <button id="btn-crear" class="btn-primario">Registrar vehículo</button>
+      </div>
+      <p id="msg-flota" class="error oculto"></p>
+      <div class="tabla-scroll">
+        <table id="tabla-vehiculos">
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Nombre</th>
+              <th>API Key</th>
+              <th>Lecturas</th>
+              <th>Alertas</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-vehiculos">
+            <tr><td colspan="7" class="vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="tarjeta nota">
+      <p><strong>Cómo conectar el dispositivo real:</strong> la API Key de cada vehículo se usa en la app de
+      "Toma de telemetría" para autenticar los datos del sensor OBD-II. Si se filtra, regenérala.</p>
+    </section>
+  </main>
+
+  <main id="vista-historial" class="vista oculto">
+    <section class="tarjeta">
+      <div class="tarjeta-cabecera">
+        <h2>Historial de alertas</h2>
+      </div>
+      <div class="filtros">
+        <select id="filtro-alerta-estado">
+          <option value="">Todos los estados</option>
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="ACTIVA">ACTIVA</option>
+          <option value="ATENDIDA">ATENDIDA</option>
+        </select>
+        <button id="btn-cargar-alertas" class="btn-secundario">Filtrar</button>
+      </div>
+      <div class="tabla-scroll">
+        <table id="tabla-alertas">
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Tipo</th>
+              <th>Severidad</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-alertas">
+            <tr><td colspan="6" class="vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tarjeta">
+      <div class="tarjeta-cabecera">
+        <h2>Historial de telemetría</h2>
+      </div>
+      <div class="tabla-scroll">
+        <table id="tabla-telemetria">
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>ECT (°C)</th>
+              <th>RPM</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-telemetria">
+            <tr><td colspan="4" class="vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

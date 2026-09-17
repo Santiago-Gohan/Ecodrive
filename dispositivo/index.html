@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoDrive - Toma de Telemetría OBD-II</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="barra-estado">
+    <span class="punto" id="punto-estado"></span>
+    <span id="texto-estado">Sin conexión</span>
+  </div>
+
+  <header>
+    <h1>EcoDrive <span>Dispositivo OBD-II</span></h1>
+  </header>
+
+  <main>
+    <section class="tarjeta config">
+      <h2>1 · Configurar vehículo</h2>
+      <label>Vehículo (placa)</label>
+      <select id="select-vehiculo"></select>
+      <label>API Key del vehículo</label>
+      <div class="fila-key">
+        <input type="text" id="input-apikey" placeholder="key_..." />
+        <button id="btn-guardar" class="btn-primario">Guardar</button>
+      </div>
+      <p class="pista">La API Key la encuentras en el Panel Admin → Flota → "Ver API Key".</p>
+    </section>
+
+    <section class="tarjeta config">
+      <h2>2 · Conectar adaptador OBD-II</h2>
+      <ol class="pasos">
+        <li>Enciende el vehículo y conecta el adaptador ELM327 al puerto OBD-II.</li>
+        <li>Activa el Bluetooth del dispositivo.</li>
+        <li>Presiona el botón. En el listado de Bluetooth elige tu adaptador.</li>
+      </ol>
+      <button id="btn-conectar" class="btn-primario">Conectar ELM327</button>
+      <div id="log-obd" class="log"></div>
+    </section>
+
+    <section class="tarjeta config">
+      <h2>3 · Monitoreo en vivo</h2>
+      <div class="lecturas">
+        <div class="lectura">
+          <span class="lectura-valor" id="val-ect">--</span>
+          <span class="lectura-etiqueta">ECT temperatura (°C)</span>
+        </div>
+        <div class="lectura">
+          <span class="lectura-valor" id="val-rpm">--</span>
+          <span class="lectura-etiqueta">RPM</span>
+        </div>
+      </div>
+      <div class="acciones-central">
+        <button id="btn-iniciar" class="btn-primario" disabled>Iniciar envío cada 5 s</button>
+        <button id="btn-detener" class="btn-secundario" disabled>Detener</button>
+      </div>
+      <div id="cola-offline" class="pista"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

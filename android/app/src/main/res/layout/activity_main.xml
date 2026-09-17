@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0f172a">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EcoDrive Dispositivo OBD-II"
+            android:textColor="#22d3ee"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtEstado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Sin conexión"
+            android:textColor="#e2e8f0" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Servidor (IP del PC con el backend)"
+            android:textColor="#94a3b8"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/inputServidor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="http://192.168.x.x:3000"
+            android:textColorHint="#64748b"
+            android:textColor="#e2e8f0"
+            android:inputType="textUri"
+            android:background="#1e293b"
+            android:padding="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="API Key del vehículo"
+            android:textColor="#94a3b8"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/inputApikey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="key_..."
+            android:textColorHint="#64748b"
+            android:textColor="#e2e8f0"
+            android:background="#1e293b"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnConectar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="1 · Conectar adaptador ELM327"
+            android:backgroundTint="#22d3ee"
+            android:textColor="#0f172a" />
+
+        <Button
+            android:id="@+id/btnIniciar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="2 · Iniciar envío (5 s)"
+            android:backgroundTint="#ef4444"
+            android:textColor="#ffffff"
+            android:enabled="false" />
+
+        <Button
+            android:id="@+id/btnDetener"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Detener"
+            android:backgroundTint="#334155"
+            android:enabled="false" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtEct"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="--\nECT (°C)"
+                android:textColor="#22d3ee"
+                android:textSize="20sp"
+                android:background="#1e293b"
+                android:padding="18dp" />
+
+            <TextView
+                android:id="@+id/txtRpm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="--\nRPM"
+                android:textColor="#22d3ee"
+                android:textSize="20sp"
+                android:background="#1e293b"
+                android:padding="18dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="monospace"
+            android:textColor="#93c5fd"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>
