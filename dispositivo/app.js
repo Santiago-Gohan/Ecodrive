@@ -106,6 +106,14 @@ async function conectarObd() {
     servidorGATT = await dispositivoBT.gatt.connect();
     log('Buscando servicio OBD (0xFFE0 / REDIOTLAB)...');
 
+    // Si se apaga el carro o se pierde el Bluetooth, detener en vez de fallar cada 5 s
+    dispositivoBT.addEventListener('gattserverdisconnected', () => {
+      detener();
+      statusOff();
+      $btnConectar.disabled = false;
+      log('Adaptador desconectado (¿apagaste el vehículo?). Vuelve a conectar para seguir.');
+    });
+
     let servicio = await buscarServicio(servidorGATT);
     if (!servicio) throw new Error('No se encontró el servicio OBD-II en el adaptador');
 
@@ -188,6 +196,7 @@ async function inicializarElm327() {
   await cmd('ATE0', true);
   await cmd('ATL0', true);
   await cmd('ATS0', true);
+  await cmd('ATH0', true); // sin cabeceras: respuestas limpias en clones ELM327
   await cmd('ATSP0', true);
 }
 
@@ -230,14 +239,29 @@ async function leerRpm() {
   return parseInt(m[1], 16) / 4;
 }
 
+function lecturaPlausible(ect, rpm) {
+  return ect !== null && rpm !== null && ect >= -40 && ect <= 150 && rpm >= 0 && rpm <= 9000;
+}
+
+async function leerConReintento(leerFn) {
+  let v = await leerFn();
+  if (v === null) {
+    await sleep(300);
+    v = await leerFn(); // los clones baratos suelen fallar el primer intento
+  }
+  return v;
+}
+
 async function ciclodeLectura() {
-  const ect = await leerEct();
-  const rpm = await leerRpm();
+  const ect = await leerConReintento(leerEct);
+  const rpm = await leerConReintento(leerRpm);
   if (ect !== null) $valEct.textContent = ect.toFixed(0);
   if (rpm !== null) $valRpm.textContent = Math.round(rpm);
-  if (ect !== null) {
-    await enviarTelemetria({ vehiculo_id: vehiculoActual.id, ect, rpm, timestamp: new Date().toISOString() });
+  if (!lecturaPlausible(ect, rpm)) {
+    log(`Lectura descartada (fuera de rango o sin respuesta): ECT=${ect} RPM=${rpm}. Revisa el adaptador.`);
+    return; // no se envia basura ni se llena la cola offline
   }
+  await enviarTelemetria({ vehiculo_id: vehiculoActual.id, ect, rpm, timestamp: new Date().toISOString() });
 }
 
 async function enviarTelemetria(payload) {

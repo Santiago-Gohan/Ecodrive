@@ -80,7 +80,13 @@ router.post('/', deviceAuth, async (req, res, next) => {
     const rpmNum = Number(rpm);
 
     if (!vehiculo_id || !Number.isFinite(ectNum) || !Number.isFinite(rpmNum)) {
-      return res.status(400).json({ error: 'Payload JSON inválido' });
+      return res.status(400).json({ error: 'Payload JSON invǭlido' });
+    }
+
+    // Rangos fisicamente plausibles: descarta basura de adaptadores desincronizados
+    // ECT: -40..150 °C | RPM: 0..9000
+    if (ectNum < -40 || ectNum > 150 || rpmNum < 0 || rpmNum > 9000) {
+      return res.status(400).json({ error: 'Lectura fuera de rango plausible (ECT -40..150, RPM 0..9000)' });
     }
 
     if (vehiculo_id !== req.vehiculo.id) {
