@@ -16,7 +16,7 @@ CREATE TABLE vehiculos (
 
 CREATE TABLE telemetria_lectura (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vehiculo_id    UUID NOT NULL REFERENCES vehiculos(id),
+  vehiculo_id    UUID NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
   ect_temperatura DECIMAL(6,2) NOT NULL,
   rpm            INTEGER NOT NULL,
   fecha_registro TIMESTAMP NOT NULL DEFAULT now()
@@ -24,7 +24,7 @@ CREATE TABLE telemetria_lectura (
 
 CREATE TABLE alerta_mantenimiento (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vehiculo_id     UUID NOT NULL REFERENCES vehiculos(id),
+  vehiculo_id     UUID NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
   tipo_alerta     VARCHAR(50) NOT NULL,
   severidad       VARCHAR(20) NOT NULL,
   estado          VARCHAR(20) NOT NULL

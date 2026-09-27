@@ -30,7 +30,7 @@ router.post('/', async (req, res, next) => {
     const apiKey = `key_${crypto.randomBytes(12).toString('hex')}`;
     const { rows } = await pool.query(
       `INSERT INTO vehiculos (placa, api_key, nombre)
-       VALUES ($1, $2, $3) RETURNING id, placa, nombre, activo, fecha_creacion`,
+       VALUES ($1, $2, $3) RETURNING id, placa, api_key, nombre, activo, fecha_creacion`,
       [String(placa).trim().toUpperCase(), apiKey, nombre || null]
     );
     res.status(201).json(rows[0]);
@@ -61,15 +61,26 @@ router.put('/:id', async (req, res, next) => {
 });
 
 router.delete('/:id', async (req, res, next) => {
+  const client = await pool.connect();
   try {
-    const { rows } = await pool.query(
+    await client.query('BEGIN');
+    await client.query('DELETE FROM alerta_mantenimiento WHERE vehiculo_id = $1', [req.params.id]);
+    await client.query('DELETE FROM telemetria_lectura WHERE vehiculo_id = $1', [req.params.id]);
+    const { rows } = await client.query(
       'DELETE FROM vehiculos WHERE id = $1 RETURNING id, placa',
       [req.params.id]
     );
-    if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
-    res.json({ message: `Vehículo ${rows[0].placa} eliminado` });
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Veh��culo no encontrado' });
+    }
+    await client.query('COMMIT');
+    res.json({ message: `Veh��culo ${rows[0].placa} eliminado` });
   } catch (err) {
+    await client.query('ROLLBACK');
     next(err);
+  } finally {
+    client.release();
   }
 });
 
