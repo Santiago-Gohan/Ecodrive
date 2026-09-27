@@ -151,8 +151,8 @@ Reglas de compatibilidad:
 4. Pulsa **Probar compatibilidad** → valida que el vehículo reporta ECT y RPM
 5. Pulsa **Iniciar envío** → envía una lectura **cada 5 segundos**
 
-> La app guarda hasta **100 lecturas** en el navegador si no hay conexión, **pero no las reenvía
-> después** automáticamente (pendiente de implementar).
+> La app guarda hasta **100 lecturas** en el navegador si no hay conexión y **las reenvía
+> solas** (con su hora original) en cuanto vuelve la señal. Ideal para zonas rurales.
 
 ### Simulador por consola (alternativa)
 

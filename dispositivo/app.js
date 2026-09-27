@@ -264,6 +264,40 @@ async function ciclodeLectura() {
   await enviarTelemetria({ vehiculo_id: vehiculoActual.id, ect, rpm, timestamp: new Date().toISOString() });
 }
 
+async function postLectura(payload, apiKey) {
+  const resp = await fetch(`${API}/telemetry`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`HTTP ${resp.status}: ${err}`);
+  }
+}
+
+// Al volver la señal, envia la cola guardada (con su timestamp original) una por una.
+// Si falla a mitad de camino, lo no enviado se conserva para el proximo intento.
+async function reenviarCola(apiKey) {
+  let cola = getCola();
+  let enviadas = 0;
+  while (cola.length) {
+    try {
+      await postLectura(cola[0], apiKey);
+    } catch {
+      break;
+    }
+    cola = cola.slice(1);
+    enviadas++;
+    localStorage.setItem('ecodrive_offline', JSON.stringify(cola));
+  }
+  actualizarCola(cola.length);
+  return { enviadas, pendientes: cola.length };
+}
+
 async function enviarTelemetria(payload) {
   const config = JSON.parse(localStorage.getItem('ecodrive_dispositivo') || '{}');
   if (!config.apiKey) {
@@ -272,25 +306,16 @@ async function enviarTelemetria(payload) {
   }
 
   try {
-    const resp = await fetch(`${API}/telemetry`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': config.apiKey,
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) {
-      const err = await resp.text();
-      throw new Error(`HTTP ${resp.status}: ${err}`);
-    }
-    actualizarCola(0);
-    log(`Enviado: ECT=${payload.ect}°C RPM=${payload.rpm}`);
+    await postLectura(payload, config.apiKey);
+    const { enviadas, pendientes } = await reenviarCola(config.apiKey);
+    log(`Enviado: ECT=${payload.ect}°C RPM=${payload.rpm}` +
+      (enviadas ? ` (+${enviadas} lectura(s) sincronizada(s) de zona sin cobertura)` : '') +
+      (pendientes ? ` [quedan ${pendientes} pendientes]` : ''));
   } catch (err) {
     console.error(err);
     guardarOffline(payload);
     actualizarCola();
-    log(`Sin conexión al servidor. ${getCola().length} lectura(s) en buffer local.`);
+    log(`Sin conexión al servidor. ${getCola().length} lectura(s) en buffer local. Se enviarán solas al volver la señal.`);
   }
 }
 
