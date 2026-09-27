@@ -73,6 +73,76 @@ router.get('/resumen', async (req, res, next) => {
   }
 });
 
+// Lote offline (zonas rurales): recibe hasta 5000 lecturas guardadas sin conexion.
+// Inserta en una transaccion y genera UNA alerta si el maximo ECT la amerita.
+router.post('/lote', deviceAuth, async (req, res, next) => {
+  try {
+    const lecturas = req.body && req.body.lecturas;
+    if (!Array.isArray(lecturas) || !lecturas.length || lecturas.length > 5000) {
+      return res.status(400).json({ error: 'Envia { lecturas: [...] } con 1..5000 elementos' });
+    }
+    const validas = [];
+    for (const l of lecturas) {
+      const ectNum = Number(l && l.ect);
+      const rpmNum = Number(l && l.rpm);
+      if (!l || l.vehiculo_id !== req.vehiculo.id) {
+        return res.status(403).json({ error: 'El lote contiene lecturas de otro vehiculo' });
+      }
+      if (!Number.isFinite(ectNum) || !Number.isFinite(rpmNum) ||
+          ectNum < -40 || ectNum > 150 || rpmNum < 0 || rpmNum > 9000) {
+        return res.status(400).json({ error: 'El lote contiene lecturas fuera de rango' });
+      }
+      let ts = (l && l.timestamp) || null;
+      if (ts && isNaN(Date.parse(ts))) ts = null;
+      validas.push([req.vehiculo.id, ectNum, rpmNum, ts]);
+    }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const v of validas) {
+        await client.query(
+          `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, fecha_registro)
+           VALUES ($1, $2, $3, COALESCE($4, now()))`,
+          v
+        );
+      }
+      let alerta = null;
+      const maxEct = Math.max(...validas.map((v) => v[1]));
+      if (maxEct > config.umbralEct) {
+        const ya = await client.query(
+          `SELECT id FROM alerta_mantenimiento
+           WHERE vehiculo_id = $1 AND estado IN ('PENDIENTE', 'ACTIVA')`,
+          [req.vehiculo.id]
+        );
+        if (!ya.rows.length) {
+          const ins = await client.query(
+            `INSERT INTO alerta_mantenimiento (vehiculo_id, tipo_alerta, severidad, estado)
+             VALUES ($1, 'SOBRECALENTAMIENTO', $2, 'ACTIVA') RETURNING *`,
+            [req.vehiculo.id, config.severidadAlerta]
+          );
+          alerta = ins.rows[0];
+          const io = req.app.get('io');
+          const evento = {
+            alertaId: alerta.id, vehiculoId: req.vehiculo.id, placa: req.vehiculo.placa,
+            ect: maxEct, severidad: alerta.severidad, timestamp: alerta.fecha_generacion,
+          };
+          io.emit('alerta:nueva', evento);
+          io.to(`vehiculo:${req.vehiculo.id}`).emit('alerta:nueva', evento);
+        }
+      }
+      await client.query('COMMIT');
+      res.status(201).json({ recibidas: validas.length, alerta });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/', deviceAuth, async (req, res, next) => {
   try {
     const { vehiculo_id, ect, rpm, timestamp } = req.body || {};

@@ -279,19 +279,27 @@ async function postLectura(payload, apiKey) {
   }
 }
 
-// Al volver la señal, envia la cola guardada (con su timestamp original) una por una.
-// Si falla a mitad de camino, lo no enviado se conserva para el proximo intento.
+// Al volver la señal, envia la cola guardada en lotes de 200 (hasta 5000 lecturas
+// ≈ 7 h sin conexion). Si falla a mitad de camino, lo no enviado se conserva.
+const LOTE_MAX = 200;
+
 async function reenviarCola(apiKey) {
   let cola = getCola();
   let enviadas = 0;
   while (cola.length) {
+    const lote = cola.slice(0, LOTE_MAX);
     try {
-      await postLectura(cola[0], apiKey);
+      const resp = await fetch(`${API}/telemetry/lote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+        body: JSON.stringify({ lecturas: lote }),
+      });
+      if (!resp.ok) break;
     } catch {
-      break;
+      break; // sin conexion: se conserva el resto para el proximo intento
     }
-    cola = cola.slice(1);
-    enviadas++;
+    cola = cola.slice(lote.length);
+    enviadas += lote.length;
     localStorage.setItem('ecodrive_offline', JSON.stringify(cola));
   }
   actualizarCola(cola.length);
@@ -326,7 +334,7 @@ function getCola() {
 function guardarOffline(lectura) {
   const cola = getCola();
   cola.push(lectura);
-  const recortada = cola.slice(-100);
+  const recortada = cola.slice(-5000); // ~7 h sin conexion (1 lectura / 5 s)
   localStorage.setItem('ecodrive_offline', JSON.stringify(recortada));
 }
 
