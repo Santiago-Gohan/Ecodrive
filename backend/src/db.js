@@ -3,8 +3,8 @@ const config = require('./config');
 
 const pool = new Pool({
   connectionString: config.databaseUrl,
-  // En la nube (Neon/Render) Postgres exige SSL; en local se desactiva con PGSSL=disable
-  ssl: process.env.PGSSL === 'disable' ? false : { rejectUnauthorized: false },
+  // En la nube (Neon/Render) Postgres exige SSL -> PGSSL=require; en local va sin SSL
+  ssl: process.env.PGSSL === 'require' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {

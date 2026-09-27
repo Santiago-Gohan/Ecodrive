@@ -17,6 +17,8 @@ services:
         value: 20
       - key: DATABASE_URL
         sync: false # pegala de Neon
+      - key: PGSSL
+        value: require
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_USER
