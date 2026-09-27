@@ -28,6 +28,26 @@
         <button id="btn-guardar" class="btn-primario">Guardar</button>
       </div>
       <p class="pista">La API Key la encuentras en el Panel Admin → Flota → "Ver API Key".</p>
+      <details class="reg">
+        <summary>¿No encuentras tu vehículo? Regístralo aquí</summary>
+        <div class="grid-reg">
+          <input type="text" id="reg-placa" placeholder="Placa" maxlength="12" />
+          <input type="text" id="reg-nombre" placeholder="Alias (opcional)" maxlength="40" />
+          <select id="reg-combustible">
+            <option value="">Combustible</option>
+            <option value="gasolina">Gasolina</option>
+            <option value="diesel">Diésel</option>
+          </select>
+          <input type="number" id="reg-anio" placeholder="Año" min="1950" max="2030" />
+          <select id="reg-tipo">
+            <option value="CARRO">Carro / camioneta</option>
+            <option value="BUS">Bus</option>
+            <option value="CAMION">Camión</option>
+          </select>
+          <button id="btn-registrar" class="btn-primario full">Registrar y verificar</button>
+        </div>
+        <div id="msj-reg" class="veredicto"></div>
+      </details>
     </section>
 
     <section class="tarjeta config">
@@ -38,6 +58,20 @@
         <li>Presiona el botón. En el listado de Bluetooth elige tu adaptador.</li>
       </ol>
       <button id="btn-conectar" class="btn-primario">Conectar ELM327</button>
+      <div class="separador">o</div>
+      <label class="check-sim"><input type="checkbox" id="chk-simulacion" />
+        <span>ECU virtual (simulador sin adaptador)</span></label>
+      <div id="bloque-perfil" class="oculto">
+        <label for="select-perfil">Perfil de vehículo a simular</label>
+        <select id="select-perfil">
+          <option value="gasolina2013">Carro gasolina 2013 (compatible)</option>
+          <option value="bus2015">Bus intermunicipal diésel 2015 (compatible)</option>
+          <option value="camion2018">Camión diésel 2018 (compatible)</option>
+          <option value="gasolina2010">Carro gasolina 2010 (validado por modelo)</option>
+          <option value="diesel2008">Diésel 2008 sin OBD - sera RECHAZADO</option>
+          <option value="moto">Moto sin puerto OBD - sera RECHAZADA</option>
+        </select>
+      </div>
       <div id="log-obd" class="log"></div>
     </section>
 

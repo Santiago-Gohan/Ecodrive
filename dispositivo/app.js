@@ -78,9 +78,9 @@ function log(texto) {
   console.log('[OBD]', texto);
 }
 
-function statusOk() {
+function statusOk(textoTexto = 'Adaptador conectado') {
   $punto.style.background = '#22c55e';
-  $textoEstado.textContent = 'Adaptador conectado';
+  $textoEstado.textContent = textoTexto;
 }
 
 function statusOff() {
@@ -196,6 +196,13 @@ function limpiarBuffer() {
 }
 
 async function cmd(comando, silencioso = false) {
+  if (modoVirtual) {
+    await sleep(60);
+    const resp = virtualEcu(comando);
+    if (!silencioso) log(`${comando} -> ${resp}`);
+    return resp;
+  }
+
   limpiarBuffer();
   const bytes = new TextEncoder().encode(comando + '\r');
   try {
@@ -281,17 +288,81 @@ function actualizarCola(mostrar = getCola().length) {
 }
 
 function iniciar() {
-  if (!caracteristicaEscritura) {
-    log('Conecta primero el adaptador OBD-II.');
+  if (!modoVirtual && !caracteristicaEscritura) {
+    log('Conecta el adaptador ELM327 o activa la ECU virtual.');
     return;
   }
+
   limpiarBuffer();
   monitoreoActivo = true;
   $btnIniciar.disabled = true;
   $btnDetener.disabled = false;
-  log('Monitoreo iniciado cada 5 segundos (RN-03).');
+  log(modoVirtual
+    ? 'Monitoreo con ECU virtual iniciado cada 5 s (RN-03).'
+    : 'Monitoreo iniciado cada 5 segundos (RN-03).');
   ciclodeLectura();
   intervalo = setInterval(ciclodeLectura, 5000);
+}
+
+let modoVirtual = null;
+let vEct = 88;
+let vPaso = 0;
+
+const PERFILES = {
+  gasolina2013: { compatible: true, base: 88, pico: 108 },
+  bus2015:      { compatible: true, base: 90, pico: 109 },
+  camion2018:   { compatible: true, base: 87, pico: 107 },
+  gasolina2010: { compatible: true, base: 86, pico: 108 },
+  diesel2008:   { compatible: false, base: 0,  pico: 0 },
+  moto:         { compatible: false, base: 0,  pico: 0 },
+};
+
+function virtualEcu(comando) {
+  const perfil = PERFILES[modoVirtual] || PERFILES.gasolina2013;
+  const c = (comando || '').trim().toUpperCase();
+
+  if (c.startsWith('AT')) return 'OK';
+
+  if (c === '0100') {
+    if (!perfil.compatible) return '410000000000';
+    return '410098080000';
+  }
+
+  if (c === '0105') {
+    vPaso++;
+    let ect = perfil.base + Math.floor(Math.random() * 4);
+    if (vPaso % 10 === 0) ect = perfil.pico + Math.floor(Math.random() * 2);
+    vEct = Math.max(0, Math.min(130, ect));
+    return '4105' + (vEct + 40).toString(16).toUpperCase().padStart(2, '0');
+  }
+
+  if (c === '010C') {
+    const rpm = 1400 + Math.floor(Math.random() * 1800);
+    return '410C' + Math.round(rpm * 4).toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  return 'NODATA';
+}
+
+function perfilLabel(perfil) {
+  const sel = document.getElementById('select-perfil');
+  const opt = Array.from(sel.options).find((o) => o.value === perfil);
+  return opt ? opt.textContent : perfil;
+}
+
+function conectarVirtual() {
+  modoVirtual = document.getElementById('select-perfil').value;
+  $valEct.textContent = '--';
+  $valRpm.textContent = '--';
+  statusOk('ECU virtual: ' + perfilLabel(modoVirtual));
+  log('ECU virtual conectada. Consultando compatibilidad (PID 0100)...');
+  probarCompatibilidad();
+}
+
+function reconectarVirtual() {
+  const chk = document.getElementById('chk-simulacion');
+  if (!chk.checked) return;
+  conectarVirtual();
 }
 
 function detener() {
@@ -309,6 +380,74 @@ function sleep(ms) {
 $btnConectar.addEventListener('click', conectarObd);
 $btnIniciar.addEventListener('click', iniciar);
 $btnDetener.addEventListener('click', detener);
+
+document.getElementById('chk-simulacion').addEventListener('change', (e) => {
+  const bloque = document.getElementById('bloque-perfil');
+  if (e.target.checked) {
+    bloque.classList.remove('oculto');
+    conectarVirtual();
+  } else {
+    bloque.classList.add('oculto');
+    modoVirtual = null;
+    $btnIniciar.disabled = !caracteristicaEscritura;
+    statusOff();
+    log('ECU virtual desactivada.');
+  }
+});
+
+document.getElementById('select-perfil').addEventListener('change', reconectarVirtual);
+
+document.getElementById('btn-registrar').addEventListener('click', registrarVehiculo);
+
+async function registrarVehiculo() {
+  const $msj = document.getElementById('msj-reg');
+  const placa = document.getElementById('reg-placa').value;
+  const nombre = document.getElementById('reg-nombre').value;
+  const combustible = document.getElementById('reg-combustible').value;
+  const anio = document.getElementById('reg-anio').value;
+  const tipo = document.getElementById('reg-tipo').value;
+
+  if (!placa.trim()) {
+    $msj.textContent = 'Escribe la placa.';
+    $msj.className = 'veredicto no';
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${API}/registration`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ placa, nombre, combustible, anio, tipo }),
+    });
+    const datos = await resp.json();
+
+    if (!resp.ok || datos.compatible !== true) {
+      $msj.textContent = (datos.motivo || datos.sugerencia || datos.error || 'No compatible.')
+        + (datos.compatible ? '' : '');
+      $msj.className = 'veredicto no';
+      return;
+    }
+
+    $msj.textContent = `Compatible: ${datos.motivo}. API Key asignada: ${datos.api_key}`;
+    $msj.className = 'veredicto si';
+
+    localStorage.setItem(
+      'ecodrive_dispositivo',
+      JSON.stringify({
+        vehiculoId: datos.vehiculo.id,
+        placa,
+        apiKey: datos.api_key,
+      })
+    );
+    log(`Vehículo ${placa} registrado y guardado (compatible).`);
+    $selectVehiculo.innerHTML = '<option value="">Cargando…</option>';
+    cargarVehiculos();
+  } catch (err) {
+    $msj.textContent = 'No se pudo registrar. ¿El servidor está encendido?';
+    $msj.className = 'veredicto no';
+    log('Error al registrar:', err);
+  }
+}
 
 cargarVehiculos();
 actualizarCola();

@@ -9,6 +9,7 @@ const telemetryRoute = require('./routes/telemetry');
 const authRoute = require('./routes/auth');
 const vehiculosRoute = require('./routes/vehiculos');
 const historialRoute = require('./routes/historial');
+const registrationRoute = require('./routes/registration');
 
 const app = express();
 const server = http.createServer(app);
@@ -29,6 +30,7 @@ app.use('/api/v1/telemetry', telemetryRoute);
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/vehiculos', vehiculosRoute);
 app.use('/api/v1/historial', historialRoute);
+app.use('/api/v1/registration', registrationRoute);
 
 app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 

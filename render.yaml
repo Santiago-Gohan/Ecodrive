@@ -1,0 +1,29 @@
+# EcoDrive en Render (URL fija, sin tunel)
+# La base de datos va en Neon (gratis): https://neon.tech
+# 1) Crea el proyecto Neon, copia la DATABASE_URL
+# 2) En Render: New + -> Blueprint -> conecta este repo
+# 3) Pon las variables de entorno que pide abajo y despliega
+services:
+  - type: web
+    name: ecodrive-backend
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        sync: false # pegala de Neon
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASS
+        generateValue: true # GUARDA la clave generada: es tu acceso admin
+      - key: THRESHOLD_ECT
+        value: '105'
+      - key: SEVERIDAD_ALERTA
+        value: ALTA

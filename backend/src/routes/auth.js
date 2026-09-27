@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 
 const USUARIO_DEMO = {
-  username: 'admin',
-  password: 'admin123',
+  username: process.env.ADMIN_USER || 'admin',
+  password: process.env.ADMIN_PASS || 'admin123',
   role: 'admin',
 };
 

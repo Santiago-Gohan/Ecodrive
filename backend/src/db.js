@@ -1,7 +1,11 @@
 const { Pool } = require('pg');
 const config = require('./config');
 
-const pool = new Pool({ connectionString: config.databaseUrl });
+const pool = new Pool({
+  connectionString: config.databaseUrl,
+  // En la nube (Neon/Render) Postgres exige SSL; en local se desactiva con PGSSL=disable
+  ssl: process.env.PGSSL === 'disable' ? false : { rejectUnauthorized: false },
+});
 
 pool.on('error', (err) => {
   console.error('Error inesperado en el pool de PostgreSQL:', err.message);

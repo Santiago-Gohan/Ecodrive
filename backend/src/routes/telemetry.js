@@ -2,9 +2,10 @@ const router = require('express').Router();
 const pool = require('../db');
 const config = require('../config');
 const deviceAuth = require('../middleware/deviceAuth');
+const adminAuth = require('../middleware/adminAuth');
 const { registraLectura } = require('../services/alertService');
 
-router.post('/demo', async (req, res, next) => {
+router.post('/demo', adminAuth, async (req, res, next) => {
   try {
     const { placa, ect, rpm } = req.body || {};
     const ectNum = Number(ect);
