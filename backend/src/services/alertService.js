@@ -1,12 +1,15 @@
 const pool = require('../db');
 const config = require('../config');
 
-async function registraLectura({ vehiculo, ect, rpm, nivelCombustible, timestamp }) {
+async function registraLectura({ vehiculo, ect, rpm, nivelCombustible, lat, lng, timestamp }) {
+  const latOk = Number.isFinite(Number(lat)) && Number(lat) >= -90 && Number(lat) <= 90;
+  const lngOk = Number.isFinite(Number(lng)) && Number(lng) >= -180 && Number(lng) <= 180;
   const lectura = await pool.query(
-    `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, nivel_combustible, fecha_registro)
-     VALUES ($1, $2, $3, $4, COALESCE($5, now()))
+    `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, nivel_combustible, lat, lng, fecha_registro)
+     VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, now()))
      RETURNING *`,
-    [vehiculo.id, ect, rpm, (Number(nivelCombustible) >= 0 && Number(nivelCombustible) <= 100) ? Number(nivelCombustible) : null, timestamp || null]
+    [vehiculo.id, ect, rpm, (Number(nivelCombustible) >= 0 && Number(nivelCombustible) <= 100) ? Number(nivelCombustible) : null,
+     latOk ? Number(lat) : null, lngOk ? Number(lng) : null, timestamp || null]
   );
 
   const excede = Number(ect) > config.umbralEct;

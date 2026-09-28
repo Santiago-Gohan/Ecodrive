@@ -26,6 +26,8 @@ CREATE TABLE telemetria_lectura (
   ect_temperatura DECIMAL(6,2) NOT NULL,
   rpm            INTEGER NOT NULL,
   nivel_combustible DECIMAL(5,2),
+  lat            DOUBLE PRECISION,
+  lng            DOUBLE PRECISION,
   fecha_registro TIMESTAMP NOT NULL DEFAULT now()
 );
 

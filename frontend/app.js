@@ -97,9 +97,11 @@ function mostrarDashboard() {
   $login.classList.add('oculto');
   $header.classList.remove('oculto');
   cambiarVista('dashboard');
+  inicializarMapa();
   cargarFlota();
   iniciarPollingGrafica();
   setTimeout(dibujarGrafica, 80);
+  setTimeout(() => mapaEco && mapaEco.invalidateSize(), 150);
 }
 
 function cambiarVista(nombre) {
@@ -111,6 +113,10 @@ function cambiarVista(nombre) {
   });
   if (nombre === 'flota') cargarVehiculos();
   if (nombre === 'historial') cargarHistorial();
+  if (nombre === 'dashboard' && mapaEco) {
+    setTimeout(() => mapaEco.invalidateSize(), 60);
+    cargarFlota();
+  }
 }
 
 async function fetchApi(url, opciones = {}) {
@@ -133,6 +139,7 @@ async function cargarFlota() {
     const filas = await resp.json();
     renderFlota(filas);
     registrarPuntoGraficas(filas);
+    actualizarMarcadores(filas);
   } catch (err) {
     console.error('Error al cargar flota:', err);
   }
@@ -241,6 +248,62 @@ function renderProximosMantenimientos(filas) {
       </div>`;
     })
     .join('');
+}
+
+/* ---------- Mapa en vivo (Leaflet) ---------- */
+let mapaEco = null;
+let capaMarcadores = null;
+let primeraCargaMapa = true;
+
+function inicializarMapa() {
+  const cont = document.getElementById('mapa-eco');
+  if (!cont || mapaEco) return;
+  mapaEco = L.map('mapa-eco', { zoomControl: true }).setView([4.711, -74.072], 5); // Colombia
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap',
+  }).addTo(mapaEco);
+  capaMarcadores = L.layerGroup().addTo(mapaEco);
+}
+
+function colorMarcador(ect) {
+  if (ect === null) return '#64748b';
+  if (ect > 105) return '#ef4444';
+  if (ect >= 95) return '#f59e0b';
+  return '#22d3ee';
+}
+
+function actualizarMarcadores(filas) {
+  if (!mapaEco || !capaMarcadores) return;
+  capaMarcadores.clearLayers();
+  const conPosicion = filas.filter((f) => f.lat !== null && f.lng !== null);
+  if (!conPosicion.length) {
+    if (primeraCargaMapa) mapaEco.setView([4.711, -74.072], 5);
+    primeraCargaMapa = false;
+    return;
+  }
+  conPosicion.forEach((f) => {
+    const ect = f.ect === null ? null : Number(f.ect);
+    const icono = L.divIcon({
+      className: '',
+      html: `<div class="marcador-flota" style="--mcolor:${colorMarcador(ect)}">${String(f.placa).slice(0, 2).toUpperCase()}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -34],
+    });
+    const nivel = f.nivel_combustible === null ? '--' : Math.round(Number(f.nivel_combustible)) + '%';
+    const html = `<strong>${f.placa}</strong> · ${f.nombre || 'sin nombre'}<br>
+      🌡️ ECT: <b>${ect === null ? '--' : ect + ' °C'}</b> ·
+      ⛽ <b>${nivel}</b><br>
+      🔄 RPM: ${f.rpm === null ? '--' : f.rpm}<br>
+      <small>⏱️ ${f.ultima_lectura ? new Date(f.ultima_lectura).toLocaleTimeString('es-CO') : 'sin lecturas'}</small>`;
+    L.marker([Number(f.lat), Number(f.lng)], { icon: icono }).bindPopup(html).addTo(capaMarcadores);
+  });
+  if (primeraCargaMapa) {
+    const limites = L.latLngBounds(conPosicion.map((f) => [Number(f.lat), Number(f.lng)]));
+    mapaEco.fitBounds(limites.pad(0.2), { maxZoom: 14 });
+    primeraCargaMapa = false;
+  }
 }
 
 /* ---------- Gráfica en vivo de ECT ---------- */

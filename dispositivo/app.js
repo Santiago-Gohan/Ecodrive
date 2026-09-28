@@ -25,8 +25,42 @@ let caracteristicaEscritura = null;
 let monitoreoActivo = false;
 let bufferRespuesta = '';
 let intervalo = null;
+let posicionGps = null;      // { lat, lng, accuracy }
+let watchGps = null;         // id del watchPosition
 
 const configLocal = JSON.parse(localStorage.getItem('ecodrive_dispositivo') || '{}');
+
+/* ---------- GPS del celular ---------- */
+function iniciarGps() {
+  if (!navigator.geolocation) {
+    log('Este navegador no ofrece GPS. Los puntos se enviarán sin ubicación.');
+    return;
+  }
+  watchGps = navigator.geolocation.watchPosition(
+    (pos) => {
+      posicionGps = {
+        lat: Number(pos.coords.latitude.toFixed(6)),
+        lng: Number(pos.coords.longitude.toFixed(6)),
+        accuracy: Math.round(pos.coords.accuracy),
+      };
+      const gpsEl = document.getElementById('gps-estado');
+      if (gpsEl) gpsEl.textContent = `📍 ${posicionGps.lat}, ${posicionGps.lng} (±${posicionGps.accuracy} m)`;
+    },
+    (err) => {
+      console.error('GPS:', err.code, err.message);
+      posicionGps = null;
+      log('Sin permiso/senal de GPS. Se envía sin ubicación (prueba y mapa sin punto).');
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+}
+
+function detenerGps() {
+  if (watchGps !== null) {
+    navigator.geolocation.clearWatch(watchGps);
+    watchGps = null;
+  }
+}
 
 async function cargarVehiculos() {
   try {
@@ -276,6 +310,8 @@ async function ciclodeLectura() {
     ect,
     rpm,
     nivel_combustible: nivel,
+    lat: posicionGps ? posicionGps.lat : null,
+    lng: posicionGps ? posicionGps.lng : null,
     timestamp: new Date().toISOString(),
   });
 }
@@ -397,6 +433,7 @@ function iniciar() {
 
   limpiarBuffer();
   monitoreoActivo = true;
+  iniciarGps();
   $btnIniciar.disabled = true;
   $btnDetener.disabled = false;
   log(modoVirtual
@@ -490,6 +527,7 @@ function reconectarVirtual() {
 function detener() {
   monitoreoActivo = false;
   clearInterval(intervalo);
+  detenerGps();
   $btnIniciar.disabled = false;
   $btnDetener.disabled = true;
   log('Envío detenido.');

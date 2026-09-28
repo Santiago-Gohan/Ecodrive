@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EcoDrive - Panel Administrador</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
   <div id="banner-alerta" class="banner-alerta oculto">
@@ -75,6 +77,14 @@
         <span class="kpi-ico ic">🌡️</span>
         <div><strong id="kpi-ect">--</strong><small>ECT máx. flota</small></div>
       </div>
+    </section>
+
+    <section class="tarjeta mapa">
+      <div class="tarjeta-cabecera">
+        <h2>🗺️ Flota en tiempo real</h2>
+        <span class="pista-grafica">Posición GPS desde el celular del dispositivo · se actualiza cada 5 s</span>
+      </div>
+      <div id="mapa-eco"></div>
     </section>
 
     <section class="tarjeta grafica">

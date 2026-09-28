@@ -65,6 +65,12 @@ router.get('/resumen', async (req, res, next) => {
          (SELECT t.nivel_combustible FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id AND t.nivel_combustible IS NOT NULL
           ORDER BY t.fecha_registro DESC LIMIT 1) AS nivel_combustible,
+         (SELECT t.lat FROM telemetria_lectura t
+          WHERE t.vehiculo_id = v.id AND t.lat IS NOT NULL AND t.lng IS NOT NULL
+          ORDER BY t.fecha_registro DESC LIMIT 1) AS lat,
+         (SELECT t.lng FROM telemetria_lectura t
+          WHERE t.vehiculo_id = v.id AND t.lat IS NOT NULL AND t.lng IS NOT NULL
+          ORDER BY t.fecha_registro DESC LIMIT 1) AS lng,
          (SELECT t.fecha_registro FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id ORDER BY t.fecha_registro DESC LIMIT 1) AS ultima_lectura,
          (SELECT COUNT(*) FROM alerta_mantenimiento a
@@ -97,6 +103,8 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
       const nivelNum = (l && (l.nivel_combustible === undefined || l.nivel_combustible === null))
         ? null
         : Number(l && l.nivel_combustible);
+      const latNum = (l && l.lat === undefined) || !l ? null : Number(l && l.lat);
+      const lngNum = (l && l.lng === undefined) || !l ? null : Number(l && l.lng);
       if (!l || l.vehiculo_id !== req.vehiculo.id) {
         return res.status(403).json({ error: 'El lote contiene lecturas de otro vehiculo' });
       }
@@ -107,17 +115,23 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
       if (nivelNum !== null && (nivelNum < 0 || nivelNum > 100)) {
         return res.status(400).json({ error: 'El lote contiene niveles de combustible fuera de rango' });
       }
+      if (latNum !== null && !Number.isFinite(latNum) || (latNum !== null && (latNum < -90 || latNum > 90))) {
+        return res.status(400).json({ error: 'El lote contiene latitudes fuera de rango (-90..90)' });
+      }
+      if (lngNum !== null && !Number.isFinite(lngNum) || (lngNum !== null && (lngNum < -180 || lngNum > 180))) {
+        return res.status(400).json({ error: 'El lote contiene longitudes fuera de rango (-180..180)' });
+      }
       let ts = (l && l.timestamp) || null;
       if (ts && isNaN(Date.parse(ts))) ts = null;
-      validas.push([req.vehiculo.id, ectNum, rpmNum, nivelNum, ts]);
+      validas.push([req.vehiculo.id, ectNum, rpmNum, nivelNum, latNum, lngNum, ts]);
     }
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       for (const v of validas) {
         await client.query(
-          `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, nivel_combustible, fecha_registro)
-           VALUES ($1, $2, $3, $4, COALESCE($5, now()))`,
+          `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, nivel_combustible, lat, lng, fecha_registro)
+           VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, now()))`,
           v
         );
       }
@@ -160,12 +174,14 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
 
 router.post('/', deviceAuth, async (req, res, next) => {
   try {
-    const { vehiculo_id, ect, rpm, nivel_combustible, timestamp } = req.body || {};
+    const { vehiculo_id, ect, rpm, nivel_combustible, lat, lng, timestamp } = req.body || {};
     const ectNum = Number(ect);
     const rpmNum = Number(rpm);
     const nivelNum = nivel_combustible === undefined || nivel_combustible === null
       ? null
       : Number(nivel_combustible);
+    const latNum = lat === undefined || lat === null ? null : Number(lat);
+    const lngNum = lng === undefined || lng === null ? null : Number(lng);
 
     if (!vehiculo_id || !Number.isFinite(ectNum) || !Number.isFinite(rpmNum)) {
       return res.status(400).json({ error: 'Payload JSON inválido' });
@@ -179,6 +195,12 @@ router.post('/', deviceAuth, async (req, res, next) => {
     if (nivelNum !== null && (nivelNum < 0 || nivelNum > 100)) {
       return res.status(400).json({ error: 'Nivel de combustible fuera de rango (0..100 %)' });
     }
+    if (latNum !== null && (latNum < -90 || latNum > 90)) {
+      return res.status(400).json({ error: 'Latitud fuera de rango (-90..90)' });
+    }
+    if (lngNum !== null && (lngNum < -180 || lngNum > 180)) {
+      return res.status(400).json({ error: 'Longitud fuera de rango (-180..180)' });
+    }
 
     if (vehiculo_id !== req.vehiculo.id) {
       return res
@@ -191,6 +213,8 @@ router.post('/', deviceAuth, async (req, res, next) => {
       ect: ectNum,
       rpm: rpmNum,
       nivelCombustible: nivelNum,
+      lat: latNum,
+      lng: lngNum,
       timestamp,
     });
 
