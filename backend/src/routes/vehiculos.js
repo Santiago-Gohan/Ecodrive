@@ -9,7 +9,8 @@ router.get('/', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT
-         v.id, v.placa, v.nombre, v.activo, v.fecha_creacion,
+         v.id, v.placa, v.nombre, v.anio, v.combustible, v.tipo_vehiculo,
+         v.activo, v.fecha_creacion,
          (SELECT COUNT(*) FROM telemetria_lectura t WHERE t.vehiculo_id = v.id) AS total_lecturas,
          (SELECT COUNT(*) FROM alerta_mantenimiento a
           WHERE a.vehiculo_id = v.id AND a.estado IN ('PENDIENTE', 'ACTIVA')) AS alertas_activas
@@ -30,7 +31,8 @@ router.post('/', async (req, res, next) => {
     const apiKey = `key_${crypto.randomBytes(12).toString('hex')}`;
     const { rows } = await pool.query(
       `INSERT INTO vehiculos (placa, api_key, nombre)
-       VALUES ($1, $2, $3) RETURNING id, placa, api_key, nombre, activo, fecha_creacion`,
+       VALUES ($1, $2, $3)
+       RETURNING id, placa, api_key, nombre, anio, combustible, tipo_vehiculo, activo, fecha_creacion`,
       [String(placa).trim().toUpperCase(), apiKey, nombre || null]
     );
     res.status(201).json(rows[0]);

@@ -40,7 +40,7 @@ app.use('/apk', express.static(path.join(__dirname, '../public')));
 
 app.use((err, req, res, next) => {
   console.error('Error no controlado:', err.message);
-  res.status(500).json({ error: 'Error interno del servidor' });
+  res.status(500).json({ error: 'Error interno del servidor', detalle: err.message });
 });
 
 io.on('connection', (socket) => {

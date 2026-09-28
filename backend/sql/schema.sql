@@ -10,6 +10,9 @@ CREATE TABLE vehiculos (
   placa         VARCHAR(20) NOT NULL UNIQUE,
   api_key       VARCHAR(64) NOT NULL UNIQUE,
   nombre        VARCHAR(100),
+  anio          INTEGER,
+  combustible   VARCHAR(20),
+  tipo_vehiculo VARCHAR(20) NOT NULL DEFAULT 'CARRO',
   activo        BOOLEAN NOT NULL DEFAULT TRUE,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT now()
 );
@@ -33,7 +36,7 @@ CREATE TABLE alerta_mantenimiento (
 );
 
 -- Datos semilla (vehículos de demostración)
-INSERT INTO vehiculos (placa, api_key, nombre) VALUES
-  ('ABC-123', 'key_abc123_secret', 'Camioneta Toyota Hilux'),
-  ('XYZ-789', 'key_xyz789_secret', 'Bus Mercedes Benz')
+INSERT INTO vehiculos (placa, api_key, nombre, anio, combustible, tipo_vehiculo) VALUES
+  ('ABC-123', 'key_abc123_secret', 'Camioneta Toyota Hilux', 2018, 'DIESEL', 'CAMION'),
+  ('XYZ-789', 'key_xyz789_secret', 'Bus Mercedes Benz', 2015, 'DIESEL', 'BUS')
 ON CONFLICT (placa) DO NOTHING;
