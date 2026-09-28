@@ -13,3 +13,4 @@ captures/
 android/app/build/
 *.apk
 *.aab
+.gradle/
