@@ -34,7 +34,8 @@ app.use('/api/v1/registration', registrationRoute);
 
 app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 
-app.use(express.static(path.join(__dirname, '../../frontend')));
+app.use(express.static(path.join(__dirname, '../../pagina-web')));
+app.use('/panel', express.static(path.join(__dirname, '../../frontend')));
 app.use('/dispositivo', express.static(path.join(__dirname, '../../dispositivo')));
 app.use('/apk', express.static(path.join(__dirname, '../public')));
 

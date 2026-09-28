@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="EcoDrive - Plataforma de monitoreo y mantenimiento predictivo para flotas vehiculares. Telemetría en tiempo real, mapa GPS, alertas y planes de mantenimiento." />
+  <title>EcoDrive · Mantenimiento predictivo para tu flota</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="#inicio" class="logo">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M5 11h14a3 3 0 0 1 3 3v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-3a3 3 0 0 1 3-3z"/>
+          <circle cx="7" cy="16" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="17" cy="16" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+        <span>EcoDrive<small>Fleet Intelligence</small></span>
+      </a>
+      <nav class="links">
+        <a href="#caracteristicas">Características</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#precios">Precios</a>
+        <a href="#preguntas">Preguntas</a>
+      </nav>
+      <div class="acciones">
+        <a href="/panel" class="btn-outline">Entrar al panel</a>
+        <a href="/apk/EcoDrive-v1.0.apk" class="btn-cta">Descargar app</a>
+      </div>
+      <button class="menu-movil" aria-label="Menú">☰</button>
+    </div>
+    <div class="menu-desplegable" id="menu-movil">
+      <a href="#caracteristicas">Características</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#precios">Precios</a>
+      <a href="#preguntas">Preguntas</a>
+      <a href="/panel" class="btn-outline">Entrar al panel</a>
+      <a href="/apk/EcoDrive-v1.0.apk" class="btn-cta">Descargar app</a>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <section class="hero">
+      <div class="hero-texto">
+        <span class="chip">🚛 Telemetría + Mantenimiento predictivo</span>
+        <h1>Hecho para flotas. <br /><span class="degradado">Probado en el campo.</span></h1>
+        <p class="subtitulo">
+          Conecta el motor de tus vehículos, mira tu flota en un mapa en vivo y deja que EcoDrive
+          te avise <strong>antes</strong> de que un sobrecalentamiento o un mantenimiento vencido
+          se convierta en una parada costosa.
+        </p>
+        <div class="hero-cta">
+          <a href="/panel" class="btn-cta grande">Ver demo en vivo →</a>
+          <a href="/apk/EcoDrive-v1.0.apk" class="btn-outline grande">📱 Descargar app Android</a>
+        </div>
+        <ul class="hero-mini">
+          <li>⚡ Sin instalación compleja: adaptador ELM327 + tu celular</li>
+          <li>📡 Funciona incluso sin cobertura (buffer offline)</li>
+          <li>💸 Planes por vehículo, sin pagar por lo que no usas</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual">
+        <div class="mock-tarjeta mock-map">
+          <div class="mock-cab">🗺️ Flota en tiempo real</div>
+          <div class="mock-leyenda">
+            <span><i class="dot celeste"></i>Normal</span>
+            <span><i class="dot naranja"></i>Atención</span>
+            <span><i class="dot rojo"></i>Crítico</span>
+          </div>
+          <div class="mock-grid" aria-hidden="true"></div>
+          <div class="pin p1"></div>
+          <div class="pin p2"></div>
+          <div class="pin p3"></div>
+          <div class="pin p4"></div>
+        </div>
+        <div class="mock-tarjeta mock-tel">
+          <div class="mock-cab">🌡️ ABC-123 · en marcha</div>
+          <div class="medidor-lista">
+            <div><span>ECT</span><b>96 °C</b><i class="bar naranja" style="width:64%"></i></div>
+            <div><span>RPM</span><b>2 450</b><i class="bar celeste" style="width:42%"></i></div>
+            <div><span>⛽</span><b>57 %</b><i class="bar verde" style="width:57%"></i></div>
+          </div>
+          <div class="mock-alerta">⚠️ Próximo servicio: 12 días</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><strong>100 %</strong><span>visibilidad del motor en tiempo real</span></div>
+      <div class="stat"><strong>24/7</strong><span>alertas automáticas de temperatura y mantenimiento</span></div>
+      <div class="stat"><strong>5 s</strong><span>entre cada lectura que envía el dispositivo</span></div>
+      <div class="stat"><strong>5 000</strong><span>lecturas guardadas sin cobertura y reenviadas</span></div>
+    </section>
+
+    <section id="caracteristicas" class="seccion">
+      <div class="seccion-cabecera">
+        <h2>Una sola plataforma para <span class="degradado">operar tu flota</span></h2>
+        <p>Todo lo que necesitas para reducir paradas imprevistas, proteger los motores y planear el mantenimiento.</p>
+      </div>
+      <div class="grid-caract">
+        <article class="tarjeta-feat">
+          <div class="ico">📍</div>
+          <h3>Mapa GPS en vivo</h3>
+          <p>Cada vehículo aparece en el mapa con su temperatura actual. Los colores te dicen al instante quién va bien y quién necesita atención.</p>
+        </article>
+        <article class="tarjeta-feat">
+          <div class="ico">🌡️</div>
+          <h3>Telemetría del motor</h3>
+          <p>ECT (temperatura de refrigerante), RPM y nivel de combustible en tiempo real, con gráficas de tendencia para detectar problemas a tiempo.</p>
+        </article>
+        <article class="tarjeta-feat">
+          <div class="ico">🛠️</div>
+          <h3>Mantenimiento predictivo</h3>
+          <p>Registra el último servicio y el plan; EcoDrive calcula el próximo y te avisa con anticipación. Di adiós a los mantenimientos olvidados.</p>
+        </article>
+        <article class="tarjeta-feat">
+          <div class="ico">🚨</div>
+          <h3>Alertas automáticas</h3>
+          <p>Si el motor supera los 105 °C se genera una alerta al instante, con notificación en el panel y en tiempo real para actuar rápido.</p>
+        </article>
+        <article class="tarjeta-feat">
+          <div class="ico">📡</div>
+          <h3>Funciona sin red</h3>
+          <p>En zonas rurales el celular guarda hasta 5 000 lecturas y las sincroniza solas cuando vuelve la señal. Tu historial nunca se pierde.</p>
+        </article>
+        <article class="tarjeta-feat">
+          <div class="ico">📱</div>
+          <h3>App en el celular del conductor</h3>
+          <p>Sin cajas ni instalaciones. El conductor conecta un adaptador Bluetooth a la toma OBD-II y la app hace el resto.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="seccion alterna">
+      <div class="seccion-cabecera">
+        <h2>Puesto en marcha en <span class="degradado">menos de 15 minutos</span></h2>
+      </div>
+      <div class="pasos">
+        <div class="paso"><b>1</b><h3>Conecta el adaptador</h3><p>Un ELM327 Bluetooth en la toma OBD-II de cada vehículo (~COP 40 000).</p></div>
+        <div class="paso"><b>2</b><h3>Descarga la app</h3><p>Instala EcoDrive Dispositivo en el celular y vincúlalo con el vehículo con su API Key.</p></div>
+        <div class="paso"><b>3</b><h3>Mira tu flota</h3><p>Entra al panel desde cualquier navegador: mapa, temperatura, combustible y mantenimiento en vivo.</p></div>
+      </div>
+    </section>
+
+    <section id="precios" class="seccion">
+      <div class="seccion-cabecera">
+        <h2>Precios simples, <span class="degradado">por vehículo</span></h2>
+        <p>El hardware lo pones tú una sola vez. Nosotros cobramos la plataforma.</p>
+      </div>
+      <div class="planes">
+        <article class="plan">
+          <h3>Básico</h3>
+          <p class="precio"><b>CO</b> <big>$29 900</big><span>/vehículo/mes</span></p>
+          <ul>
+            <li>✔ Hasta 5 vehículos</li>
+            <li>✔ Telemetría ECT, RPM y combustible</li>
+            <li>✔ Alertas de sobrecalentamiento</li>
+            <li>✔ Historial de lectura (30 días)</li>
+          </ul>
+          <a href="/panel" class="btn-outline plan-btn">Empezar</a>
+        </article>
+        <article class="plan destacado">
+          <span class="recomendado">Más elegido</span>
+          <h3>PyME</h3>
+          <p class="precio"><b>CO</b> <big>$59 900</big><span>/vehículo/mes</span></p>
+          <ul>
+            <li>✔ Hasta 20 vehículos</li>
+            <li>✔ Todo lo del plan Básico</li>
+            <li>✔ Mapa GPS en vivo</li>
+            <li>✔ Plan de mantenimiento + recordatorios</li>
+            <li>✔ Historial ilimitado</li>
+          </ul>
+          <a href="/panel" class="btn-cta plan-btn">Solicitar demo</a>
+        </article>
+        <article class="plan">
+          <h3>Flota</h3>
+          <p class="precio"><b>CO</b> <big>$99 900</big><span>/vehículo/mes</span></p>
+          <ul>
+            <li>✔ Vehículos ilimitados</li>
+            <li>✔ Todo lo del plan PyME</li>
+            <li>✔ Reportes exportables</li>
+            <li>✔ Soporte prioritario</li>
+            <li>✔ API para tu sistema interno</li>
+          </ul>
+          <a href="/panel" class="btn-outline plan-btn">Contactar</a>
+        </article>
+      </div>
+      <p class="nota-precios">Los valores son de referencia para tu demostración del proyecto. Ajusta las tarifas según tu mercado.</p>
+    </section>
+
+    <section id="preguntas" class="seccion alterna">
+      <div class="seccion-cabecera">
+        <h2>Preguntas <span class="degradado">frecuentes</span></h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>¿Qué hardware necesito?</summary>
+          <p>Un adaptador <b>ELM327 versión 1.5 + Bluetooth</b> (se consigue en mercado libre y tiendas locales) y un celular Android con la app EcoDrive Dispositivo. No se instalan cables ni sensores complejos.</p>
+        </details>
+        <details>
+          <summary>¿Sirve para cualquier vehículo?</summary>
+          <p>Funciona con vehículos de gasolina y diésel fabricados desde el año 2000 aproximadamente y que tengan toma OBD-II (obligatoria en Colombia). Los que no tengan toma (motos, eléctricos) se pueden registrar en la plataforma pero no envían telemetría.</p>
+        </details>
+        <details>
+          <summary>¿Qué pasa si el conductor entra a una zona sin señal?</summary>
+          <p>La app guarda automáticamente cada lectura (hasta 5 000) y las reenvía cuando vuelve la cobertura. No pierdes el historial.</p>
+        </details>
+        <details>
+          <summary>¿Puedo probar antes de comprar?</summary>
+          <p>Sí. Entra al panel con las credenciales de demostración y usa la app con el modo virtual para ver todo en funcionamiento sin ningún hardware.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="cta-final">
+      <h2>¿Listo para ver tu flota trabajando?</h2>
+      <p>Entra a la demo, descarga la app y conéctate a un vehículo. Todo en vivo, sin instalaciones.</p>
+      <div class="hero-cta">
+        <a href="/panel" class="btn-cta grande">Ver demo en vivo →</a>
+        <a href="/apk/EcoDrive-v1.0.apk" class="btn-outline grande">📱 Descargar app</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <strong>EcoDrive</strong>
+        <p>Plataforma de monitoreo y mantenimiento predictivo para flotas. Proyecto de emprendimiento SENA ADSO.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Producto</h4>
+        <a href="/panel">Panel administrador</a>
+        <a href="/dispositivo/">App dispositivo</a>
+        <a href="/apk/EcoDrive-v1.0.apk">Descargar APK</a>
+      </div>
+      <div class="footer-col">
+        <h4>Secciones</h4>
+        <a href="#caracteristicas">Características</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#precios">Precios</a>
+        <a href="#preguntas">Preguntas</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <p id="contacto-correo"><a href="mailto:hola@ecodrive.app">hola@ecodrive.app</a></p>
+        <p id="contacto-ventas">(+57) 300 000 00 00 <small>(ejemplo)</small></p>
+      </div>
+    </div>
+    <p class="footer-final">© 2026 EcoDrive · Hecho con 💙 en Colombia · SENA ADSO</p>
+  </footer>
+
+  <script>
+    const btn = document.querySelector('.menu-movil');
+    const menu = document.getElementById('menu-movil');
+    btn.addEventListener('click', () => menu.classList.toggle('abierto'));
+
+    const observar = new IntersectionObserver((entradas) => {
+      entradas.forEach((e) => {
+        if (e.isIntersecting) e.target.style.opacity = '1';
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.tarjeta-feat,.paso,.plan').forEach((el) => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observar.observe(el);
+    });
+  </script>
+</body>
+</html>
