@@ -58,6 +58,21 @@ header h1 span {
   margin-left: 10px;
 }
 
+.link-admin {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--acento);
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 1px dashed var(--borde);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.link-admin:hover {
+  border-color: var(--acento);
+}
+
 main {
   padding: 16px 24px 40px;
   max-width: 680px;

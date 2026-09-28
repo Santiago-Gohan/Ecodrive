@@ -311,6 +311,12 @@ input:focus {
   font-weight: 800;
 }
 
+a.nav-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 .vista {
   display: block;
 }

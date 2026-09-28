@@ -397,9 +397,10 @@ document.getElementById('banner-cerrar').addEventListener('click', ocultarAlerta
 document.getElementById('btn-simular').addEventListener('click', simularAlerta);
 document.getElementById('btn-crear').addEventListener('click', crearVehiculo);
 document.getElementById('btn-cargar-alertas').addEventListener('click', cargarAlertas);
-document.querySelectorAll('.nav-btn').forEach((btn) =>
-  btn.addEventListener('click', () => cambiarVista(btn.dataset.vista))
-);
+document.querySelectorAll('.nav-btn').forEach((btn) => {
+  if (!btn.dataset.vista) return; // enlaces externos (ej. /dispositivo/)
+  btn.addEventListener('click', () => cambiarVista(btn.dataset.vista));
+});
 
 conectarSocket();
 
