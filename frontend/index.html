@@ -87,6 +87,14 @@
 
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
+        <h2>🛠️ Próximos mantenimientos</h2>
+        <span class="pista-grafica">Vencidos y siguientes 15 días</span>
+      </div>
+      <div id="lista-mantenimientos" class="mants"><p class="vacio-ligero">Cargando…</p></div>
+    </section>
+
+    <section class="tarjeta">
+      <div class="tarjeta-cabecera">
         <h2>Flota vehicular - estado en tiempo real</h2>
         <div class="cabecera-derecha">
           <button id="btn-simular" class="btn-simular">Simular alerta (ECT 109°C)</button>
@@ -101,13 +109,14 @@
             <th>Vehículo</th>
             <th>Placa</th>
             <th>ECT (°C)</th>
+            <th>Combustible</th>
             <th>RPM</th>
             <th>Última lectura</th>
             <th>Alertas</th>
           </tr>
         </thead>
         <tbody id="cuerpo-flota">
-          <tr><td colspan="6" class="vacio">Cargando flota...</td></tr>
+          <tr><td colspan="7" class="vacio">Cargando flota...</td></tr>
         </tbody>
       </table>
     </section>
@@ -148,11 +157,13 @@
               <th>Lecturas</th>
               <th>Alertas</th>
               <th>Estado</th>
+              <th>Último mnt</th>
+              <th>Próximo mnt</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="cuerpo-vehiculos">
-            <tr><td colspan="10" class="vacio">Cargando...</td></tr>
+            <tr><td colspan="12" class="vacio">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -207,11 +218,12 @@
               <th>Placa</th>
               <th>ECT (°C)</th>
               <th>RPM</th>
+              <th>Combustible</th>
               <th>Fecha</th>
             </tr>
           </thead>
           <tbody id="cuerpo-telemetria">
-            <tr><td colspan="4" class="vacio">Cargando...</td></tr>
+            <tr><td colspan="5" class="vacio">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -222,5 +234,25 @@
   <script src="app.js"></script>
   <footer id="pie">EcoDrive · Mantenimiento predictivo para tu flota · SENA ADSO</footer>
   <div id="toasts" class="toasts"></div>
+
+  <div id="modal-mant" class="modal oculto">
+    <div class="modal-caja">
+      <div class="modal-cabecera">
+        <h3>Plan de mantenimiento</h3>
+        <button id="modal-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
+      </div>
+      <p class="modal-sub" id="modal-titulo"></p>
+      <label class="modal-label">Último mantenimiento (fecha)</label>
+      <input type="date" id="mant-fecha" />
+      <label class="modal-label">Intervalo de servicio (días)</label>
+      <input type="number" id="mant-intervalo" min="7" max="3650" placeholder="180" />
+      <label class="modal-label">Plan de mantenimiento</label>
+      <textarea id="mant-plan" rows="4" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. Revisión de frenos y refrigerante..." ></textarea>
+      <div class="modal-acciones">
+        <button id="mant-guardar" class="btn-primario">Guardar</button>
+        <button id="mant-cancelar" class="btn-secundario">Cancelar</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

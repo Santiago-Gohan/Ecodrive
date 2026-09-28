@@ -13,6 +13,9 @@ CREATE TABLE vehiculos (
   anio          INTEGER,
   combustible   VARCHAR(20),
   tipo_vehiculo VARCHAR(20) NOT NULL DEFAULT 'CARRO',
+  ultimo_mantenimiento DATE,
+  intervalo_mantenimiento INTEGER NOT NULL DEFAULT 180,
+  plan_mantenimiento TEXT,
   activo        BOOLEAN NOT NULL DEFAULT TRUE,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT now()
 );
@@ -22,6 +25,7 @@ CREATE TABLE telemetria_lectura (
   vehiculo_id    UUID NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
   ect_temperatura DECIMAL(6,2) NOT NULL,
   rpm            INTEGER NOT NULL,
+  nivel_combustible DECIMAL(5,2),
   fecha_registro TIMESTAMP NOT NULL DEFAULT now()
 );
 

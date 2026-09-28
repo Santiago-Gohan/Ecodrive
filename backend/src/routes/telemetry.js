@@ -56,10 +56,15 @@ router.get('/resumen', async (req, res, next) => {
     const { rows } = await pool.query(
       `SELECT
          v.id, v.placa, v.nombre, v.tipo_vehiculo, v.combustible, v.anio,
+         v.ultimo_mantenimiento, v.intervalo_mantenimiento, v.plan_mantenimiento,
+         (v.ultimo_mantenimiento + (v.intervalo_mantenimiento || ' days')::interval) AS proximo_mantenimiento,
          (SELECT t.ect_temperatura FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id ORDER BY t.fecha_registro DESC LIMIT 1) AS ect,
          (SELECT t.rpm FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id ORDER BY t.fecha_registro DESC LIMIT 1) AS rpm,
+         (SELECT t.nivel_combustible FROM telemetria_lectura t
+          WHERE t.vehiculo_id = v.id AND t.nivel_combustible IS NOT NULL
+          ORDER BY t.fecha_registro DESC LIMIT 1) AS nivel_combustible,
          (SELECT t.fecha_registro FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id ORDER BY t.fecha_registro DESC LIMIT 1) AS ultima_lectura,
          (SELECT COUNT(*) FROM alerta_mantenimiento a
@@ -89,6 +94,9 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
     for (const l of lecturas) {
       const ectNum = Number(l && l.ect);
       const rpmNum = Number(l && l.rpm);
+      const nivelNum = (l && (l.nivel_combustible === undefined || l.nivel_combustible === null))
+        ? null
+        : Number(l && l.nivel_combustible);
       if (!l || l.vehiculo_id !== req.vehiculo.id) {
         return res.status(403).json({ error: 'El lote contiene lecturas de otro vehiculo' });
       }
@@ -96,17 +104,20 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
           ectNum < -40 || ectNum > 150 || rpmNum < 0 || rpmNum > 9000) {
         return res.status(400).json({ error: 'El lote contiene lecturas fuera de rango' });
       }
+      if (nivelNum !== null && (nivelNum < 0 || nivelNum > 100)) {
+        return res.status(400).json({ error: 'El lote contiene niveles de combustible fuera de rango' });
+      }
       let ts = (l && l.timestamp) || null;
       if (ts && isNaN(Date.parse(ts))) ts = null;
-      validas.push([req.vehiculo.id, ectNum, rpmNum, ts]);
+      validas.push([req.vehiculo.id, ectNum, rpmNum, nivelNum, ts]);
     }
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       for (const v of validas) {
         await client.query(
-          `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, fecha_registro)
-           VALUES ($1, $2, $3, COALESCE($4, now()))`,
+          `INSERT INTO telemetria_lectura (vehiculo_id, ect_temperatura, rpm, nivel_combustible, fecha_registro)
+           VALUES ($1, $2, $3, $4, COALESCE($5, now()))`,
           v
         );
       }
@@ -149,18 +160,24 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
 
 router.post('/', deviceAuth, async (req, res, next) => {
   try {
-    const { vehiculo_id, ect, rpm, timestamp } = req.body || {};
+    const { vehiculo_id, ect, rpm, nivel_combustible, timestamp } = req.body || {};
     const ectNum = Number(ect);
     const rpmNum = Number(rpm);
+    const nivelNum = nivel_combustible === undefined || nivel_combustible === null
+      ? null
+      : Number(nivel_combustible);
 
     if (!vehiculo_id || !Number.isFinite(ectNum) || !Number.isFinite(rpmNum)) {
-      return res.status(400).json({ error: 'Payload JSON invǭlido' });
+      return res.status(400).json({ error: 'Payload JSON inválido' });
     }
 
-    // Rangos fisicamente plausibles: descarta basura de adaptadores desincronizados
-    // ECT: -40..150 °C | RPM: 0..9000
+    // Rangos físicamente plausibles: descarta basura de adaptadores desincronizados
+    // ECT: -40..150 °C | RPM: 0..9000 | Combustible: 0..100 %
     if (ectNum < -40 || ectNum > 150 || rpmNum < 0 || rpmNum > 9000) {
       return res.status(400).json({ error: 'Lectura fuera de rango plausible (ECT -40..150, RPM 0..9000)' });
+    }
+    if (nivelNum !== null && (nivelNum < 0 || nivelNum > 100)) {
+      return res.status(400).json({ error: 'Nivel de combustible fuera de rango (0..100 %)' });
     }
 
     if (vehiculo_id !== req.vehiculo.id) {
@@ -173,6 +190,7 @@ router.post('/', deviceAuth, async (req, res, next) => {
       vehiculo: req.vehiculo,
       ect: ectNum,
       rpm: rpmNum,
+      nivelCombustible: nivelNum,
       timestamp,
     });
 

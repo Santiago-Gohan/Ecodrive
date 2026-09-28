@@ -2,10 +2,13 @@ const pool = require('../db');
 
 module.exports = async function deviceAuth(req, res, next) {
   let apiKey = req.headers['x-api-key'];
-  const authorization = req.headers.authorization || '';
 
-  if (authorization.startsWith('Bearer ')) {
-    apiKey = authorization.slice(7);
+  // Solo usa Bearer si no viene x-api-key: la llave del vehículo tiene prioridad.
+  if (!apiKey) {
+    const authorization = req.headers.authorization || '';
+    if (authorization.startsWith('Bearer ')) {
+      apiKey = authorization.slice(7);
+    }
   }
 
   if (!apiKey) {

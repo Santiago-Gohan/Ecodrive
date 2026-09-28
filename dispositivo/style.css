@@ -294,6 +294,47 @@ header {
   align-items: center;
 }
 
+.combustible {
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.comb-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
+
+.comb-encabezado strong {
+  color: var(--acento);
+  font-variant-numeric: tabular-nums;
+}
+
+.barra-combustible-fondo {
+  height: 12px;
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.2);
+  overflow: hidden;
+}
+
+.barra-combustible {
+  height: 100%;
+  width: 0%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #34d399, #22d3ee);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s;
+}
+
+.barra-combustible.bajo {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
 .acciones-central .btn-primario {
   margin-top: 12px;
   flex: 1;

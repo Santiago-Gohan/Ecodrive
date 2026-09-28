@@ -10,6 +10,8 @@ router.get('/', async (req, res, next) => {
     const { rows } = await pool.query(
       `SELECT
          v.id, v.placa, v.nombre, v.anio, v.combustible, v.tipo_vehiculo,
+         v.ultimo_mantenimiento, v.intervalo_mantenimiento, v.plan_mantenimiento,
+         (v.ultimo_mantenimiento + (v.intervalo_mantenimiento || ' days')::interval) AS proximo_mantenimiento,
          v.activo, v.fecha_creacion,
          (SELECT COUNT(*) FROM telemetria_lectura t WHERE t.vehiculo_id = v.id) AS total_lecturas,
          (SELECT COUNT(*) FROM alerta_mantenimiento a
@@ -54,14 +56,27 @@ router.post('/', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const { nombre, activo } = req.body || {};
+    const { nombre, activo, ultimo_mantenimiento, intervalo_mantenimiento, plan_mantenimiento } = req.body || {};
+    const intervalo = Number(intervalo_mantenimiento);
     const { rows } = await pool.query(
       `UPDATE vehiculos SET
          nombre = COALESCE($2, nombre),
-         activo = COALESCE($3, activo)
+         activo = COALESCE($3, activo),
+         ultimo_mantenimiento = COALESCE($4::date, ultimo_mantenimiento),
+         intervalo_mantenimiento = COALESCE($5::integer, intervalo_mantenimiento),
+         plan_mantenimiento = COALESCE($6, plan_mantenimiento)
        WHERE id = $1
-       RETURNING id, placa, nombre, activo, fecha_creacion`,
-      [req.params.id, nombre ?? null, typeof activo === 'boolean' ? activo : null]
+       RETURNING id, placa, nombre, activo, fecha_creacion,
+         ultimo_mantenimiento, intervalo_mantenimiento, plan_mantenimiento,
+         (ultimo_mantenimiento + (intervalo_mantenimiento || ' days')::interval) AS proximo_mantenimiento`,
+      [
+        req.params.id,
+        nombre ?? null,
+        typeof activo === 'boolean' ? activo : null,
+        ultimo_mantenimiento || null,
+        Number.isFinite(intervalo) && intervalo > 0 ? intervalo : null,
+        plan_mantenimiento === undefined ? null : (plan_mantenimiento || ''),
+      ]
     );
     if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
     res.json(rows[0]);

@@ -10,7 +10,7 @@ router.get('/telemetria', async (req, res, next) => {
     const limite = Math.min(parseInt(req.query.limite || '50', 10), 200);
 
     const { rows } = await pool.query(
-      `SELECT t.id, t.vehiculo_id, v.placa, t.ect_temperatura, t.rpm, t.fecha_registro
+      `SELECT t.id, t.vehiculo_id, v.placa, t.ect_temperatura, t.rpm, t.nivel_combustible, t.fecha_registro
        FROM telemetria_lectura t
        JOIN vehiculos v ON v.id = t.vehiculo_id
        WHERE ($1::uuid IS NULL OR t.vehiculo_id = $1)

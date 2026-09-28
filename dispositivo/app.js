@@ -239,6 +239,14 @@ async function leerRpm() {
   return parseInt(m[1], 16) / 4;
 }
 
+async function leerNivelCombustible() {
+  const resp = await cmd('012F');
+  const m = resp.match(/412F([0-9A-Fa-f]{2})/);
+  if (!m) return null;
+  const pct = Math.round((parseInt(m[1], 16) * 100) / 255);
+  return Math.max(0, Math.min(100, pct));
+}
+
 function lecturaPlausible(ect, rpm) {
   return ect !== null && rpm !== null && ect >= -40 && ect <= 150 && rpm >= 0 && rpm <= 9000;
 }
@@ -255,14 +263,21 @@ async function leerConReintento(leerFn) {
 async function ciclodeLectura() {
   const ect = await leerConReintento(leerEct);
   const rpm = await leerConReintento(leerRpm);
+  const nivel = await leerConReintento(leerNivelCombustible);
   if (ect !== null) $valEct.textContent = ect.toFixed(0);
   if (rpm !== null) $valRpm.textContent = Math.round(rpm);
-  actualizarMedidores(ect, rpm);
+  actualizarMedidores(ect, rpm, nivel);
   if (!lecturaPlausible(ect, rpm)) {
     log(`Lectura descartada (fuera de rango o sin respuesta): ECT=${ect} RPM=${rpm}. Revisa el adaptador.`);
     return; // no se envia basura ni se llena la cola offline
   }
-  await enviarTelemetria({ vehiculo_id: vehiculoActual.id, ect, rpm, timestamp: new Date().toISOString() });
+  await enviarTelemetria({
+    vehiculo_id: vehiculoActual.id,
+    ect,
+    rpm,
+    nivel_combustible: nivel,
+    timestamp: new Date().toISOString(),
+  });
 }
 
 // Medidores semicirculares (fraccion 0..1)
@@ -274,7 +289,7 @@ function llenarMedidor(id, frac, color) {
   el.style.stroke = color;
 }
 
-function actualizarMedidores(ect, rpm) {
+function actualizarMedidores(ect, rpm, nivel) {
   if (ect !== null) {
     const frac = Math.max(0, Math.min(1, (ect - 20) / 100)); // 20 °C -> 0, 120 °C -> 1
     const color = ect > 105 ? '#ef4444' : ect >= 95 ? '#f59e0b' : '#22d3ee';
@@ -282,6 +297,15 @@ function actualizarMedidores(ect, rpm) {
   }
   if (rpm !== null) {
     llenarMedidor('fill-rpm', rpm / 9000, '#34d399');
+  }
+  if (nivel !== null) {
+    const barra = document.getElementById('barra-combustible');
+    if (barra) {
+      barra.style.width = nivel + '%';
+      barra.classList.toggle('bajo', nivel <= 15);
+    }
+    const val = document.getElementById('val-combustible');
+    if (val) val.textContent = nivel + '%';
   }
 }
 
@@ -387,12 +411,12 @@ let vEct = 88;
 let vPaso = 0;
 
 const PERFILES = {
-  gasolina2013: { compatible: true, base: 88, pico: 108 },
-  bus2015:      { compatible: true, base: 90, pico: 109 },
-  camion2018:   { compatible: true, base: 87, pico: 107 },
-  gasolina2010: { compatible: true, base: 86, pico: 108 },
-  diesel2008:   { compatible: false, base: 0,  pico: 0 },
-  moto:         { compatible: false, base: 0,  pico: 0 },
+  gasolina2013: { compatible: true, base: 88, pico: 108, combustible: 0.62 },
+  bus2015:      { compatible: true, base: 90, pico: 109, combustible: 0.55 },
+  camion2018:   { compatible: true, base: 87, pico: 107, combustible: 0.45 },
+  gasolina2010: { compatible: true, base: 86, pico: 108, combustible: 0.38 },
+  diesel2008:   { compatible: false, base: 0,  pico: 0,   combustible: 0 },
+  moto:         { compatible: false, base: 0,  pico: 0,   combustible: 0 },
 };
 
 function virtualEcu(comando) {
@@ -419,6 +443,16 @@ function virtualEcu(comando) {
     return '410C' + Math.round(rpm * 4).toString(16).toUpperCase().padStart(4, '0');
   }
 
+  if (c === '012F') {
+    // Nivel de combustible: baja muy lento (~1 % cada 12 ciclos)
+    let nivel = Math.round(perfil.combustible * 255);
+    if (vPaso % 12 === 0 && nivel > 10) {
+      perfil.combustible = Math.max(0.05, perfil.combustible - 0.01);
+      nivel = Math.round(perfil.combustible * 255);
+    }
+    return '412F' + nivel.toString(16).toUpperCase().padStart(2, '0');
+  }
+
   return 'NODATA';
 }
 
@@ -441,6 +475,10 @@ function reiniciarMedidores() {
   $valRpm.textContent = '--';
   llenarMedidor('fill-ect', 0, '#22d3ee');
   llenarMedidor('fill-rpm', 0, '#34d399');
+  const barra = document.getElementById('barra-combustible');
+  if (barra) barra.style.width = '0%';
+  const val = document.getElementById('val-combustible');
+  if (val) val.textContent = '--';
 }
 
 function reconectarVirtual() {

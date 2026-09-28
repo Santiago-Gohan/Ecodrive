@@ -665,7 +665,7 @@ td.celda-alerta {
 
 /* ---------- Barra térmica por vehículo ---------- */
 .medio-ect {
-  min-width: 150px;
+  min-width: 130px;
 }
 
 .medio-ect .valor {
@@ -701,6 +701,187 @@ td.celda-alerta {
 
 .barra-termica .relleno.alto {
   background: linear-gradient(90deg, #fb923c, #ef4444);
+}
+
+/* ---------- Combustible (columna dashboard) ---------- */
+.medio-comb {
+  min-width: 120px;
+}
+
+.medio-comb .valor {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.medio-comb .valor.vacio {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.barra-comb {
+  height: 7px;
+  border-radius: 5px;
+  background: rgba(148, 163, 184, 0.15);
+  overflow: hidden;
+}
+
+.barra-comb .relleno {
+  height: 100%;
+  min-width: 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #34d399, #22d3ee);
+  transition: width 0.6s ease, background 0.6s ease;
+}
+
+.barra-comb .relleno.bajo {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+/* ---------- Próximos mantenimientos ---------- */
+.mants {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+.vacio-ligero {
+  color: var(--muted);
+  text-align: center;
+  padding: 10px 0;
+}
+
+.mant-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--fondo2);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.mant-item .mant-ico {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border-radius: 11px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.mant-item .mant-info {
+  flex: 1;
+  min-width: 160px;
+}
+
+.mant-item .mant-placa {
+  font-weight: 800;
+}
+
+.mant-item .mant-detalle {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mant-item .mant-plan {
+  width: 100%;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ---------- Modal mantenimiento ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 8, 18, 0.7);
+  backdrop-filter: blur(4px);
+  padding: 18px;
+}
+
+.modal.oculto {
+  display: none;
+}
+
+.modal-caja {
+  width: 100%;
+  max-width: 460px;
+  background: linear-gradient(180deg, var(--tarjeta2), var(--tarjeta));
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 24px;
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.modal-cabecera h3 {
+  font-size: 1.2rem;
+  background: var(--degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.modal-x {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-x:hover {
+  color: var(--rojo);
+}
+
+.modal-sub {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.modal-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 14px 0 6px;
+}
+
+.modal-caja input,
+.modal-caja textarea {
+  width: 100%;
+}
+
+.modal-caja textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-acciones .btn-primario {
+  flex: 1;
 }
 
 /* ---------- Pills (estado / severidad / tipo) ---------- */

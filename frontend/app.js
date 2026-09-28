@@ -152,9 +152,10 @@ function renderFlota(filas) {
   document.getElementById('kpi-alertas').textContent = alertas;
   document.getElementById('kpi-ect').textContent = ects.length ? `${Math.round(Math.max(...ects))} °C` : '--';
   if (!filas.length) {
-    $tabla.innerHTML = '<tr><td colspan="6" class="vacio">Sin vehículos registrados todavía</td></tr>';
+    $tabla.innerHTML = '<tr><td colspan="7" class="vacio">Sin vehículos registrados todavía</td></tr>';
     return;
   }
+  renderProximosMantenimientos(filas);
   $tabla.innerHTML = filas
     .map((f) => {
       const ect = f.ect === null ? null : Number(f.ect);
@@ -176,14 +177,68 @@ function renderFlota(filas) {
         valorEct = `<span class="valor ${claseValor}">${ect} °C</span>`;
         relleno = `<div class="relleno ${extra}" style="width:${pct.toFixed(1)}%"></div>`;
       }
+      const nivel = f.nivel_combustible === null || f.nivel_combustible === undefined ? null : Number(f.nivel_combustible);
+      let valorComb = '<span class="valor vacio">--</span><div class="barra-comb"><div class="relleno" style="width:0%"></div></div>';
+      if (nivel !== null) {
+        const bajo = nivel <= 15 ? 'bajo' : '';
+        valorComb = `<span class="valor">${Math.round(nivel)}%</span><div class="barra-comb"><div class="relleno ${bajo}" style="width:${Math.min(100, Math.max(0, nivel))}%"></div></div>`;
+      }
 return `<tr>
         <td><span class="punto-linea ${enLineaAuto}"></span><strong>${f.nombre || '—'}</strong></td>
         <td><strong>${f.placa}</strong></td>
         <td><div class="medio-ect">${valorEct}<div class="barra-termica">${relleno}</div></div></td>
+        <td><div class="medio-comb">${valorComb}</div></td>
         <td>${rpm}</td>
         <td>${fecha} ${enLineaAuto === 'on' ? '<span class="pill cyan">ACTIVO</span>' : '<span class="pill gris">SIN SEÑAL</span>'}</td>
         <td><span class="pill ${clasePillAlertas(numAlertas)}">${numAlertas}</span> <small style="color:var(--muted)">${detalle}${anios}</small></td>
       </tr>`;
+    })
+    .join('');
+}
+
+/* ---------- Próximos mantenimientos ---------- */
+function diasHasta(fecha) {
+  if (!fecha) return null;
+  const d = new Date(fecha);
+  if (isNaN(d)) return null;
+  return Math.ceil((d.getTime() - Date.now()) / 86400000);
+}
+
+function formatearFecha(fecha) {
+  if (!fecha) return null;
+  const d = new Date(fecha);
+  return isNaN(d) ? null : d.toLocaleDateString('es-CO');
+}
+
+function renderProximosMantenimientos(filas) {
+  const cont = document.getElementById('lista-mantenimientos');
+  if (!cont || !filas.length) {
+    if (cont) cont.innerHTML = '<p class="vacio-ligero">Sin vehículos registrados</p>';
+    return;
+  }
+  const items = filas
+    .map((f) => ({ ...f, dias: diasHasta(f.proximo_mantenimiento) }))
+    .filter((f) => f.dias !== null && f.dias <= 15)
+    .sort((a, b) => a.dias - b.dias);
+  if (!items.length) {
+    cont.innerHTML = '<p class="vacio-ligero">No hay mantenimientos por vencer en los próximos 15 días.</p>';
+    return;
+  }
+  cont.innerHTML = items
+    .map((f) => {
+      const vencido = f.dias < 0;
+      const hoy = f.dias === 0;
+      const dias = vencido ? `${-f.dias} día(s) de retraso` : hoy ? '¡Hoy!' : `en ${f.dias} día(s)`;
+      const ico = vencido ? '⛔' : f.dias <= 3 ? '🚨' : '🛠️';
+      const detalle = `Último: ${formatearFecha(f.ultimo_mantenimiento) || '—'}`;
+      return `<div class="mant-item">
+        <div class="mant-ico">${ico}</div>
+        <div class="mant-info">
+          <span class="mant-placa">${f.placa}</span> · ${f.nombre || '—'}<br>
+          <span class="mant-detalle">${detalle} → Próximo: ${formatearFecha(f.proximo_mantenimiento)} · <b>${dias}</b></span>
+        </div>
+        <div class="mant-plan">${f.plan_mantenimiento ? ('📋 ' + f.plan_mantenimiento) : 'Sin plan registrado'}</div>
+      </div>`;
     })
     .join('');
 }
@@ -342,8 +397,10 @@ async function cargarVehiculos() {
 
 function renderVehiculos(filas) {
   const cuerpo = document.getElementById('cuerpo-vehiculos');
+  vehiculosCache = {};
+  filas.forEach((v) => { vehiculosCache[v.id] = v; });
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">No hay vehículos registrados</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="12" class="vacio">No hay vehículos registrados</td></tr>';
     return;
   }
   cuerpo.innerHTML = filas
@@ -358,7 +415,10 @@ function renderVehiculos(filas) {
         <td>${v.total_lecturas}</td>
         <td><span class="pill ${clasePillAlertas(v.alertas_activas)}">${v.alertas_activas}</span></td>
         <td>${v.activo ? '<span class="pill verde">Activo</span>' : '<span class="pill rojo">Inactivo</span>'}</td>
+        <td>${formatearFecha(v.ultimo_mantenimiento) || '—'}</td>
+        <td>${pillProximoMnt(v.proximo_mantenimiento)}</td>
         <td class="acciones">
+          <button class="btn-mini" data-mant="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}">Mant.</button>
           <button class="btn-mini ${v.activo ? '' : 'ok'}" data-toggle="${v.id}" data-activo="${v.activo}">
             ${v.activo ? 'Desactivar' : 'Activar'}
           </button>
@@ -372,6 +432,9 @@ function renderVehiculos(filas) {
   cuerpo.querySelectorAll('.btn-ver-key').forEach((btn) =>
     btn.addEventListener('click', () => verApiKey(btn.dataset.id, btn.dataset.placa))
   );
+  cuerpo.querySelectorAll('[data-mant]').forEach((btn) =>
+    btn.addEventListener('click', () => abrirModalMant(btn.dataset.id, btn.dataset.placa, btn.dataset.nombre))
+  );
   cuerpo.querySelectorAll('[data-toggle]').forEach((btn) =>
     btn.addEventListener('click', () => alternarActivo(btn.dataset.toggle, btn.dataset.activo === 'true'))
   );
@@ -381,6 +444,61 @@ function renderVehiculos(filas) {
   cuerpo.querySelectorAll('[data-del]').forEach((btn) =>
     btn.addEventListener('click', () => eliminarVehiculo(btn.dataset.del, btn.dataset.placa))
   );
+}
+
+function pillProximoMnt(proximo) {
+  const dias = diasHasta(proximo);
+  if (dias === null) return '—';
+  const f = formatearFecha(proximo);
+  if (dias < 0) return `<span class="pill rojo">${f} · vencido</span>`;
+  if (dias === 0) return `<span class="pill ambar">${f} · hoy</span>`;
+  return `<span class="pill gris">${f}</span>`;
+}
+
+/* ---------- Modal de plan de mantenimiento ---------- */
+let mantActivo = null;
+let vehiculosCache = {};
+
+function abrirModalMant(id, placa, nombre) {
+  mantActivo = id;
+  const v = vehiculosCache[id] || {};
+  document.getElementById('modal-titulo').textContent = `${placa} · ${nombre || 'sin nombre'}`;
+  document.getElementById('mant-fecha').value = v.ultimo_mantenimiento ? String(v.ultimo_mantenimiento).slice(0, 10) : '';
+  document.getElementById('mant-intervalo').value = v.intervalo_mantenimiento || '';
+  document.getElementById('mant-plan').value = v.plan_mantenimiento || '';
+  document.getElementById('modal-mant').classList.remove('oculto');
+  document.getElementById('mant-plan').focus();
+}
+
+function cerrarModalMant() {
+  document.getElementById('modal-mant').classList.add('oculto');
+  mantActivo = null;
+}
+
+async function guardarModalMant() {
+  if (!mantActivo) return;
+  const fecha = document.getElementById('mant-fecha').value || null;
+  const intervalo = Number(document.getElementById('mant-intervalo').value);
+  const plan = document.getElementById('mant-plan').value.trim();
+  try {
+    const resp = await fetchApi(`${API}/vehiculos/${mantActivo}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        ultimo_mantenimiento: fecha,
+        intervalo_mantenimiento: Number.isFinite(intervalo) && intervalo > 0 ? intervalo : null,
+        plan_mantenimiento: plan,
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) return toast(data.error || 'Error al guardar', 'err');
+    toast('Plan de mantenimiento guardado', 'ok');
+    cerrarModalMant();
+    cargarVehiculos();
+    cargarFlota();
+  } catch (err) {
+    console.error(err);
+    toast('Error al guardar el plan', 'err');
+  }
 }
 
 async function crearVehiculo() {
@@ -543,7 +661,7 @@ async function cargarTelemetria() {
 function renderTelemetria(filas) {
   const cuerpo = document.getElementById('cuerpo-telemetria');
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="4" class="vacio">Sin lecturas</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="5" class="vacio">Sin lecturas</td></tr>';
     return;
   }
   cuerpo.innerHTML = filas
@@ -551,6 +669,7 @@ function renderTelemetria(filas) {
       <td><strong>${t.placa}</strong></td>
       <td class="${Number(t.ect_temperatura) > 105 ? 'caliente' : ''}">${t.ect_temperatura} °C</td>
       <td>${t.rpm}</td>
+      <td>${t.nivel_combustible === null || t.nivel_combustible === undefined ? '--' : Math.round(Number(t.nivel_combustible)) + '%'}</td>
       <td>${new Date(t.fecha_registro).toLocaleString('es-CO')}</td>
     </tr>`)
     .join('');
@@ -592,6 +711,12 @@ document.getElementById('banner-cerrar').addEventListener('click', ocultarAlerta
 document.getElementById('btn-simular').addEventListener('click', simularAlerta);
 document.getElementById('btn-crear').addEventListener('click', crearVehiculo);
 document.getElementById('btn-cargar-alertas').addEventListener('click', cargarAlertas);
+document.getElementById('mant-guardar').addEventListener('click', guardarModalMant);
+document.getElementById('mant-cancelar').addEventListener('click', cerrarModalMant);
+document.getElementById('modal-cerrar').addEventListener('click', cerrarModalMant);
+document.getElementById('modal-mant').addEventListener('click', (ev) => {
+  if (ev.target === ev.currentTarget) cerrarModalMant();
+});
 document.querySelectorAll('.nav-btn').forEach((btn) => {
   if (!btn.dataset.vista) return; // enlaces externos (ej. /dispositivo/)
   btn.addEventListener('click', () => cambiarVista(btn.dataset.vista));
