@@ -24,6 +24,7 @@ import java.util.UUID
 class MainActivity : AppCompatActivity() {
 
     private val SPP_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
+    private val SERVIDOR_DEFECTO = "https://ecodrive-backend-r34q.onrender.com"
 
     private lateinit var txtEstado: TextView
     private lateinit var txtEct: TextView
@@ -35,12 +36,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnIniciar: Button
     private lateinit var btnDetener: Button
 
+    private lateinit var db: EcoDb
+
     private var socket: BluetoothSocket? = null
     private var input: InputStream? = null
     private var output: OutputStream? = null
     private var hiloLectura: Thread? = null
     private var hiloEnvio: Thread? = null
     private var activo = false
+    private var vehiculoId: String? = null
+    private var vehiculoPlaca: String? = null
 
     private val ultimaEct = FloatArray(1) { -1f }
     private val ultimaRpm = FloatArray(1) { -1f }
@@ -53,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        db = EcoDb(this)
 
         txtEstado = findViewById(R.id.txtEstado)
         txtEct = findViewById(R.id.txtEct)
@@ -64,8 +70,10 @@ class MainActivity : AppCompatActivity() {
         btnIniciar = findViewById(R.id.btnIniciar)
         btnDetener = findViewById(R.id.btnDetener)
 
-        inputServidor.setText(prefs("servidor", "http://192.168.X.X:3000"))
+        inputServidor.setText(prefs("servidor", SERVIDOR_DEFECTO))
         inputApikey.setText(prefs("apikey", ""))
+        val pendientes = db.contar()
+        if (pendientes > 0) txtLog.text = "Hay $pendientes lectura(s) sin sincronizar."
 
         btnConectar.setOnClickListener { pedirPermisos() }
         btnIniciar.setOnClickListener { iniciarEnvio() }
@@ -134,10 +142,11 @@ class MainActivity : AppCompatActivity() {
             socket = s
             input = s.inputStream
             output = s.outputStream
+            inicializarElm()
             correrEnMain {
                 txtEstado.text = "Conectado a ${device.name ?: device.address}"
                 btnIniciar.isEnabled = true
-                Log.d("EcoDrive", "Socket SPP abierto")
+                Log.d("EcoDrive", "Socket SPP abierto e inicializado")
             }
             hiloLectura = Thread { leerBufer() }.also { it.start() }
         } catch (e: Exception) {
@@ -145,20 +154,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Secuencia de inicio ELM327 (los clones la necesitan para responder bien)
+    private fun inicializarElm() {
+        for (c in listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0")) {
+            enviarComando(c)
+            Thread.sleep(350)
+        }
+    }
+
     private fun leerBufer() {
         val entrada = input ?: return
         val bytes = ByteArray(256)
+        val acumulado = StringBuilder()
         while (!Thread.currentThread().isInterrupted) {
             try {
                 if (entrada.available() > 0) {
                     val n = entrada.read(bytes)
                     if (n > 0) {
-                        val dato = String(bytes, 0, n)
-                        procesarRespuesta(dato)
+                        acumulado.append(String(bytes, 0, n))
+                        val texto = acumulado.toString()
+                        if (texto.contains(">")) {
+                            acumulado.clear()
+                            procesarRespuesta(texto)
+                        }
                     }
+                } else {
+                    Thread.sleep(50)
                 }
             } catch (e: Exception) {
-                correrEnMain { mostrar("Conexión perdida: ${e.message}") }
+                socket = null
+                correrEnMain {
+                    detenerEnvio()
+                    mostrar("Conexión perdida con el adaptador. Vuelve a conectar. (${e.message})")
+                }
                 break
             }
         }
@@ -179,22 +207,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun lecturaPlausible(ect: Float, rpm: Float): Boolean =
+        ect >= -40 && ect <= 150 && rpm >= 0 && rpm <= 9000
+
     private fun iniciarEnvio() {
-        activo = true
         btnIniciar.isEnabled = false
-        btnDetener.isEnabled = true
         guardarPrefs("servidor", inputServidor.text.toString())
         guardarPrefs("apikey", inputApikey.text.toString())
         hiloEnvio = Thread {
+            // 1) Resolver el vehiculo real con la API Key (antes era "-1" fijo -> 403)
+            val id = consultarVehiculo()
+            if (id == null) {
+                correrEnMain {
+                    mostrar("No se pudo identificar el vehículo. Revisa API Key y servidor.")
+                    btnIniciar.isEnabled = true
+                }
+                return@Thread
+            }
+            vehiculoId = id.first
+            vehiculoPlaca = id.second
+            correrEnMain { txtEstado.text = "Monitoreando ${id.second} (cada 5 s)" }
+            activo = true
+            correrEnMain { btnDetener.isEnabled = true }
             while (activo) {
-                Thread.sleep(5000)
+                try {
+                    Thread.sleep(5000)
+                } catch (e: InterruptedException) {
+                    break
+                }
+                if (!activo) break
                 if (socket?.isConnected == true) {
                     enviarComando("0105")
-                    Thread.sleep(200)
+                    Thread.sleep(300)
                     enviarComando("010C")
-                    Thread.sleep(200)
+                    Thread.sleep(300)
                     val ect = synchronized(ultimaEct) { ultimaEct[0] }
-                    if (ect > -1) enviarTelematica(ect.toInt(), synchronized(ultimaRpm) { ultimaRpm[0] }.toInt())
+                    val rpm = synchronized(ultimaRpm) { ultimaRpm[0] }
+                    if (!lecturaPlausible(ect, rpm)) {
+                        correrEnMain { mostrar("Lectura descartada (ECT=$ect RPM=$rpm). Revisa el adaptador.") }
+                    } else {
+                        enviarTelematica(ect.toInt(), rpm.toInt())
+                    }
                 }
             }
         }.also { it.start() }
@@ -218,34 +271,87 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun enviarTelematica(ect: Int, rpm: Int) {
-        try {
-            val servidor = prefs("servidor", "").trimEnd('/')
+    // GET /telemetry/quien-soy con la API Key -> (id, placa) reales del vehiculo
+    private fun consultarVehiculo(): Pair<String, String>? {
+        return try {
+            val servidor = prefs("servidor", SERVIDOR_DEFECTO).trimEnd('/')
             val apikey = prefs("apikey", "")
-            val body = JSONObject().apply {
-                put("vehiculo_id", "-1")
-                put("ect", ect)
-                put("rpm", rpm)
-                put("timestamp", java.time.Instant.now().toString())
+            val conn = (URL("$servidor/api/v1/telemetry/quien-soy").openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("X-API-Key", apikey)
+                connectTimeout = 8000
+                readTimeout = 8000
             }
-            val conn = (URL("$servidor/api/v1/telemetry").openConnection() as HttpURLConnection).apply {
+            if (conn.responseCode != 200) {
+                conn.disconnect()
+                return null
+            }
+            val texto = conn.inputStream.bufferedReader().readText()
+            conn.disconnect()
+            val j = JSONObject(texto)
+            Pair(j.getString("id"), j.getString("placa"))
+        } catch (e: Exception) {
+            Log.e("EcoDrive", "quien-soy fallo", e)
+            null
+        }
+    }
+
+    private fun enviarTelematica(ect: Int, rpm: Int) {
+        val vid = vehiculoId ?: return
+        val ts = java.time.Instant.now().toString()
+        val servidor = prefs("servidor", SERVIDOR_DEFECTO).trimEnd('/')
+        val apikey = prefs("apikey", "")
+        val body = JSONObject().apply {
+            put("vehiculo_id", vid)
+            put("ect", ect)
+            put("rpm", rpm)
+            put("timestamp", ts)
+        }
+        val ok = postJson("$servidor/api/v1/telemetry", apikey, body.toString())
+        if (ok) {
+            val res = sincronizarCola(servidor, apikey)
+            correrEnMain {
+                txtLog.text = "Enviado ECT=$ect°C RPM=$rpm" +
+                    (if (res.first > 0) " (+${res.first} sincronizadas)" else "") +
+                    (if (res.second > 0) " [${res.second} pendientes]" else "")
+            }
+        } else {
+            db.guardar(vid, ect.toFloat(), rpm.toFloat(), ts)
+            val n = db.contar()
+            correrEnMain { txtLog.text = "Sin conexión. $n lectura(s) guardadas, se enviarán solas." }
+        }
+    }
+
+    // Manda la cola offline en lotes de 200 a POST /telemetry/lote
+    private fun sincronizarCola(servidor: String, apikey: String): Pair<Int, Int> {
+        var enviadas = 0
+        while (true) {
+            val lote = db.tomarLote() ?: break
+            val cuerpo = "{\"lecturas\":${lote.json}}"
+            if (!postJson("$servidor/api/v1/telemetry/lote", apikey, cuerpo)) break
+            db.borrarIds(lote.ids)
+            enviadas += lote.ids.size
+        }
+        return Pair(enviadas, db.contar())
+    }
+
+    private fun postJson(urlStr: String, apikey: String, cuerpo: String): Boolean {
+        return try {
+            val conn = (URL(urlStr).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 setRequestProperty("Content-Type", "application/json")
                 setRequestProperty("X-API-Key", apikey)
                 doOutput = true
-                connectTimeout = 5000
-                readTimeout = 5000
+                connectTimeout = 8000
+                readTimeout = 15000
             }
-            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+            conn.outputStream.use { it.write(cuerpo.toByteArray()) }
             val codigo = conn.responseCode
             conn.disconnect()
-            if (codigo == 401) {
-                correrEnMain { mostrar("API Key inválida (HTTP 401)") }
-            } else {
-                correrEnMain { txtLog.text = "Enviado ECT=$ect°C RPM=$rpm (HTTP $codigo)" }
-            }
+            codigo in 200..299
         } catch (e: Exception) {
-            Log.e("EcoDrive", "No se pudo enviar telemetría", e)
+            Log.e("EcoDrive", "POST fallo: $urlStr", e)
+            false
         }
     }
 

@@ -75,6 +75,10 @@ router.get('/resumen', async (req, res, next) => {
 
 // Lote offline (zonas rurales): recibe hasta 5000 lecturas guardadas sin conexion.
 // Inserta en una transaccion y genera UNA alerta si el maximo ECT la amerita.
+router.get('/quien-soy', deviceAuth, (req, res) => {
+  res.json({ id: req.vehiculo.id, placa: req.vehiculo.placa });
+});
+
 router.post('/lote', deviceAuth, async (req, res, next) => {
   try {
     const lecturas = req.body && req.body.lecturas;
