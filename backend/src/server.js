@@ -36,6 +36,7 @@ app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 
 app.use(express.static(path.join(__dirname, '../../frontend')));
 app.use('/dispositivo', express.static(path.join(__dirname, '../../dispositivo')));
+app.use('/apk', express.static(path.join(__dirname, '../public')));
 
 app.use((err, req, res, next) => {
   console.error('Error no controlado:', err.message);
