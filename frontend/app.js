@@ -118,6 +118,14 @@ async function cargarFlota() {
 }
 
 function renderFlota(filas) {
+  // Tarjetas resumen
+  const enLinea = filas.filter((f) => f.ultima_lectura).length;
+  const alertas = filas.reduce((n, f) => n + Number(f.alertas_activas || 0), 0);
+  const ects = filas.map((f) => Number(f.ect)).filter((v) => Number.isFinite(v));
+  document.getElementById('kpi-flota').textContent = filas.length;
+  document.getElementById('kpi-linea').textContent = enLinea;
+  document.getElementById('kpi-alertas').textContent = alertas;
+  document.getElementById('kpi-ect').textContent = ects.length ? `${Math.max(...ects)} °C` : '--';
   if (!filas.length) {
     $tabla.innerHTML = '<tr><td colspan="6" class="vacio">Sin vehículos registrados</td></tr>';
     return;

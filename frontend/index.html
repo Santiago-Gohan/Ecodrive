@@ -14,20 +14,24 @@
   </div>
 
   <header id="header" class="oculto">
-    <h1>EcoDrive</h1>
-    <span>Sistema de Gestión Inteligente y Mantenimiento Predictivo</span>
+    <div class="logo">🚗</div>
+    <div class="marca">
+      <h1>EcoDrive</h1>
+      <span>Telemetría inteligente y mantenimiento predictivo</span>
+    </div>
     <nav id="nav-admin" class="nav-admin">
-      <button data-vista="dashboard" class="nav-btn activo">Dashboard</button>
-      <button data-vista="flota" class="nav-btn">Flota</button>
-      <button data-vista="historial" class="nav-btn">Historial</button>
+      <button data-vista="dashboard" class="nav-btn activo">📊 Dashboard</button>
+      <button data-vista="flota" class="nav-btn">🚛 Flota</button>
+      <button data-vista="historial" class="nav-btn">📜 Historial</button>
     </nav>
     <button id="btn-salir" class="btn-secundario">Salir</button>
   </header>
 
   <main id="vista-login">
     <section id="panel-login">
-      <h2>Panel Administrador</h2>
-      <p>Inicia sesión para monitorear la flota</p>
+      <div class="logo-login">🚗</div>
+      <h2>EcoDrive</h2>
+      <p>Telemetría vehicular en tiempo real.<br />Inicia sesión para monitorear tu flota.</p>
       <form id="form-login">
         <input type="text" id="usuario" placeholder="Usuario (admin)" autocomplete="username" />
         <input type="password" id="password" placeholder="Contraseña (admin123)" autocomplete="current-password" />
@@ -38,6 +42,24 @@
   </main>
 
   <main id="vista-dashboard" class="vista oculto">
+    <section class="kpis">
+      <div class="kpi">
+        <span class="kpi-ico">🚛</span>
+        <div><strong id="kpi-flota">--</strong><small>Vehículos</small></div>
+      </div>
+      <div class="kpi ok">
+        <span class="kpi-ico">🟢</span>
+        <div><strong id="kpi-linea">--</strong><small>En línea</small></div>
+      </div>
+      <div class="kpi alerta">
+        <span class="kpi-ico">⚠️</span>
+        <div><strong id="kpi-alertas">--</strong><small>Alertas activas</small></div>
+      </div>
+      <div class="kpi">
+        <span class="kpi-ico">🌡️</span>
+        <div><strong id="kpi-ect">--</strong><small>ECT máx. flota</small></div>
+      </div>
+    </section>
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
         <h2>Flota vehicular - estado en tiempo real</h2>
@@ -159,5 +181,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
+  <footer id="pie">EcoDrive · Mantenimiento predictivo para tu flota · SENA ADSO</footer>
 </body>
 </html>
