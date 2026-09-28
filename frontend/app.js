@@ -602,17 +602,55 @@ async function crearVehiculo() {
   }
 }
 
+let keyVehiculoId = null;
+
+function abrirModalKey(data) {
+  keyVehiculoId = data.id;
+  document.getElementById('key-titulo').textContent = `Vehículo: ${data.placa}`;
+  document.getElementById('key-valor').textContent = data.api_key;
+  document.getElementById('modal-key').classList.remove('oculto');
+}
+
+function cerrarModalKey() {
+  document.getElementById('modal-key').classList.add('oculto');
+  keyVehiculoId = null;
+}
+
 async function verApiKey(id, placa) {
   try {
     const resp = await fetchApi(`${API}/vehiculos/${id}/apikey`);
     const data = await resp.json();
     if (!resp.ok) return toast(data.error || 'Error', 'err');
+    abrirModalKey(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function copiarKey() {
+  const key = document.getElementById('key-valor').textContent;
+  if (!key) return;
+  try {
     if (navigator.clipboard) {
-      await navigator.clipboard.writeText(data.api_key);
-      toast(`API Key de ${placa} copiada al portapapeles`, 'ok');
-    } else {
-      toast(`API Key de ${placa}: ${data.api_key}`, 'info');
+      await navigator.clipboard.writeText(key);
     }
+    toast('API Key copiada al portapapeles', 'ok');
+  } catch (err) {
+    toast('No se pudo copiar, selecciona el texto manualmente', 'info');
+  }
+}
+
+async function regenerarKey(id) {
+  keyVehiculoId = id || keyVehiculoId;
+  if (!keyVehiculoId) return;
+  if (!confirm('¿Regenerar la API Key? El dispositivo con la key anterior dejará de funcionar.')) return;
+  try {
+    const resp = await fetchApi(`${API}/vehiculos/${keyVehiculoId}/apikey/regenerar`, { method: 'POST' });
+    const data = await resp.json();
+    if (!resp.ok) return toast(data.error || 'Error', 'err');
+    toast('API Key regenerada', 'ok');
+    abrirModalKey(data);
+    cargarVehiculos();
   } catch (err) {
     console.error(err);
   }
@@ -779,6 +817,13 @@ document.getElementById('mant-cancelar').addEventListener('click', cerrarModalMa
 document.getElementById('modal-cerrar').addEventListener('click', cerrarModalMant);
 document.getElementById('modal-mant').addEventListener('click', (ev) => {
   if (ev.target === ev.currentTarget) cerrarModalMant();
+});
+document.getElementById('key-copiar').addEventListener('click', copiarKey);
+document.getElementById('key-regenerar').addEventListener('click', regenerarKey);
+document.getElementById('key-cancelar').addEventListener('click', cerrarModalKey);
+document.getElementById('key-cerrar').addEventListener('click', cerrarModalKey);
+document.getElementById('modal-key').addEventListener('click', (ev) => {
+  if (ev.target === ev.currentTarget) cerrarModalKey();
 });
 document.querySelectorAll('.nav-btn').forEach((btn) => {
   if (!btn.dataset.vista) return; // enlaces externos (ej. /dispositivo/)

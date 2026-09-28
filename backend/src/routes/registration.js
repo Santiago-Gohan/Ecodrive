@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const crypto = require('crypto');
 const pool = require('../db');
+const { generarApiKey } = require('../utils/apiKey');
 
 const COMBUSTIBLES = { gasolina: 'GASOLINA', diesel: 'DIESEL', 'diésel': 'DIESEL' };
 
@@ -104,7 +104,7 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    const apiKey = `key_${crypto.randomBytes(12).toString('hex')}`;
+    const apiKey = generarApiKey();
     const { rows } = await pool.query(
       `INSERT INTO vehiculos (placa, api_key, nombre, anio, combustible, tipo_vehiculo)
        VALUES ($1, $2, $3, $4, $5, $6)

@@ -261,6 +261,23 @@
     </div>
   </div>
 
+  <div id="modal-key" class="modal oculto">
+    <div class="modal-caja">
+      <div class="modal-cabecera">
+        <h3>API Key del dispositivo</h3>
+        <button id="key-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
+      </div>
+      <p class="modal-sub" id="key-titulo"></p>
+      <code class="modal-key-caja" id="key-valor"></code>
+      <p class="modal-hint">Se usa en la app del dispositivo como <code>x-api-key</code>. Si la regeneras, el vehículo vinculado dejará de reportar.</p>
+      <div class="modal-acciones">
+        <button id="key-copiar" class="btn-primario">Copiar</button>
+        <button id="key-regenerar" class="btn-peligro">Regenerar</button>
+        <button id="key-cancelar" class="btn-secundario">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toasts" class="toasts"></div>
   <footer id="pie">EcoDrive · Mantenimiento predictivo para tu flota · SENA ADSO</footer>
   <script src="/socket.io/socket.io.js"></script>

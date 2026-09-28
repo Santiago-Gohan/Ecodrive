@@ -43,6 +43,6 @@ CREATE TABLE alerta_mantenimiento (
 
 -- Datos semilla (vehículos de demostración)
 INSERT INTO vehiculos (placa, api_key, nombre, anio, combustible, tipo_vehiculo) VALUES
-  ('ABC-123', 'key_abc123_secret', 'Camioneta Toyota Hilux', 2018, 'DIESEL', 'CAMION'),
-  ('XYZ-789', 'key_xyz789_secret', 'Bus Mercedes Benz', 2015, 'DIESEL', 'BUS')
+  ('ABC-123', 'ECDV-K7M2-RQ9X-D4JA', 'Camioneta Toyota Hilux', 2018, 'DIESEL', 'CAMION'),
+  ('XYZ-789', 'ECDV-P3WN-T8AH-C2BZ', 'Bus Mercedes Benz', 2015, 'DIESEL', 'BUS')
 ON CONFLICT (placa) DO NOTHING;

@@ -934,6 +934,40 @@ td.celda-alerta {
   flex: 1;
 }
 
+/* ---------- Modal API Key ---------- */
+.modal-key-caja {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 4px;
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio2);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  color: var(--acento);
+  user-select: all;
+  word-break: break-all;
+}
+
+.modal-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.modal-acciones .btn-peligro {
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: transparent;
+  color: var(--rojo);
+}
+
+.modal-acciones .btn-peligro:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
 /* ---------- Pills (estado / severidad / tipo) ---------- */
 .pill {
   display: inline-block;

@@ -1,7 +1,7 @@
 const router = require('express').Router();
-const crypto = require('crypto');
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
+const { generarApiKey } = require('../utils/apiKey');
 
 router.use(adminAuth);
 
@@ -30,7 +30,7 @@ router.post('/', async (req, res, next) => {
     if (!placa || !String(placa).trim()) {
       return res.status(400).json({ error: 'La placa es obligatoria' });
     }
-    const apiKey = `key_${crypto.randomBytes(12).toString('hex')}`;
+    const apiKey = generarApiKey();
     const { rows } = await pool.query(
       `INSERT INTO vehiculos (placa, api_key, nombre, tipo_vehiculo, combustible, anio)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -124,7 +124,7 @@ router.get('/:id/apikey', async (req, res, next) => {
 
 router.post('/:id/apikey/regenerar', async (req, res, next) => {
   try {
-    const apiKey = `key_${crypto.randomBytes(12).toString('hex')}`;
+    const apiKey = generarApiKey();
     const { rows } = await pool.query(
       'UPDATE vehiculos SET api_key = $2 WHERE id = $1 RETURNING id, placa, api_key',
       [req.params.id, apiKey]
