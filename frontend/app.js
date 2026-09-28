@@ -149,6 +149,21 @@ function clasePillAlertas(n) {
   return n > 0 ? 'rojo' : 'gris';
 }
 
+function saludVehiculo(f) {
+  const ect = f.ect === null || f.ect === undefined ? null : Number(f.ect);
+  const alertas = Number(f.alertas_activas || 0);
+  const nivel = f.nivel_combustible === null || f.nivel_combustible === undefined ? null : Number(f.nivel_combustible);
+  const dias = diasHasta(f.proximo_mantenimiento);
+  const critico = alertas > 0 || (ect !== null && ect >= 105) || (dias !== null && dias < 0);
+  const riesgo =
+    (ect !== null && ect >= 95) ||
+    (nivel !== null && nivel <= 15) ||
+    (dias !== null && dias <= 15);
+  if (critico) return { clase: 'rojo', texto: 'Crítico' };
+  if (riesgo) return { clase: 'ambar', texto: 'Riesgo' };
+  return { clase: 'verde', texto: 'Óptimo' };
+}
+
 function renderFlota(filas) {
   // Tarjetas resumen
   const enLinea = filas.filter((f) => f.ultima_lectura).length;
@@ -159,7 +174,7 @@ function renderFlota(filas) {
   document.getElementById('kpi-alertas').textContent = alertas;
   document.getElementById('kpi-ect').textContent = ects.length ? `${Math.round(Math.max(...ects))} °C` : '--';
   if (!filas.length) {
-    $tabla.innerHTML = '<tr><td colspan="7" class="vacio">Sin vehículos registrados todavía</td></tr>';
+    $tabla.innerHTML = '<tr><td colspan="8" class="vacio">Sin vehículos registrados todavía</td></tr>';
     return;
   }
   renderProximosMantenimientos(filas);
@@ -197,6 +212,7 @@ return `<tr>
         <td><div class="medio-comb">${valorComb}</div></td>
         <td>${rpm}</td>
         <td>${fecha} ${enLineaAuto === 'on' ? '<span class="pill cyan">ACTIVO</span>' : '<span class="pill gris">SIN SEÑAL</span>'}</td>
+        <td><span class="pill ${saludVehiculo(f).clase}">${saludVehiculo(f).texto}</span></td>
         <td><span class="pill ${clasePillAlertas(numAlertas)}">${numAlertas}</span> <small style="color:var(--muted)">${detalle}${anios}</small></td>
       </tr>`;
     })
@@ -450,8 +466,18 @@ window.addEventListener('resize', () => {
 
 async function cargarVehiculos() {
   try {
-    const resp = await fetchApi(`${API}/vehiculos`);
-    const filas = await resp.json();
+    const [rv, rr] = await Promise.all([
+      fetchApi(`${API}/vehiculos`),
+      fetchApi(`${API}/telemetry/resumen`),
+    ]);
+    const filas = await rv.json();
+    const resumen = await rr.json();
+    const porId = new Map(resumen.map((r) => [r.id, r]));
+    filas.forEach((v) => {
+      const r = porId.get(v.id);
+      v.ect = r ? r.ect ?? null : null;
+      v.nivel_combustible = r ? r.nivel_combustible ?? null : null;
+    });
     renderVehiculos(filas);
   } catch (err) {
     console.error('Error al cargar vehículos:', err);
@@ -463,7 +489,7 @@ function renderVehiculos(filas) {
   vehiculosCache = {};
   filas.forEach((v) => { vehiculosCache[v.id] = v; });
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="12" class="vacio">No hay vehículos registrados</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="13" class="vacio">No hay vehículos registrados</td></tr>';
     return;
   }
   cuerpo.innerHTML = filas
@@ -477,6 +503,7 @@ function renderVehiculos(filas) {
         <td><button class="btn-ver-key" data-id="${v.id}" data-placa="${v.placa}">Ver API Key</button></td>
         <td>${v.total_lecturas}</td>
         <td><span class="pill ${clasePillAlertas(v.alertas_activas)}">${v.alertas_activas}</span></td>
+        <td><span class="pill ${saludVehiculo(v).clase}">${saludVehiculo(v).texto}</span></td>
         <td>${v.activo ? '<span class="pill verde">Activo</span>' : '<span class="pill rojo">Inactivo</span>'}</td>
         <td>${formatearFecha(v.ultimo_mantenimiento) || '—'}</td>
         <td>${pillProximoMnt(v.proximo_mantenimiento)}</td>
@@ -806,10 +833,170 @@ async function simularAlerta() {
   }
 }
 
+/* ---------- Demo en vivo ---------- */
+let demoIntervalo = null;
+const estadoDemo = new Map();
+
+async function tickDemo() {
+  try {
+    const resp = await fetchApi(`${API}/telemetry/resumen`);
+    const filas = await resp.json();
+    if (!filas.length) {
+      toast('Registra al menos un vehículo para la demo', 'info');
+      pararDemo();
+      return;
+    }
+    for (const f of filas) {
+      const prev = estadoDemo.get(f.placa) || {};
+      let ect = (prev.ect ?? 88 + Math.random() * 8) + (Math.random() * 4 - 2);
+      if (Math.random() < 0.08) ect = 106 + Math.random() * 6; // alerta ocasional
+      ect = Math.min(118, Math.max(60, Math.round(ect * 10) / 10));
+      const rpm = Math.round(Math.max(1200, Math.min(3800, (prev.rpm ?? 2000 + Math.random() * 800) + Math.round(Math.random() * 300 - 150))));
+      const nivel = Math.max(2, Math.min(100, (prev.nivel ?? 60 + Math.random() * 20) - 0.4 + Math.random() * 0.4));
+      const lat = (Number(f.lat) || 4.6 + Math.random()) + (Math.random() * 0.02 - 0.01);
+      const lng = (Number(f.lng) || -74.1 + Math.random()) + (Math.random() * 0.02 - 0.01);
+      estadoDemo.set(f.placa, { ect, rpm, nivel, lat, lng });
+      await fetchApi(`${API}/telemetry/demo`, {
+        method: 'POST',
+        body: JSON.stringify({
+          placa: f.placa,
+          ect,
+          rpm,
+          nivel_combustible: Math.round(nivel * 10) / 10,
+          lat: +lat.toFixed(5),
+          lng: +lng.toFixed(5),
+        }),
+      });
+    }
+    cargarFlota();
+  } catch (err) {
+    console.error('Error en demo:', err);
+  }
+}
+
+function iniciarDemo() {
+  if (demoIntervalo) return;
+  tickDemo();
+  demoIntervalo = setInterval(tickDemo, 5000);
+  const b = document.getElementById('btn-demo');
+  if (b) {
+    b.textContent = '⏸️ Detener demo';
+    b.classList.add('activo');
+  }
+}
+
+function pararDemo() {
+  if (demoIntervalo) {
+    clearInterval(demoIntervalo);
+    demoIntervalo = null;
+  }
+  const b = document.getElementById('btn-demo');
+  if (b) {
+    b.textContent = '▶️ Demo en vivo';
+    b.classList.remove('activo');
+  }
+}
+
+/* ---------- Exportar CSV ---------- */
+function descargarCSV(nombre, columnas, filas) {
+  const escapar = (v) => {
+    const s = String(v ?? '');
+    return /[;",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const contenido =
+    '\uFEFF' +
+    [columnas.map(escapar).join(';'), ...filas.map((r) => r.map(escapar).join(';'))].join('\r\n');
+  const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function exportarCSVAlertas() {
+  try {
+    const estado = document.getElementById('filtro-alerta-estado').value || null;
+    const params = estado ? `?estado=${estado}` : '';
+    const resp = await fetchApi(`${API}/historial/alertas${params}`);
+    const filas = await resp.json();
+    descargarCSV(`alertas_${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Placa', 'Tipo', 'Severidad', 'Estado', 'Fecha'],
+      filas.map((a) => [a.placa, a.tipo_alerta, a.severidad, a.estado, new Date(a.fecha_generacion).toLocaleString('es-CO')]));
+    toast('Alertas exportadas', 'ok');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function exportarCSVTelemetria() {
+  try {
+    const resp = await fetchApi(`${API}/historial/telemetria?limite=20`);
+    const filas = await resp.json();
+    descargarCSV(`telemetria_${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Placa', 'ECT (°C)', 'RPM', 'Combustible (%)', 'Fecha'],
+      filas.map((t) => [t.placa, t.ect_temperatura, t.rpm, t.nivel_combustible == null ? '--' : Math.round(Number(t.nivel_combustible)), new Date(t.fecha_registro).toLocaleString('es-CO')]));
+    toast('Telemetría exportada', 'ok');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* ---------- Informe de flota (imprimir / PDF) ---------- */
+async function abrirInforme() {
+  try {
+    const resp = await fetchApi(`${API}/telemetry/resumen`);
+    const filas = await resp.json();
+    const enLinea = filas.filter((f) => f.ultima_lectura).length;
+    const alertas = filas.reduce((n, f) => n + Number(f.alertas_activas || 0), 0);
+    const ects = filas.map((f) => Number(f.ect)).filter((v) => Number.isFinite(v));
+    const conteo = { verde: 0, ambar: 0, rojo: 0 };
+    filas.forEach((f) => { conteo[saludVehiculo(f).clase]++; });
+
+    document.getElementById('info-fecha').textContent = 'Generado: ' + new Date().toLocaleString('es-CO');
+    document.getElementById('info-kpis').innerHTML = `
+      <div><b>${filas.length}</b> vehículos</div>
+      <div><b>${enLinea}</b> en línea</div>
+      <div><b>${alertas}</b> alertas activas</div>
+      <div><b>${ects.length ? Math.round(Math.max(...ects)) + ' °C' : '--'}</b> ECT máx. de flota</div>`;
+    document.getElementById('info-salud').innerHTML = `
+      <span class="pill verde">${conteo.verde} óptimo(s)</span>
+      <span class="pill ambar">${conteo.ambar} en riesgo</span>
+      <span class="pill rojo">${conteo.rojo} crítico(s)</span>`;
+    document.getElementById('info-tabla').innerHTML = `
+      <thead><tr>
+        <th>Placa</th><th>Nombre</th><th>Tipo</th><th>Salud</th><th>ECT (°C)</th>
+        <th>RPM</th><th>Combustible</th><th>Última lectura</th><th>Próximo mnt</th>
+      </tr></thead>
+      <tbody>${filas.map((f) => {
+        const s = saludVehiculo(f);
+        return `<tr>
+          <td><b>${f.placa}</b></td>
+          <td>${f.nombre || '—'}</td>
+          <td>${f.tipo_vehiculo || '—'}</td>
+          <td><span class="pill ${s.clase}">${s.texto}</span></td>
+          <td>${f.ect === null ? '--' : f.ect + ' °C'}</td>
+          <td>${f.rpm === null ? '--' : f.rpm}</td>
+          <td>${f.nivel_combustible === null || f.nivel_combustible === undefined ? '--' : Math.round(Number(f.nivel_combustible)) + '%'}</td>
+          <td>${f.ultima_lectura ? new Date(f.ultima_lectura).toLocaleString('es-CO') : 'Sin lecturas'}</td>
+          <td>${formatearFecha(f.proximo_mantenimiento) || '—'}</td>
+        </tr>`;
+      }).join('')}</tbody>`;
+    await new Promise((r) => setTimeout(r, 60));
+    window.print();
+  } catch (err) {
+    console.error('Error al generar el informe:', err);
+  }
+}
+
 document.getElementById('form-login').addEventListener('submit', login);
 document.getElementById('btn-salir').addEventListener('click', salir);
 document.getElementById('banner-cerrar').addEventListener('click', ocultarAlerta);
 document.getElementById('btn-simular').addEventListener('click', simularAlerta);
+document.getElementById('btn-demo').addEventListener('click', () => (demoIntervalo ? pararDemo() : iniciarDemo()));
+document.getElementById('btn-informe').addEventListener('click', abrirInforme);
+document.getElementById('btn-exportar-alertas').addEventListener('click', exportarCSVAlertas);
+document.getElementById('btn-exportar-telemetria').addEventListener('click', exportarCSVTelemetria);
 document.getElementById('btn-crear').addEventListener('click', crearVehiculo);
 document.getElementById('btn-cargar-alertas').addEventListener('click', cargarAlertas);
 document.getElementById('mant-guardar').addEventListener('click', guardarModalMant);

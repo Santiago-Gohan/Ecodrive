@@ -7,11 +7,30 @@ const { registraLectura } = require('../services/alertService');
 
 router.post('/demo', adminAuth, async (req, res, next) => {
   try {
-    const { placa, ect, rpm } = req.body || {};
+    const { placa, ect, rpm, nivel_combustible, lat, lng } = req.body || {};
     const ectNum = Number(ect);
 
     if (!placa || !Number.isFinite(ectNum)) {
       return res.status(400).json({ error: 'Faltan datos de la placa o la temperatura' });
+    }
+
+    const nivelNum = nivel_combustible === undefined || nivel_combustible === null
+      ? null
+      : Number(nivel_combustible);
+    const latNum = lat === undefined || lat === null ? null : Number(lat);
+    const lngNum = lng === undefined || lng === null ? null : Number(lng);
+
+    if (ectNum < -40 || ectNum > 150) {
+      return res.status(400).json({ error: 'Lectura fuera de rango plausible (ECT -40..150)' });
+    }
+    if (nivelNum !== null && (nivelNum < 0 || nivelNum > 100)) {
+      return res.status(400).json({ error: 'Nivel de combustible fuera de rango (0..100 %)' });
+    }
+    if (latNum !== null && (latNum < -90 || latNum > 90)) {
+      return res.status(400).json({ error: 'Latitud fuera de rango (-90..90)' });
+    }
+    if (lngNum !== null && (lngNum < -180 || lngNum > 180)) {
+      return res.status(400).json({ error: 'Longitud fuera de rango (-180..180)' });
     }
 
     const { rows } = await pool.query(
@@ -26,6 +45,9 @@ router.post('/demo', adminAuth, async (req, res, next) => {
       vehiculo: rows[0],
       ect: ectNum,
       rpm: rpm || 2500,
+      nivelCombustible: nivelNum,
+      lat: latNum,
+      lng: lngNum,
       timestamp: new Date().toISOString(),
     });
 

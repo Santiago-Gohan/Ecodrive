@@ -346,6 +346,11 @@ input:focus, select:focus {
   cursor: wait;
 }
 
+.btn-simular.activo {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
 /* ---------- Gráfica ---------- */
 .tarjeta.grafica {
   margin-bottom: 16px;
@@ -1078,5 +1083,81 @@ td.celda-alerta {
 
   #panel-login {
     padding: 34px 24px 24px;
+  }
+}
+
+/* ---------- Informe de flota (imprimir / PDF) ---------- */
+.informe-print {
+  display: none;
+}
+
+@media print {
+  body > *:not(#zona-impresion),
+  body > #zona-impresion ~ * {
+    display: none !important;
+  }
+
+  #zona-impresion {
+    display: block;
+    color: #0b1220;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    padding: 24px;
+  }
+
+  #zona-impresion h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    background: linear-gradient(135deg, #0891b2, #059669);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .informe-fecha {
+    margin: 0 0 14px;
+    color: #333;
+    font-size: 12px;
+  }
+
+  .informe-kpis {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .informe-kpis div {
+    flex: 1;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 12px;
+    color: #444;
+  }
+
+  .informe-kpis b {
+    display: block;
+    font-size: 18px;
+    color: #0b1220;
+  }
+
+  .informe-salud {
+    margin: 10px 0;
+  }
+
+  .informe-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .informe-tabla th,
+  .informe-tabla td {
+    border: 1px solid #94a3b8;
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  .informe-tabla th {
+    background: #f1f5f9;
   }
 }

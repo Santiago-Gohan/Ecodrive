@@ -108,6 +108,8 @@
       <div class="tarjeta-cabecera">
         <h2>Flota vehicular - estado en tiempo real</h2>
         <div class="cabecera-derecha">
+          <button id="btn-demo" class="btn-simular">▶️ Demo en vivo</button>
+          <button id="btn-informe" class="btn-simular">📄 Informe de flota</button>
           <button id="btn-simular" class="btn-simular">Simular alerta (ECT 109°C)</button>
           <div class="conexion" id="conexion">
             <span class="punto"></span> Conectando...
@@ -123,11 +125,12 @@
             <th>Combustible</th>
             <th>RPM</th>
             <th>Última lectura</th>
+            <th>Salud</th>
             <th>Alertas</th>
           </tr>
         </thead>
         <tbody id="cuerpo-flota">
-          <tr><td colspan="7" class="vacio">Cargando flota...</td></tr>
+          <tr><td colspan="8" class="vacio">Cargando flota...</td></tr>
         </tbody>
       </table>
     </section>
@@ -167,6 +170,7 @@
               <th>API Key</th>
               <th>Lecturas</th>
               <th>Alertas</th>
+              <th>Salud</th>
               <th>Estado</th>
               <th>Último mnt</th>
               <th>Próximo mnt</th>
@@ -174,7 +178,7 @@
             </tr>
           </thead>
           <tbody id="cuerpo-vehiculos">
-            <tr><td colspan="12" class="vacio">Cargando...</td></tr>
+            <tr><td colspan="13" class="vacio">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -189,6 +193,7 @@
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
         <h2>Historial de alertas</h2>
+        <button id="btn-exportar-alertas" class="btn-secundario">⬇️ Exportar CSV</button>
       </div>
       <div class="filtros">
         <select id="filtro-alerta-estado">
@@ -221,6 +226,7 @@
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
         <h2>Historial de telemetría</h2>
+        <button id="btn-exportar-telemetria" class="btn-secundario">⬇️ Exportar CSV</button>
       </div>
       <div class="tabla-scroll">
         <table id="tabla-telemetria">
@@ -260,6 +266,14 @@
       </div>
     </div>
   </div>
+
+  <section id="zona-impresion" class="informe-print">
+    <h1>EcoDrive · Informe de flota</h1>
+    <p id="info-fecha" class="informe-fecha"></p>
+    <div id="info-kpis" class="informe-kpis"></div>
+    <p id="info-salud" class="informe-salud"></p>
+    <table id="info-tabla" class="informe-tabla"></table>
+  </section>
 
   <div id="modal-key" class="modal oculto">
     <div class="modal-caja">
