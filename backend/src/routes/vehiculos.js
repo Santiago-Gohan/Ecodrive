@@ -24,16 +24,24 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { placa, nombre } = req.body || {};
+    const { placa, nombre, tipo, combustible, anio } = req.body || {};
     if (!placa || !String(placa).trim()) {
       return res.status(400).json({ error: 'La placa es obligatoria' });
     }
     const apiKey = `key_${crypto.randomBytes(12).toString('hex')}`;
     const { rows } = await pool.query(
-      `INSERT INTO vehiculos (placa, api_key, nombre)
-       VALUES ($1, $2, $3)
+      `INSERT INTO vehiculos (placa, api_key, nombre, tipo_vehiculo, combustible, anio)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, placa, api_key, nombre, anio, combustible, tipo_vehiculo, activo, fecha_creacion`,
-      [String(placa).trim().toUpperCase(), apiKey, nombre || null]
+      [
+        String(placa).trim().toUpperCase(),
+        apiKey,
+        nombre || null,
+        String(tipo || 'CARRO').trim().toUpperCase(),
+        (combustible || '').toString().trim().toLowerCase() === 'diesel' ? 'DIESEL' :
+          (combustible || '').toString().trim().toLowerCase() === 'gasolina' ? 'GASOLINA' : null,
+        Number(anio) || null,
+      ]
     );
     res.status(201).json(rows[0]);
   } catch (err) {

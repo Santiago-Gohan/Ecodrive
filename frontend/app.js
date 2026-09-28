@@ -75,11 +75,31 @@ async function login(ev) {
   mostrarDashboard();
 }
 
+/* ---------- Toasts ---------- */
+function toast(mensaje, tipo = 'info') {
+  const cont = document.getElementById('toasts');
+  if (!cont) return;
+  const el = document.createElement('div');
+  el.className = `toast ${tipo}`;
+  const ico = tipo === 'ok' ? '✅' : tipo === 'err' ? '❌' : 'ℹ️';
+  el.innerHTML = `<span>${ico}</span><span class="toast-txt"></span>`;
+  el.querySelector('.toast-txt').textContent = mensaje;
+  cont.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .3s, transform .3s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(8px)';
+    setTimeout(() => el.remove(), 320);
+  }, 4200);
+}
+
 function mostrarDashboard() {
   $login.classList.add('oculto');
   $header.classList.remove('oculto');
   cambiarVista('dashboard');
   cargarFlota();
+  iniciarPollingGrafica();
+  setTimeout(dibujarGrafica, 80);
 }
 
 function cambiarVista(nombre) {
@@ -112,9 +132,14 @@ async function cargarFlota() {
     const resp = await fetchApi(`${API}/telemetry/resumen`);
     const filas = await resp.json();
     renderFlota(filas);
+    registrarPuntoGraficas(filas);
   } catch (err) {
     console.error('Error al cargar flota:', err);
   }
+}
+
+function clasePillAlertas(n) {
+  return n > 0 ? 'rojo' : 'gris';
 }
 
 function renderFlota(filas) {
@@ -125,31 +150,185 @@ function renderFlota(filas) {
   document.getElementById('kpi-flota').textContent = filas.length;
   document.getElementById('kpi-linea').textContent = enLinea;
   document.getElementById('kpi-alertas').textContent = alertas;
-  document.getElementById('kpi-ect').textContent = ects.length ? `${Math.max(...ects)} °C` : '--';
+  document.getElementById('kpi-ect').textContent = ects.length ? `${Math.round(Math.max(...ects))} °C` : '--';
   if (!filas.length) {
-    $tabla.innerHTML = '<tr><td colspan="6" class="vacio">Sin vehículos registrados</td></tr>';
+    $tabla.innerHTML = '<tr><td colspan="6" class="vacio">Sin vehículos registrados todavía</td></tr>';
     return;
   }
   $tabla.innerHTML = filas
     .map((f) => {
-      const ect = f.ect === null ? '--' : `${f.ect} °C`;
+      const ect = f.ect === null ? null : Number(f.ect);
       const rpm = f.rpm === null ? '--' : String(f.rpm);
       const fecha = f.ultima_lectura
         ? new Date(f.ultima_lectura).toLocaleString('es-CO')
         : 'Sin lecturas';
       const numAlertas = Number(f.alertas_activas);
-      const clase = numAlertas > 0 ? 'celda-alerta' : '';
-      return `<tr>
+      const enLineaAuto = f.ultima_lectura ? 'on' : 'off';
+      const anios = f.anio ? ` · ${f.anio}` : '';
+      const detalle = [f.tipo_vehiculo, f.combustible].filter(Boolean).join(' · ');
+      let valorEct = '--';
+      let relleno = '<div class="relleno" style="width:0%"></div>';
+      if (ect !== null) {
+        // Escala visual: 0 °C -> 0 %, 115 °C -> 100 %
+        const pct = Math.min(100, Math.max(0, ((ect + 30) / 145) * 100));
+        const extra = pct >= 85 ? 'alto' : pct >= 70 ? 'medio' : '';
+        const claseValor = ect > 105 ? 'hot' : ect >= 95 ? 'calido' : '';
+        valorEct = `<span class="valor ${claseValor}">${ect} °C</span>`;
+        relleno = `<div class="relleno ${extra}" style="width:${pct.toFixed(1)}%"></div>`;
+      }
+return `<tr>
+        <td><span class="punto-linea ${enLineaAuto}"></span><strong>${f.nombre || '—'}</strong></td>
         <td><strong>${f.placa}</strong></td>
-        <td>${f.nombre || '--'}</td>
-        <td class="${Number(f.ect) > 105 ? 'caliente' : ''}">${ect}</td>
+        <td><div class="medio-ect">${valorEct}<div class="barra-termica">${relleno}</div></div></td>
         <td>${rpm}</td>
-        <td>${fecha}</td>
-        <td class="${clase}">${numAlertas}</td>
+        <td>${fecha} ${enLineaAuto === 'on' ? '<span class="pill cyan">ACTIVO</span>' : '<span class="pill gris">SIN SEÑAL</span>'}</td>
+        <td><span class="pill ${clasePillAlertas(numAlertas)}">${numAlertas}</span> <small style="color:var(--muted)">${detalle}${anios}</small></td>
       </tr>`;
     })
     .join('');
 }
+
+/* ---------- Gráfica en vivo de ECT ---------- */
+const GRAFICA_MAX_PUNTOS = 40;
+const almacenGrafica = new Map(); // placa -> [{ t, ect }]
+const COLORES_PLACA = ['#22d3ee', '#34d399', '#f59e0b', '#a78bfa', '#f472b6', '#fb923c'];
+
+function registrarPuntoGraficas(filas) {
+  const t = Date.now();
+  filas.forEach((f) => {
+    if (!f.ultima_lectura || f.ect === null) return;
+    const ser = almacenGrafica.get(f.placa) || [];
+    ser.push({ t, ect: Number(f.ect) });
+    almacenGrafica.set(f.placa, ser.slice(-GRAFICA_MAX_PUNTOS));
+  });
+  dibujarGrafica();
+}
+
+let graficaRedibuja = null;
+
+function dibujarGrafica() {
+  const canvas = document.getElementById('grafica-ect');
+  if (!canvas || !canvas.getContext) return;
+  const ctx = canvas.getContext('2d');
+  const cssW = canvas.clientWidth || 960;
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== 220 * dpr) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = 220 * dpr;
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = cssW;
+  const H = 220;
+  const padL = 40;
+  const padR = 14;
+  const padT = 18;
+  const padB = 28;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Ejes Y: 50..115 °C
+  const yMin = 50;
+  const yMax = 115;
+  const Y = (ect) => padT + ((yMax - ect) / (yMax - yMin)) * (H - padT - padB);
+
+  // Rejilla y etiquetas Y
+  for (let v = yMin; v <= yMax; v += 5) {
+    const y = Y(v);
+    ctx.strokeStyle = 'rgba(148,163,184,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
+    ctx.fillStyle = '#8fa0b8';
+    ctx.font = '11px Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${v}°`, padL - 8, y + 4);
+  }
+
+  // Umbral crítico 105 °C (línea roja punteada)
+  const y105 = Y(105);
+  ctx.setLineDash([6, 5]);
+  ctx.strokeStyle = 'rgba(239,68,68,0.75)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(padL, y105);
+  ctx.lineTo(W - padR, y105);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ef4444';
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 11px Segoe UI, sans-serif';
+  ctx.fillText('Límite 105 °C', W - padR - 88, y105 - 6);
+
+  if (!almacenGrafica.size) {
+    ctx.fillStyle = '#64748b';
+    ctx.font = '13px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Esperando lecturas de telemetría…', W / 2, H / 2);
+    return;
+  }
+
+  // Rango de tiempo: últimas N muestras (o todas desde el inicio)
+  let tMin = Infinity;
+  let tMax = -Infinity;
+  almacenGrafica.forEach((ser) => {
+    ser.forEach((p) => {
+      if (p.t < tMin) tMin = p.t;
+      if (p.t > tMax) tMax = p.t;
+    });
+  });
+  if (tMax === tMin) tMax = tMin + 1;
+
+  const xPix = (t) => padL + ((t - tMin) / (tMax - tMin)) * (W - padL - padR);
+
+  // Etiquetas de hora (mín y máx)
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px Segoe UI, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(new Date(tMin).toLocaleTimeString('es-CO'), padL, H - 8);
+  ctx.textAlign = 'right';
+  ctx.fillText(new Date(tMax).toLocaleTimeString('es-CO'), W - padR, H - 8);
+
+  // Dibujar serie de cada vehículo
+  let i = 0;
+  almacenGrafica.forEach((ser, placa) => {
+    if (ser.length < 2) return;
+    const color = COLORES_PLACA[i % COLORES_PLACA.length];
+    i++;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ser.forEach((p, idx) => {
+      const x = xPix(p.t);
+      const y = Y(p.ect);
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Último punto + etiqueta con placa
+    const ult = ser[ser.length - 1];
+    const x = xPix(ult.t);
+    const y = Y(ult.ect);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 11px Segoe UI, sans-serif';
+    ctx.fillText(placa, x + 7, y - 6);
+  });
+}
+
+function iniciarPollingGrafica() {
+  setInterval(() => cargarFlota(), 5000);
+}
+
+window.addEventListener('resize', () => {
+  clearTimeout(graficaRedibuja);
+  graficaRedibuja = setTimeout(dibujarGrafica, 150);
+});
 
 async function cargarVehiculos() {
   try {
@@ -164,7 +343,7 @@ async function cargarVehiculos() {
 function renderVehiculos(filas) {
   const cuerpo = document.getElementById('cuerpo-vehiculos');
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="7" class="vacio">No hay vehículos registrados</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">No hay vehículos registrados</td></tr>';
     return;
   }
   cuerpo.innerHTML = filas
@@ -172,10 +351,13 @@ function renderVehiculos(filas) {
       (v) => `<tr>
         <td><strong>${v.placa}</strong></td>
         <td>${v.nombre || '--'}</td>
+        <td><span class="pill cyan">${v.tipo_vehiculo || 'CARRO'}</span></td>
+        <td>${v.combustible ? v.combustible.charAt(0) + v.combustible.slice(1).toLowerCase() : '--'}</td>
+        <td>${v.anio || '--'}</td>
         <td><button class="btn-ver-key" data-id="${v.id}" data-placa="${v.placa}">Ver API Key</button></td>
         <td>${v.total_lecturas}</td>
-        <td class="${v.alertas_activas > 0 ? 'celda-alerta' : ''}">${v.alertas_activas}</td>
-        <td class="${v.activo ? 'ok' : 'off'}">${v.activo ? 'Activo' : 'Inactivo'}</td>
+        <td><span class="pill ${clasePillAlertas(v.alertas_activas)}">${v.alertas_activas}</span></td>
+        <td>${v.activo ? '<span class="pill verde">Activo</span>' : '<span class="pill rojo">Inactivo</span>'}</td>
         <td class="acciones">
           <button class="btn-mini ${v.activo ? '' : 'ok'}" data-toggle="${v.id}" data-activo="${v.activo}">
             ${v.activo ? 'Desactivar' : 'Activar'}
@@ -204,6 +386,9 @@ function renderVehiculos(filas) {
 async function crearVehiculo() {
   const placa = document.getElementById('nueva-placa').value.trim();
   const nombre = document.getElementById('nuevo-nombre').value.trim();
+  const tipo = document.getElementById('nuevo-tipo').value || 'CARRO';
+  const combustible = document.getElementById('nuevo-combustible').value || null;
+  const anio = document.getElementById('nuevo-anio').value || null;
   const msg = document.getElementById('msg-flota');
 
   if (!placa) {
@@ -215,7 +400,7 @@ async function crearVehiculo() {
   try {
     const resp = await fetchApi(`${API}/vehiculos`, {
       method: 'POST',
-      body: JSON.stringify({ placa, nombre }),
+      body: JSON.stringify({ placa, nombre, tipo, combustible, anio }),
     });
     const data = await resp.json();
     if (!resp.ok) {
@@ -226,8 +411,11 @@ async function crearVehiculo() {
     msg.classList.add('oculto');
     document.getElementById('nueva-placa').value = '';
     document.getElementById('nuevo-nombre').value = '';
+    document.getElementById('nuevo-anio').value = '';
+    document.getElementById('nuevo-combustible').value = '';
     cargarVehiculos();
     cargarFlota();
+    toast(`Vehículo ${placa} registrado. API Key: ${data.api_key}`, 'ok');
   } catch (err) {
     console.error(err);
   }
@@ -237,11 +425,12 @@ async function verApiKey(id, placa) {
   try {
     const resp = await fetchApi(`${API}/vehiculos/${id}/apikey`);
     const data = await resp.json();
-    if (!resp.ok) return alert(data.error || 'Error');
-    const copiar = confirm(`API Key de ${placa}: ${data.api_key}\n\nPresionar Aceptar para copiar al portapapeles.`);
-    if (copiar && navigator.clipboard) {
+    if (!resp.ok) return toast(data.error || 'Error', 'err');
+    if (navigator.clipboard) {
       await navigator.clipboard.writeText(data.api_key);
-      alert('API Key copiada al portapapeles');
+      toast(`API Key de ${placa} copiada al portapapeles`, 'ok');
+    } else {
+      toast(`API Key de ${placa}: ${data.api_key}`, 'info');
     }
   } catch (err) {
     console.error(err);
@@ -265,7 +454,8 @@ async function regenerarKey(id) {
   try {
     const resp = await fetchApi(`${API}/vehiculos/${id}/apikey/regenerar`, { method: 'POST' });
     const data = await resp.json();
-    alert(`Nueva API Key: ${data.api_key}`);
+    if (!resp.ok) return toast(data.error || 'Error', 'err');
+    toast(`Nueva API Key: ${data.api_key}`, 'ok');
     cargarVehiculos();
   } catch (err) {
     console.error(err);
@@ -276,6 +466,7 @@ async function eliminarVehiculo(id, placa) {
   if (!confirm(`¿Eliminar el vehículo ${placa}? Se borrarán sus lecturas y alertas.`)) return;
   try {
     await fetchApi(`${API}/vehiculos/${id}`, { method: 'DELETE' });
+    toast(`Vehículo ${placa} eliminado`, 'ok');
     cargarVehiculos();
     cargarFlota();
   } catch (err) {
@@ -303,15 +494,17 @@ async function cargarAlertas() {
 function renderAlertas(filas) {
   const cuerpo = document.getElementById('cuerpo-alertas');
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="6" class="vacio">Sin alertas</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="6" class="vacio">Sin alertas registradas</td></tr>';
     return;
   }
+  const pillSev = (s) => (s === 'ALTA' ? 'rojo' : s === 'MEDIA' ? 'ambar' : 'gris');
+  const pillEst = (e) => (e === 'ATENDIDA' ? 'verde' : e === 'ACTIVA' ? 'ambar' : 'gris');
   cuerpo.innerHTML = filas
     .map((a) => `<tr>
       <td><strong>${a.placa}</strong></td>
       <td>${a.tipo_alerta}</td>
-      <td class="${a.severidad === 'ALTA' ? 'caliente' : ''}">${a.severidad}</td>
-      <td>${a.estado}</td>
+      <td><span class="pill ${pillSev(a.severidad)}">${a.severidad}</span></td>
+      <td><span class="pill ${pillEst(a.estado)}">${a.estado}</span></td>
       <td>${new Date(a.fecha_generacion).toLocaleString('es-CO')}</td>
       <td class="acciones">
         ${a.estado !== 'ATENDIDA'
@@ -327,7 +520,9 @@ function renderAlertas(filas) {
 
 async function atenderAlerta(id) {
   try {
-    await fetchApi(`${API}/historial/alertas/${id}/atender`, { method: 'POST' });
+    const resp = await fetchApi(`${API}/historial/alertas/${id}/atender`, { method: 'POST' });
+    if (!resp.ok) return toast('Error al atender la alerta', 'err');
+    toast('Alerta atendida', 'ok');
     cargarAlertas();
     cargarFlota();
   } catch (err) {

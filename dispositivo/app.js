@@ -257,11 +257,32 @@ async function ciclodeLectura() {
   const rpm = await leerConReintento(leerRpm);
   if (ect !== null) $valEct.textContent = ect.toFixed(0);
   if (rpm !== null) $valRpm.textContent = Math.round(rpm);
+  actualizarMedidores(ect, rpm);
   if (!lecturaPlausible(ect, rpm)) {
     log(`Lectura descartada (fuera de rango o sin respuesta): ECT=${ect} RPM=${rpm}. Revisa el adaptador.`);
     return; // no se envia basura ni se llena la cola offline
   }
   await enviarTelemetria({ vehiculo_id: vehiculoActual.id, ect, rpm, timestamp: new Date().toISOString() });
+}
+
+// Medidores semicirculares (fraccion 0..1)
+function llenarMedidor(id, frac, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const f = Math.max(0, Math.min(1, frac || 0));
+  el.style.strokeDashoffset = String(100 - f * 100);
+  el.style.stroke = color;
+}
+
+function actualizarMedidores(ect, rpm) {
+  if (ect !== null) {
+    const frac = Math.max(0, Math.min(1, (ect - 20) / 100)); // 20 °C -> 0, 120 °C -> 1
+    const color = ect > 105 ? '#ef4444' : ect >= 95 ? '#f59e0b' : '#22d3ee';
+    llenarMedidor('fill-ect', frac, color);
+  }
+  if (rpm !== null) {
+    llenarMedidor('fill-rpm', rpm / 9000, '#34d399');
+  }
 }
 
 async function postLectura(payload, apiKey) {
@@ -409,11 +430,17 @@ function perfilLabel(perfil) {
 
 function conectarVirtual() {
   modoVirtual = document.getElementById('select-perfil').value;
-  $valEct.textContent = '--';
-  $valRpm.textContent = '--';
+  reiniciarMedidores();
   statusOk('ECU virtual: ' + perfilLabel(modoVirtual));
   log('ECU virtual conectada. Consultando compatibilidad (PID 0100)...');
   probarCompatibilidad();
+}
+
+function reiniciarMedidores() {
+  $valEct.textContent = '--';
+  $valRpm.textContent = '--';
+  llenarMedidor('fill-ect', 0, '#22d3ee');
+  llenarMedidor('fill-rpm', 0, '#34d399');
 }
 
 function reconectarVirtual() {

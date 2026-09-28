@@ -55,7 +55,7 @@ router.get('/resumen', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT
-         v.id, v.placa, v.nombre,
+         v.id, v.placa, v.nombre, v.tipo_vehiculo, v.combustible, v.anio,
          (SELECT t.ect_temperatura FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id ORDER BY t.fecha_registro DESC LIMIT 1) AS ect,
          (SELECT t.rpm FROM telemetria_lectura t

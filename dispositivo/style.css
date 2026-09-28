@@ -75,18 +75,26 @@ header h1 span {
 
 main {
   padding: 16px 24px 40px;
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 24px;
+}
+
 .tarjeta {
-  background: var(--tarjeta);
+  background: linear-gradient(180deg, #1e293b, #16213b);
   border: 1px solid var(--borde);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
 }
 
 .tarjeta h2 {
@@ -226,23 +234,58 @@ main {
   flex: 1;
   background: var(--fondo);
   border: 1px solid var(--borde);
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 14px;
+  padding: 18px 14px 16px;
   text-align: center;
+}
+
+.lectura.medidor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gauge {
+  width: 100%;
+  max-width: 170px;
+  height: auto;
+}
+
+.gauge-base {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 11;
+  stroke-linecap: round;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke: var(--acento);
+  stroke-width: 11;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s;
+}
+
+.gauge-min,
+.gauge-max {
+  fill: #64748b;
+  font-size: 9px;
 }
 
 .lectura-valor {
   display: block;
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 800;
   color: var(--acento);
+  margin-top: -14px;
+  font-variant-numeric: tabular-nums;
 }
 
 .lectura-etiqueta {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #94a3b8;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .acciones-central {

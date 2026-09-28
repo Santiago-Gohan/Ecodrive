@@ -80,11 +80,25 @@
     <section class="tarjeta config">
       <h2>3 · Monitoreo en vivo</h2>
       <div class="lecturas">
-        <div class="lectura">
+        <div class="lectura medidor">
+          <svg class="gauge" viewBox="0 0 130 100">
+            <path class="gauge-base" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"/>
+            <path class="gauge-fill" id="fill-ect" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"
+              stroke-dasharray="100" stroke-dashoffset="100"/>
+            <text class="gauge-min" x="12" y="98">0°</text>
+            <text class="gauge-max" x="112" y="98">120°</text>
+          </svg>
           <span class="lectura-valor" id="val-ect">--</span>
           <span class="lectura-etiqueta">ECT temperatura (°C)</span>
         </div>
-        <div class="lectura">
+        <div class="lectura medidor">
+          <svg class="gauge" viewBox="0 0 130 100">
+            <path class="gauge-base" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"/>
+            <path class="gauge-fill" id="fill-rpm" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"
+              stroke-dasharray="100" stroke-dashoffset="100"/>
+            <text class="gauge-min" x="8" y="98">0</text>
+            <text class="gauge-max" x="104" y="98">9000</text>
+          </svg>
           <span class="lectura-valor" id="val-rpm">--</span>
           <span class="lectura-etiqueta">RPM</span>
         </div>
