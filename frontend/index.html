@@ -158,28 +158,9 @@
         <button id="btn-crear" class="btn-primario">Registrar vehículo</button>
       </div>
       <p id="msg-flota" class="error oculto"></p>
-      <div class="tabla-scroll">
-        <table id="tabla-vehiculos">
-          <thead>
-            <tr>
-              <th>Placa</th>
-              <th>Nombre</th>
-              <th>Tipo</th>
-              <th>Combustible</th>
-              <th>Año</th>
-              <th>API Key</th>
-              <th>Lecturas</th>
-              <th>Alertas</th>
-              <th>Salud</th>
-              <th>Estado</th>
-              <th>Mantenimiento</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpo-vehiculos">
-            <tr><td colspan="12" class="vacio">Cargando...</td></tr>
-          </tbody>
-        </table>
+      <p class="vaciar-ligero" id="msg-flota-vacio"></p>
+      <div id="grid-vehiculos" class="grid-vehiculos">
+        <p class="vacio">Cargando flota...</p>
       </div>
     </section>
     <section class="tarjeta nota">

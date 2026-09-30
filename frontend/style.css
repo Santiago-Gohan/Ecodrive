@@ -36,6 +36,125 @@ body {
   background-attachment: fixed;
   color: var(--texto);
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ---------- Flota como tarjetas (sin scroll lateral) ---------- */
+.grid-vehiculos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
+  padding: 16px 0;
+  max-width: 100%;
+}
+
+.veh-card {
+  background: linear-gradient(160deg, var(--tarjeta2), var(--tarjeta));
+  border: 1px solid var(--borde);
+  border-radius: var(--radio2);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  box-shadow: var(--sombra);
+  transition: transform var(--anim), border-color var(--anim);
+}
+
+.veh-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+.veh-cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.veh-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: linear-gradient(135deg, #475569, #334155);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.veh-avatar.verde { background: linear-gradient(135deg, #22c55e, #15803d); }
+.veh-avatar.ambar { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.veh-avatar.rojo { background: linear-gradient(135deg, #f43f5e, #b91c1c); }
+
+.veh-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.veh-placa {
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  color: var(--texto);
+}
+
+.veh-nombre {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.veh-cab .pill {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.veh-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: rgba(138, 160, 184, 0.08);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.chip.ok-chip { color: var(--verde); border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.08); }
+.chip.off-chip { color: var(--rojo); border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); }
+.chip.chip-alerta { color: var(--naranja); border-color: rgba(251, 146, 60, 0.4); background: rgba(251, 146, 60, 0.1); }
+
+.veh-mnt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  background: rgba(11, 18, 32, 0.35);
+  border: 1px solid rgba(42, 58, 88, 0.55);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.veh-acc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
 }
 
 .oculto {

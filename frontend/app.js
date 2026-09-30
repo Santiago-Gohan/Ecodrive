@@ -485,29 +485,40 @@ async function cargarVehiculos() {
 }
 
 function renderVehiculos(filas) {
-  const cuerpo = document.getElementById('cuerpo-vehiculos');
+  const grid = document.getElementById('grid-vehiculos');
+  const aviso = document.getElementById('msg-flota-vacio');
   vehiculosCache = {};
   filas.forEach((v) => { vehiculosCache[v.id] = v; });
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="12" class="vacio">No hay vehículos registrados</td></tr>';
+    grid.innerHTML = '<p class="vacio">No hay vehículos registrados</p>';
     return;
   }
-  cuerpo.innerHTML = filas
+  grid.innerHTML = filas
     .map(
       (v) => {
         const mnt = infoMnt(v);
-        return `<tr>
-        <td><strong>${v.placa}</strong></td>
-        <td>${v.nombre || '--'}</td>
-        <td><span class="pill cyan">${v.tipo_vehiculo || 'CARRO'}</span></td>
-        <td>${v.combustible ? v.combustible.charAt(0) + v.combustible.slice(1).toLowerCase() : '--'}</td>
-        <td>${v.anio || '--'}</td>
-        <td><button class="btn-ver-key" data-id="${v.id}" data-placa="${v.placa}">🔑 Ver API Key</button></td>
-        <td>${v.total_lecturas}</td>
-        <td><span class="pill ${clasePillAlertas(v.alertas_activas)}">${v.alertas_activas}</span></td>
-        <td><span class="pill ${saludVehiculo(v).clase}">${saludVehiculo(v).texto}</span></td>
-        <td>${v.activo ? '<span class="pill verde">Activo</span>' : '<span class="pill rojo">Inactivo</span>'}</td>
-        <td class="celda-mnt">
+        const salud = saludVehiculo(v);
+        const tipo = (v.tipo_vehiculo || 'CARRO').charAt(0) + (v.tipo_vehiculo || 'CARRO').slice(1).toLowerCase();
+        const comb = v.combustible ? v.combustible.charAt(0) + v.combustible.slice(1).toLowerCase() : null;
+        const iniciales = String(v.placa).slice(0, 2).toUpperCase();
+        return `<div class="veh-card">
+        <div class="veh-cab">
+          <div class="veh-avatar ${salud.clase}" title="Salud: ${salud.texto}">${iniciales}</div>
+          <div class="veh-id">
+            <strong class="veh-placa">${v.placa}</strong>
+            <span class="veh-nombre">${v.nombre || 'Sin nombre'}</span>
+          </div>
+          <span class="pill ${salud.clase}">${salud.texto}</span>
+        </div>
+        <div class="veh-chips">
+          <span class="chip">${tipo}</span>
+          ${comb ? `<span class="chip">${comb}</span>` : ''}
+          ${v.anio ? `<span class="chip">${v.anio}</span>` : ''}
+          ${v.activo ? '<span class="chip ok-chip">● En línea</span>' : '<span class="chip off-chip">● Inactivo</span>'}
+          <span class="chip">${v.total_lecturas} lecturas</span>
+          <span class="chip ${Number(v.alertas_activas) ? 'chip-alerta' : ''}">${v.alertas_activas} alerta${v.alertas_activas === 1 ? '' : 's'}</span>
+        </div>
+        <div class="veh-mnt">
           <button class="btn-mnt ${mnt.clase}" data-mant="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}"
             title="${mnt.title}">
             🛠️ Mantenimiento${v.total_mnt ? `<span class="btn-mnt-badge">${v.total_mnt}</span>` : ''}
@@ -516,33 +527,34 @@ function renderVehiculos(filas) {
             <span class="pill ${mnt.clase}">${mnt.etiqueta}</span>
             <span class="celda-mnt-cuando">${mnt.fecha}</span>
           </div>
-          <div class="celda-mnt-ult">Últ: ${formatearFecha(v.ultimo_mantenimiento) || 'sin registros'}</div>
-        </td>
-        <td class="acciones">
-          <button class="btn-mini" data-regen="${v.id}" title="Regenerar API Key">🔄 Regen. Key</button>
-          <button class="btn-mini ${v.activo ? '' : 'ok'}" data-toggle="${v.id}" data-activo="${v.activo}">
+          <div class="celda-mnt-ult">Último servicio: ${formatearFecha(v.ultimo_mantenimiento) || 'sin registros'}</div>
+        </div>
+        <div class="veh-acc">
+          <button class="btn-mini" data-id="${v.id}" data-placa="${v.placa}" title="Ver API Key">🔑 Key</button>
+          <button class="btn-mini" data-regen="${v.id}" title="Regenerar API Key">🔄 Regenerar</button>
+          <button class="btn-mini ${v.activo ? '' : 'ok'}" data-toggle="${v.id}" data-activo="${v.activo}" title="Activar / desactivar">
             ${v.activo ? '⏸ Desactivar' : '▶️ Activar'}
           </button>
-          <button class="btn-mini peligro" data-del="${v.id}" data-placa="${v.placa}">🗑 Eliminar</button>
-        </td>
-      </tr>`;
+          <button class="btn-mini peligro" data-del="${v.id}" data-placa="${v.placa}" title="Eliminar vehículo">🗑 Eliminar</button>
+        </div>
+      </div>`;
       }
     )
     .join('');
 
-  cuerpo.querySelectorAll('.btn-ver-key').forEach((btn) =>
+  grid.querySelectorAll('.btn-ver-key, .veh-acc [data-id]').forEach((btn) =>
     btn.addEventListener('click', () => verApiKey(btn.dataset.id, btn.dataset.placa))
   );
-  cuerpo.querySelectorAll('[data-mant]').forEach((btn) =>
+  grid.querySelectorAll('[data-mant]').forEach((btn) =>
     btn.addEventListener('click', () => abrirModalMant(btn.dataset.mant, btn.dataset.placa, btn.dataset.nombre))
   );
-  cuerpo.querySelectorAll('[data-toggle]').forEach((btn) =>
+  grid.querySelectorAll('[data-toggle]').forEach((btn) =>
     btn.addEventListener('click', () => alternarActivo(btn.dataset.toggle, btn.dataset.activo === 'true'))
   );
-  cuerpo.querySelectorAll('[data-regen]').forEach((btn) =>
+  grid.querySelectorAll('[data-regen]').forEach((btn) =>
     btn.addEventListener('click', () => regenerarKey(btn.dataset.regen))
   );
-  cuerpo.querySelectorAll('[data-del]').forEach((btn) =>
+  grid.querySelectorAll('[data-del]').forEach((btn) =>
     btn.addEventListener('click', () => eliminarVehiculo(btn.dataset.del, btn.dataset.placa))
   );
 }
