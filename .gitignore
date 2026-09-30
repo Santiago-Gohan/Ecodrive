@@ -1,6 +1,7 @@
 node_modules/
 *.log
 .env
+backend/backups/
 .DS_Store
 /dist
 /build

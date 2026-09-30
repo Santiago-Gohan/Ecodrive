@@ -467,11 +467,25 @@ async function postLectura(payload, apiKey) {
 }
 
 // Al volver la señal, envia la cola guardada en lotes de 200 (hasta 5000 lecturas
-// ≈ 7 h sin conexion). Si falla a mitad de camino, lo no enviado se conserva.
+// ≈ 7 h sin conexion). Si falla, aplica backoff exponencial (5 s → 5 min) para no
+// golpear el servidor mientras está caído o cuando limita el caudal (429 / Retry-After).
 const LOTE_MAX = 200;
+const BACKOFF_MAX = 300000; // 5 minutos
+let reintentosCola = 0;
+let proximoIntentoCola = 0;
 
 async function reenviarCola(apiKey) {
   let cola = getCola();
+  if (!cola.length) {
+    reintentosCola = 0;
+    proximoIntentoCola = 0;
+    actualizarCola(0);
+    return { enviadas: 0, pendientes: 0 };
+  }
+  if (Date.now() < proximoIntentoCola) {
+    actualizarCola(cola.length);
+    return { enviadas: 0, pendientes: cola.length, diferido: true };
+  }
   let enviadas = 0;
   while (cola.length) {
     const lote = cola.slice(0, LOTE_MAX);
@@ -481,13 +495,27 @@ async function reenviarCola(apiKey) {
         headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
         body: JSON.stringify({ lecturas: lote }),
       });
-      if (!resp.ok) break;
+      if (!resp.ok) {
+        reintentosCola++;
+        const retryAfter = parseInt(resp.headers.get('Retry-After') || '0', 10);
+        const demora = retryAfter > 0
+          ? retryAfter * 1000
+          : Math.min(BACKOFF_MAX, 5000 * Math.pow(2, reintentosCola - 1));
+        proximoIntentoCola = Date.now() + demora;
+        break;
+      }
     } catch {
+      reintentosCola++;
+      proximoIntentoCola = Date.now() + Math.min(BACKOFF_MAX, 5000 * Math.pow(2, reintentosCola - 1));
       break; // sin conexion: se conserva el resto para el proximo intento
     }
     cola = cola.slice(lote.length);
     enviadas += lote.length;
     localStorage.setItem('ecodrive_offline', JSON.stringify(cola));
+  }
+  if (!cola.length || enviadas > 0) {
+    reintentosCola = 0;
+    proximoIntentoCola = 0;
   }
   actualizarCola(cola.length);
   return { enviadas, pendientes: cola.length };

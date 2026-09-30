@@ -74,6 +74,8 @@ headless de principio a fin).
 - Envío de lecturas cada 5 s: **ECT, RPM, nivel de combustible, latitud y longitud**.
 - **Cola offline**: si no hay conexión, las lecturas se guardan y se reenvían al volver la señal
   (diseñado para zonas rurales con señal intermitente de 3–6 h).
+- **Reenvío con backoff exponencial**: si el servidor está caído o responde 429, el siguiente
+  intento se aplaza 5 s → 10 s → 20 s … hasta 5 min (respeta `Retry-After`), evitando golpearlo.
 - Soporte de **envío por lotes** (`/telemetry/lote`) para optimizar la subida.
 - Medidores tipo gauge en tiempo real y estado de conexión.
 
@@ -81,7 +83,7 @@ headless de principio a fin).
 
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
-| GET | `/health` | — | Estado del servidor |
+| GET | `/health` | — | Estado: `db` en vivo, `uptime`, `hora` (503 si la BD falla) |
 | POST | `/auth/login` | — | Login admin → JWT (8 h) |
 | GET | `/vehiculos` | admin | Listar flota (con próximos mantenimientos calculados) |
 | POST | `/vehiculos` | admin | Crear vehículo (genera API Key `ECDV-…`) |
@@ -253,10 +255,15 @@ npm start                                        # → http://localhost:3000
   recalculados). Verificado también que no existe desplazamiento horizontal con 27 servicios.
 - Depuración realizada sobre el propio navegador: se detectó y corrigió el bug `dataset.id` vs
   `data-mant` que impedía registrar mantenimientos (el id llegaba `undefined`).
+- **Backups**: `backend/scripts/backup.ps1` hace `pg_dump` de la BD local o de Neon
+  (`-Nube`), conserva los 15 últimos y verifica versión de cliente (Neon es PostgreSQL 18;
+  requiere un `pg_dump` 18+). Neon además lleva sus copias automáticas (PITR) por plan.
+- **Fase 2 (confiabilidad)** verificada: health con BD real (`db: ok`, 503 si falla),
+  reenvío con backoff exponencial (5 s → 5 min) y respeto a `Retry-After`, y backups local/Nube.
 
 ---
 
-## 7. Historial de desarrollo (24 commits)
+## 7. Historial de desarrollo
 
 Línea de evolución del proyecto (los más recientes arriba):
 
@@ -272,13 +279,22 @@ Línea de evolución del proyecto (los más recientes arriba):
 9. **Presentación ganadora** — demo en vivo, salud de flota, export CSVs, informe imprimible.
 10. **Mantenimiento completo** — historial, próximos mantenimientos, rediseño profesional del modal
     y sin scroll lateral.
+11. **Panel flota renovado** — tarjetas responsive (sin scroll lateral) + botón 🛠️ Mantenimiento
+    con urgencia y badge; modal de API Key con **QR** para vincular desde la app.
+12. **Fase 1 (trabajo pesado)** — índices de DB, retención/purga con resumen horario y límite de
+    caudal por vehículo (429 + `Retry-After`).
+13. **Fase 2 (confiabilidad)** — health real con BD, reenvío con backoff exponencial y backups
+    `pg_dump` (local y Neon).
 
 ---
 
 ## 8. Deuda técnica y pendientes conocidos
 
 - **App Android**: envía `vehiculo_id = "-1"` fijo y el backend la rechaza (403) — pendiente.
-- Cola offline del dispositivo: reenvío implementado; validar en pruebas de campo extensas.
+- Cola offline del dispositivo: reenvío con backoff implementado; validar en pruebas de campo
+  extensas con señal intermitente real.
+- **Backup de la nube**: el script avisa que hace falta `pg_dump` 18+ para Neon (instalarlo y
+  usar `-PgDump`); mientras tanto, proteger Neon con sus copias PITR automáticas.
 - Landing: precios y contacto aún en configuración (usuario define valores finales).
 - Credenciales demo no aptas para producción real sin antes robustecer (se recomienda cambiar
   `ADMIN_USER`/`ADMIN_PASS`).

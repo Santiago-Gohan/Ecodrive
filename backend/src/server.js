@@ -33,7 +33,19 @@ app.use('/api/v1/vehiculos', vehiculosRoute);
 app.use('/api/v1/historial', historialRoute);
 app.use('/api/v1/registration', registrationRoute);
 
-app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/v1/health', async (req, res) => {
+  const base = {
+    status: 'ok',
+    uptime: Math.round(process.uptime()),
+    hora: new Date().toISOString(),
+  };
+  try {
+    await pool.query('SELECT 1');
+    res.json({ ...base, db: 'ok' });
+  } catch (err) {
+    res.status(503).json({ ...base, status: 'degradado', db: 'error: ' + err.message });
+  }
+});
 
 app.use(express.static(path.join(__dirname, '../../pagina-web')));
 app.use('/panel', express.static(path.join(__dirname, '../../frontend')));
