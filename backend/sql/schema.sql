@@ -14,10 +14,21 @@ CREATE TABLE vehiculos (
   combustible   VARCHAR(20),
   tipo_vehiculo VARCHAR(20) NOT NULL DEFAULT 'CARRO',
   ultimo_mantenimiento DATE,
+  proximo_mantenimiento DATE,
   intervalo_mantenimiento INTEGER NOT NULL DEFAULT 180,
   plan_mantenimiento TEXT,
   activo        BOOLEAN NOT NULL DEFAULT TRUE,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE mantenimientos (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vehiculo_id UUID NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
+  fecha       DATE NOT NULL,
+  descripcion TEXT,
+  costo       NUMERIC(12,2),
+  odometro    INTEGER,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE telemetria_lectura (

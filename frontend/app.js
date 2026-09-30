@@ -523,7 +523,7 @@ function renderVehiculos(filas) {
     btn.addEventListener('click', () => verApiKey(btn.dataset.id, btn.dataset.placa))
   );
   cuerpo.querySelectorAll('[data-mant]').forEach((btn) =>
-    btn.addEventListener('click', () => abrirModalMant(btn.dataset.id, btn.dataset.placa, btn.dataset.nombre))
+    btn.addEventListener('click', () => abrirModalMant(btn.dataset.mant, btn.dataset.placa, btn.dataset.nombre))
   );
   cuerpo.querySelectorAll('[data-toggle]').forEach((btn) =>
     btn.addEventListener('click', () => alternarActivo(btn.dataset.toggle, btn.dataset.activo === 'true'))
@@ -545,19 +545,31 @@ function pillProximoMnt(proximo) {
   return `<span class="pill gris">${f}</span>`;
 }
 
-/* ---------- Modal de plan de mantenimiento ---------- */
+/* ---------- Modal de mantenimiento completo ---------- */
 let mantActivo = null;
 let vehiculosCache = {};
 
-function abrirModalMant(id, placa, nombre) {
+function formatearDinero(n) {
+  const v = Number(n);
+  if (n === null || n === undefined || !Number.isFinite(v)) return '';
+  return '$ ' + v.toLocaleString('es-CO');
+}
+
+async function abrirModalMant(id, placa, nombre) {
   mantActivo = id;
-  const v = vehiculosCache[id] || {};
   document.getElementById('modal-titulo').textContent = `${placa} · ${nombre || 'sin nombre'}`;
-  document.getElementById('mant-fecha').value = v.ultimo_mantenimiento ? String(v.ultimo_mantenimiento).slice(0, 10) : '';
+  const v = vehiculosCache[id] || {};
+  const resp = await fetchApi(`${API}/vehiculos/${id}/mantenimientos`).catch(() => null);
+  const hist = resp && resp.ok ? await resp.json() : [];
+  document.getElementById('mant-proximo').value = v.proximo_mantenimiento ? String(v.proximo_mantenimiento).slice(0, 10) : '';
   document.getElementById('mant-intervalo').value = v.intervalo_mantenimiento || '';
   document.getElementById('mant-plan').value = v.plan_mantenimiento || '';
+  document.getElementById('mnt-fecha').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('mnt-odometro').value = '';
+  document.getElementById('mnt-desc').value = '';
+  document.getElementById('mnt-costo').value = '';
+  renderHistorialMant(hist);
   document.getElementById('modal-mant').classList.remove('oculto');
-  document.getElementById('mant-plan').focus();
 }
 
 function cerrarModalMant() {
@@ -567,27 +579,107 @@ function cerrarModalMant() {
 
 async function guardarModalMant() {
   if (!mantActivo) return;
-  const fecha = document.getElementById('mant-fecha').value || null;
   const intervalo = Number(document.getElementById('mant-intervalo').value);
   const plan = document.getElementById('mant-plan').value.trim();
+  const proxio = document.getElementById('mant-proximo').value || '';
   try {
     const resp = await fetchApi(`${API}/vehiculos/${mantActivo}`, {
       method: 'PUT',
       body: JSON.stringify({
-        ultimo_mantenimiento: fecha,
         intervalo_mantenimiento: Number.isFinite(intervalo) && intervalo > 0 ? intervalo : null,
         plan_mantenimiento: plan,
+        proximo_mantenimiento: proxio,
       }),
     });
     const data = await resp.json();
     if (!resp.ok) return toast(data.error || 'Error al guardar', 'err');
-    toast('Plan de mantenimiento guardado', 'ok');
+    toast('Configuración de mantenimiento guardada', 'ok');
     cerrarModalMant();
     cargarVehiculos();
     cargarFlota();
   } catch (err) {
     console.error(err);
-    toast('Error al guardar el plan', 'err');
+    toast('Error al guardar', 'err');
+  }
+}
+
+function renderHistorialMant(lista) {
+  const cont = document.getElementById('hist-mantenimientos');
+  if (!lista || !lista.length) {
+    cont.innerHTML = '<p class="vacio-ligero">Sin mantenimientos registrados.</p>';
+    return;
+  }
+  cont.innerHTML = lista
+    .map(
+      (m) => `<div class="mant-hist-item">
+        <div class="mant-hist-fecha">${formatearFecha(m.fecha)}</div>
+        <div class="mant-hist-info">
+          <span>${m.descripcion || 'Mantenimiento'}</span>
+          ${m.odometro !== null && m.odometro !== undefined ? `<small>· ${Number(m.odometro).toLocaleString('es-CO')} km</small>` : ''}
+          ${formatearDinero(m.costo) ? `<small>· ${formatearDinero(m.costo)}</small>` : ''}
+        </div>
+        <button class="btn-mini peligro" data-mnt-del="${m.id}">✕</button>
+      </div>`
+    )
+    .join('');
+  cont.querySelectorAll('[data-mnt-del]').forEach((btn) =>
+    btn.addEventListener('click', () => eliminarMantenimiento(btn.dataset.mntDel))
+  );
+}
+
+async function recargarHistorialMant() {
+  if (!mantActivo) return;
+  const resp = await fetchApi(`${API}/vehiculos/${mantActivo}/mantenimientos`);
+  const hist = await resp.json();
+  renderHistorialMant(hist);
+}
+
+async function registrarMantenimiento() {
+  if (!mantActivo) return;
+  const fecha = document.getElementById('mnt-fecha').value || '';
+  const descripcion = document.getElementById('mnt-desc').value.trim();
+  const costo = document.getElementById('mnt-costo').value || null;
+  const odometro = document.getElementById('mnt-odometro').value || null;
+  if (!fecha) return toast('Indica la fecha del mantenimiento', 'err');
+  try {
+    const resp = await fetchApi(`${API}/vehiculos/${mantActivo}/mantenimientos`, {
+      method: 'POST',
+      body: JSON.stringify({
+        fecha,
+        descripcion,
+        costo: costo === null ? null : Number(costo),
+        odometro: odometro === null ? null : Number(odometro),
+        intervalo_mantenimiento: Number(document.getElementById('mant-intervalo').value) || null,
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) return toast(data.error || 'Error al registrar', 'err');
+    toast('Mantenimiento registrado', 'ok');
+    document.getElementById('mnt-fecha').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('mnt-odometro').value = '';
+    document.getElementById('mnt-desc').value = '';
+    document.getElementById('mnt-costo').value = '';
+    await recargarHistorialMant();
+    cargarVehiculos();
+    cargarFlota();
+  } catch (err) {
+    console.error(err);
+    toast('Error al registrar el mantenimiento', 'err');
+  }
+}
+
+async function eliminarMantenimiento(id) {
+  if (!mantActivo) return;
+  if (!confirm('¿Eliminar este mantenimiento del historial?')) return;
+  try {
+    const resp = await fetchApi(`${API}/vehiculos/${mantActivo}/mantenimientos/${id}`, { method: 'DELETE' });
+    if (!resp.ok) return toast('No se pudo eliminar', 'err');
+    toast('Mantenimiento eliminado', 'ok');
+    await recargarHistorialMant();
+    cargarVehiculos();
+    cargarFlota();
+  } catch (err) {
+    console.error(err);
   }
 }
 
@@ -1000,6 +1092,7 @@ document.getElementById('btn-exportar-telemetria').addEventListener('click', exp
 document.getElementById('btn-crear').addEventListener('click', crearVehiculo);
 document.getElementById('btn-cargar-alertas').addEventListener('click', cargarAlertas);
 document.getElementById('mant-guardar').addEventListener('click', guardarModalMant);
+document.getElementById('mnt-registrar').addEventListener('click', registrarMantenimiento);
 document.getElementById('mant-cancelar').addEventListener('click', cerrarModalMant);
 document.getElementById('modal-cerrar').addEventListener('click', cerrarModalMant);
 document.getElementById('modal-mant').addEventListener('click', (ev) => {

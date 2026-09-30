@@ -248,22 +248,45 @@
   </main>
 
   <div id="modal-mant" class="modal oculto">
-    <div class="modal-caja">
+    <div class="modal-caja modal-mant-caja">
       <div class="modal-cabecera">
-        <h3>Plan de mantenimiento</h3>
+        <h3>Mantenimiento vehicular</h3>
         <button id="modal-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
       </div>
       <p class="modal-sub" id="modal-titulo"></p>
-      <label class="modal-label">Último mantenimiento (fecha)</label>
-      <input type="date" id="mant-fecha" />
-      <label class="modal-label">Intervalo de servicio (días)</label>
-      <input type="number" id="mant-intervalo" min="7" max="3650" placeholder="180" />
-      <label class="modal-label">Plan de mantenimiento</label>
-      <textarea id="mant-plan" rows="4" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. Revisión de frenos y refrigerante..." ></textarea>
-      <div class="modal-acciones">
-        <button id="mant-guardar" class="btn-primario">Guardar</button>
-        <button id="mant-cancelar" class="btn-secundario">Cancelar</button>
+
+      <label class="modal-label">Próximo mantenimiento (fecha)</label>
+      <input type="date" id="mant-proximo" />
+      <div class="modal-grid2">
+        <div>
+          <label class="modal-label">Intervalo de servicio (días)</label>
+          <input type="number" id="mant-intervalo" min="7" max="3650" placeholder="180" />
+        </div>
+        <div>
+          <label class="modal-label">Plan de mantenimiento</label>
+          <textarea id="mant-plan" rows="2" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. Revisión de frenos y refrigerante..."></textarea>
+        </div>
       </div>
+      <div class="modal-acciones">
+        <button id="mant-guardar" class="btn-primario">Guardar cambios</button>
+        <button id="mant-cancelar" class="btn-secundario">Cerrar</button>
+      </div>
+
+      <hr class="modal-sep" />
+      <h4 class="modal-sec">➕ Registrar mantenimiento</h4>
+      <div class="modal-grid2">
+        <input type="date" id="mnt-fecha" class="mnt-inp" />
+        <input type="number" id="mnt-odometro" class="mnt-inp" min="0" placeholder="Odómetro (km)" />
+      </div>
+      <input type="text" id="mnt-desc" class="mnt-inp" placeholder="Descripción (ej: cambio de aceite y filtros)" />
+      <div class="modal-grid2">
+        <input type="number" id="mnt-costo" class="mnt-inp" min="0" step="0.01" placeholder="Costo ($)" />
+        <button id="mnt-registrar" class="btn-secundario">Registrar</button>
+      </div>
+
+      <hr class="modal-sep" />
+      <h4 class="modal-sec">📜 Historial de mantenimientos</h4>
+      <div id="hist-mantenimientos" class="mant-hist"><p class="vacio-ligero">Cargando…</p></div>
     </div>
   </div>
 

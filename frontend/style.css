@@ -973,6 +973,80 @@ td.celda-alerta {
   background: rgba(239, 68, 68, 0.12);
 }
 
+/* ---------- Modal mantenimiento completo ---------- */
+.modal-mant-caja {
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.modal-sep {
+  border: none;
+  border-top: 1px dashed var(--borde);
+  margin: 18px 0 14px;
+}
+
+.modal-sec {
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+  color: var(--texto);
+}
+
+.mnt-inp {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio2);
+  color: var(--texto);
+  margin-bottom: 10px;
+}
+
+.mant-hist {
+  display: grid;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.mant-hist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio2);
+  padding: 10px 12px;
+}
+
+.mant-hist-fecha {
+  font-weight: 700;
+  color: var(--acento);
+  white-space: nowrap;
+}
+
+.mant-hist-info {
+  flex: 1;
+  color: var(--texto);
+  font-size: 0.88rem;
+}
+
+.mant-hist-info small {
+  color: var(--muted);
+}
+
+.mant-hist-item .btn-mini {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
 /* ---------- Pills (estado / severidad / tipo) ---------- */
 .pill {
   display: inline-block;

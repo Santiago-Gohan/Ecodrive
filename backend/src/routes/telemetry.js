@@ -79,7 +79,9 @@ router.get('/resumen', async (req, res, next) => {
       `SELECT
          v.id, v.placa, v.nombre, v.tipo_vehiculo, v.combustible, v.anio,
          v.ultimo_mantenimiento, v.intervalo_mantenimiento, v.plan_mantenimiento,
-         (v.ultimo_mantenimiento + (v.intervalo_mantenimiento || ' days')::interval) AS proximo_mantenimiento,
+         COALESCE(v.proximo_mantenimiento,
+           (v.ultimo_mantenimiento + (v.intervalo_mantenimiento || ' days')::interval)
+         ) AS proximo_mantenimiento,
          (SELECT t.ect_temperatura FROM telemetria_lectura t
           WHERE t.vehiculo_id = v.id ORDER BY t.fecha_registro DESC LIMIT 1) AS ect,
          (SELECT t.rpm FROM telemetria_lectura t
