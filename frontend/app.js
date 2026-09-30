@@ -555,10 +555,57 @@ function formatearDinero(n) {
   return '$ ' + v.toLocaleString('es-CO');
 }
 
+function estadoServicio(dias, intervalo) {
+  if (dias === null) return { texto: 'Sin programar', clase: 'gris', frase: 'Define el próximo servicio', prog: 0 };
+  if (dias < 0) return { texto: 'Vencido', clase: 'rojo', frase: `Hace ${Math.abs(dias)} día${Math.abs(dias) === 1 ? '' : 's'}`, prog: 100 };
+  if (dias === 0) return { texto: 'Vence hoy', clase: 'ambar', frase: 'Agenda el servicio', prog: 100 };
+  const int = Number(intervalo) > 0 ? Number(intervalo) : 180;
+  const prog = Math.round(Math.min(100, Math.max(0, (100 * (int - dias)) / int)));
+  const frase = `En ${dias} día${dias === 1 ? '' : 's'}`;
+  if (dias <= 15) return { texto: 'Por vencer', clase: 'ambar', frase, prog };
+  return { texto: 'En orden', clase: 'verde', frase, prog };
+}
+
+function renderResumenMnt(v, hist) {
+  const estado = estadoServicio(diasHasta(v.proximo_mantenimiento), v.intervalo_mantenimiento);
+
+  document.getElementById('mant-placa').textContent = v.placa || '—';
+  document.getElementById('mant-nombre').textContent = v.nombre || '';
+  document.getElementById('mant-tipo').textContent = v.tipo_vehiculo || 'CARRO';
+  const est = document.getElementById('mant-estado');
+  est.textContent = v.activo ? 'Activo' : 'Inactivo';
+  est.className = 'pill ' + (v.activo ? 'verde' : 'rojo');
+  const salud = saludVehiculo(v);
+  const saludEl = document.getElementById('mant-salud');
+  saludEl.textContent = salud.texto;
+  saludEl.className = 'pill mant-veh-salud ' + salud.clase;
+
+  document.getElementById('kpi-proximo').textContent = formatearFecha(v.proximo_mantenimiento) || '—';
+  document.getElementById('kpi-proximo-sub').textContent = estado.frase;
+  const barra = document.getElementById('barra-proximo');
+  barra.style.width = estado.prog + '%';
+  barra.className = 'mant-barra-relleno ' + estado.clase;
+
+  const ultimo = hist.length ? hist[0].fecha : null;
+  document.getElementById('kpi-ultimo').textContent = formatearFecha(ultimo) || '—';
+  const diasUlt = ultimo ? Math.max(0, Math.floor((Date.now() - new Date(ultimo).getTime()) / 86400000)) : null;
+  document.getElementById('kpi-ultimo-sub').textContent = diasUlt === null ? 'Sin servicios' : `Hace ~${diasUlt} día${diasUlt === 1 ? '' : 's'}`;
+
+  const total = hist.reduce((s, m) => s + (Number(m.costo) || 0), 0);
+  document.getElementById('kpi-costo').textContent = total ? formatearDinero(total) : '$ 0';
+  document.getElementById('kpi-costo-sub').textContent = `${hist.length} servicio${hist.length === 1 ? '' : 's'} registrado${hist.length === 1 ? '' : 's'}`;
+
+  document.getElementById('kpi-servicios').textContent = hist.length;
+  const km = ultimo && hist[0].odometro !== null && hist[0].odometro !== undefined
+    ? `${Number(hist[0].odometro).toLocaleString('es-CO')} km` : '—';
+  document.getElementById('kpi-servicios-sub').textContent = `Último: ${km}`;
+
+  document.getElementById('mant-total').textContent = total ? `Total ${formatearDinero(total)}` : '';
+}
+
 async function abrirModalMant(id, placa, nombre) {
   mantActivo = id;
-  document.getElementById('modal-titulo').textContent = `${placa} · ${nombre || 'sin nombre'}`;
-  const v = vehiculosCache[id] || {};
+  const v = vehiculosCache[id] || { placa, nombre, activo: true, tipo_vehiculo: 'CARRO' };
   const resp = await fetchApi(`${API}/vehiculos/${id}/mantenimientos`).catch(() => null);
   const hist = resp && resp.ok ? await resp.json() : [];
   document.getElementById('mant-proximo').value = v.proximo_mantenimiento ? String(v.proximo_mantenimiento).slice(0, 10) : '';
@@ -568,6 +615,7 @@ async function abrirModalMant(id, placa, nombre) {
   document.getElementById('mnt-odometro').value = '';
   document.getElementById('mnt-desc').value = '';
   document.getElementById('mnt-costo').value = '';
+  renderResumenMnt(v, hist);
   renderHistorialMant(hist);
   document.getElementById('modal-mant').classList.remove('oculto');
 }
@@ -606,32 +654,52 @@ async function guardarModalMant() {
 function renderHistorialMant(lista) {
   const cont = document.getElementById('hist-mantenimientos');
   if (!lista || !lista.length) {
-    cont.innerHTML = '<p class="vacio-ligero">Sin mantenimientos registrados.</p>';
+    cont.innerHTML = '<div class="mant-vacio">Sin servicios registrados todavía.</div>';
     return;
   }
   cont.innerHTML = lista
-    .map(
-      (m) => `<div class="mant-hist-item">
-        <div class="mant-hist-fecha">${formatearFecha(m.fecha)}</div>
-        <div class="mant-hist-info">
-          <span>${m.descripcion || 'Mantenimiento'}</span>
-          ${m.odometro !== null && m.odometro !== undefined ? `<small>· ${Number(m.odometro).toLocaleString('es-CO')} km</small>` : ''}
-          ${formatearDinero(m.costo) ? `<small>· ${formatearDinero(m.costo)}</small>` : ''}
+    .map((m) => {
+      const km = m.odometro !== null && m.odometro !== undefined
+        ? `${Number(m.odometro).toLocaleString('es-CO')} km` : '';
+      const costo = formatearDinero(m.costo);
+      return `<div class="mant-hist-item">
+        <span class="mant-hist-dot"></span>
+        <div class="mant-hist-cuerpo">
+          <div class="mant-hist-cab">
+            <span class="mant-hist-fecha">${formatearFecha(m.fecha) || '—'}</span>
+            ${costo ? `<span class="mant-hist-costo">${costo}</span>` : ''}
+            <button class="btn-mini peligro" data-mnt-del="${m.id}" title="Eliminar este servicio">Eliminar</button>
+          </div>
+          <p class="mant-hist-desc">${m.descripcion || 'Servicio general'}</p>
+          ${km ? `<small class="mant-hist-km">Odómetro ${km}</small>` : ''}
         </div>
-        <button class="btn-mini peligro" data-mnt-del="${m.id}">✕</button>
-      </div>`
-    )
+      </div>`;
+    })
     .join('');
   cont.querySelectorAll('[data-mnt-del]').forEach((btn) =>
     btn.addEventListener('click', () => eliminarMantenimiento(btn.dataset.mntDel))
   );
 }
 
-async function recargarHistorialMant() {
+async function refrescarModalMant() {
   if (!mantActivo) return;
-  const resp = await fetchApi(`${API}/vehiculos/${mantActivo}/mantenimientos`);
-  const hist = await resp.json();
-  renderHistorialMant(hist);
+  try {
+    const [rv, rh] = await Promise.all([
+      fetchApi(`${API}/vehiculos`).then((r) => r.json()),
+      fetchApi(`${API}/vehiculos/${mantActivo}/mantenimientos`).then((r) => r.json()),
+    ]);
+    const v = rv.find((x) => x.id === mantActivo) || {};
+    v.ect = vehiculosCache[mantActivo]?.ect ?? null;
+    v.nivel_combustible = vehiculosCache[mantActivo]?.nivel_combustible ?? null;
+    vehiculosCache[mantActivo] = v;
+    document.getElementById('mant-proximo').value = v.proximo_mantenimiento ? String(v.proximo_mantenimiento).slice(0, 10) : '';
+    document.getElementById('mant-intervalo').value = v.intervalo_mantenimiento || '';
+    document.getElementById('mant-plan').value = v.plan_mantenimiento || '';
+    renderResumenMnt(v, rh);
+    renderHistorialMant(rh);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function registrarMantenimiento() {
@@ -659,7 +727,7 @@ async function registrarMantenimiento() {
     document.getElementById('mnt-odometro').value = '';
     document.getElementById('mnt-desc').value = '';
     document.getElementById('mnt-costo').value = '';
-    await recargarHistorialMant();
+    await refrescarModalMant();
     cargarVehiculos();
     cargarFlota();
   } catch (err) {
@@ -675,7 +743,7 @@ async function eliminarMantenimiento(id) {
     const resp = await fetchApi(`${API}/vehiculos/${mantActivo}/mantenimientos/${id}`, { method: 'DELETE' });
     if (!resp.ok) return toast('No se pudo eliminar', 'err');
     toast('Mantenimiento eliminado', 'ok');
-    await recargarHistorialMant();
+    await refrescarModalMant();
     cargarVehiculos();
     cargarFlota();
   } catch (err) {
