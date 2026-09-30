@@ -10,6 +10,7 @@ const authRoute = require('./routes/auth');
 const vehiculosRoute = require('./routes/vehiculos');
 const historialRoute = require('./routes/historial');
 const registrationRoute = require('./routes/registration');
+const { iniciarRetencion } = require('./services/retention');
 
 const app = express();
 const server = http.createServer(app);
@@ -62,6 +63,7 @@ async function start() {
   server.listen(config.port, () => {
     console.log(`EcoDrive backend en http://localhost:${config.port}`);
     console.log(`Endpoint telemétrica: POST /api/v1/telemetry`);
+    iniciarRetencion();
   });
 }
 

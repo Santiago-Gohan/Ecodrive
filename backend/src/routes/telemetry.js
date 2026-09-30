@@ -4,6 +4,16 @@ const config = require('../config');
 const deviceAuth = require('../middleware/deviceAuth');
 const adminAuth = require('../middleware/adminAuth');
 const { registraLectura } = require('../services/alertService');
+const { consumirCaudal } = require('../middleware/rateLimiter');
+
+function responderCaudal(req, res, unidades) {
+  const r = consumirCaudal(req.vehiculo.id, unidades);
+  if (r.ok) return null;
+  res.set('Retry-After', String(r.retrySe));
+  return res.status(429).json({
+    error: `Demasiadas lecturas para este vehículo. Intenta en ${r.retrySe}s.`,
+  });
+}
 
 router.post('/demo', adminAuth, async (req, res, next) => {
   try {
@@ -120,6 +130,8 @@ router.post('/lote', deviceAuth, async (req, res, next) => {
     if (!Array.isArray(lecturas) || !lecturas.length || lecturas.length > 5000) {
       return res.status(400).json({ error: 'Envia { lecturas: [...] } con 1..5000 elementos' });
     }
+    const limite = responderCaudal(req, res, lecturas.length);
+    if (limite) return limite;
     const validas = [];
     for (const l of lecturas) {
       const ectNum = Number(l && l.ect);
@@ -231,6 +243,9 @@ router.post('/', deviceAuth, async (req, res, next) => {
         .status(403)
         .json({ error: 'El dispositivo no pertenece al vehículo indicado' });
     }
+
+    const limite = responderCaudal(req, res, 1);
+    if (limite) return limite;
 
     const resultado = await registraLectura({
       vehiculo: req.vehiculo,

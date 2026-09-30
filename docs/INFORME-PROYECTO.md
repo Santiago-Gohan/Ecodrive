@@ -157,10 +157,19 @@ CTA. Se está personalizando precio/contacto en `pagina-web/`.
 |---|---|
 | `vehiculos` | `id` (UUID PK), `placa`, `nombre`, `api_key`, `tipo_vehiculo`, `combustible`, `anio`, `activo`, `fecha_creacion`, `ultimo_mantenimiento`, `intervalo_mantenimiento`, `plan_mantenimiento`, **`proximo_mantenimiento`** |
 | `telemetria_lectura` | Lecturas: `vehiculo_id` (FK), `ect_temperatura`, `rpm`, `nivel_combustible`, `lat`, `lng`, `fecha_registro` |
+| `telemetria_resumen` | Agregados horarios (min/max/prom ECT, max RPM, prom combustible, n lecturas) generados por la retención |
 | `alerta_mantenimiento` | Alertas: tipo (SOBRECALENTAMIENTO…), severidad, estado (PENDIENTE/ACTIVA/ATENDIDA) |
 | `mantenimientos` | Historial de servicios por vehículo: `fecha`, `descripcion`, `costo NUMERIC(12,2)`, `odometro`, `created_at` |
 
 - Relaciones con **ON DELETE CASCADE** (eliminar vehículo limpia telemetría/alertas/mantenimientos).
+- **Índices de producción** (`idx_telemetria_vehiculo_fecha`, `idx_alertas_vehiculo_estado`,
+  `idx_mantenimientos_vehiculo_fecha`) para que historial y dashboard no hagan escaneos completos con
+  cientos de miles de lecturas.
+- **Retención de datos** (Fase 1, trabajo pesado): un proceso interno ejecuta la purga cada
+  `PURGA_INTERVALO_MIN` (solo 1 por vez vía advisory lock), mueve las lecturas más viejas que
+  `TELEMETRIA_RETENCION_DIAS` a `telemetria_resumen` (agregado por hora) y borra lo bruto.
+- **Límite de caudal** por vehículo (`LIMITE_LECTURAS_MINUTO`) en `/telemetry` y `/telemetry/lote`
+  (ventana por minuto; responde `429` + `Retry-After` si se supera).
 - **`proximo_mantenimiento`** se calcula en consulta con `COALESCE(proximo_mantenimiento,
   ultimo_mantenimiento + intervalo)` y al registrar un servicio se sincroniza explícitamente.
 - Migración aplicada en local y producción (Neon): `backend/sql/migrations/2026-09-28-mantenimiento-completo.sql`.
@@ -217,7 +226,8 @@ Backend compara con la BD ── coincidencia ──► se almacena y se evalúa
 - Estáticos servidos por Express: `/` → `pagina-web`, `/panel` → `frontend`, `/dispositivo` →
   `dispositivo`, `/apk` → binario Android.
 - Variables: `PORT`, `DATABASE_URL`, `PGSSL`, `JWT_SECRET`, `ADMIN_USER`, `ADMIN_PASS`,
-  `THRESHOLD_ECT` (105 °C), `SEVERIDAD_ALERTA`.
+  `THRESHOLD_ECT` (105 °C), `SEVERIDAD_ALERTA`, `TELEMETRIA_RETENCION_DIAS` (30),
+  `PURGA_INTERVALO_MIN` (60), `LIMITE_LECTURAS_MINUTO` (2400).
 
 ### Contexto local
 
