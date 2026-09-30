@@ -317,9 +317,9 @@ Línea de evolución del proyecto (los más recientes arriba):
 
 ## 8. Deuda técnica y pendientes conocidos
 
-- **APK desactualizado**: la fuente Android ya corrige `vehiculo_id` (resuelve el vehículo real
-  con `/quien-soy` en vez de `-1`) y permite intervalo configurable, pero falta recompilar el
-  `EcoDrive-v1.1.apk` y servirlo en `/apk` (requiere JDK 17 + Gradle 8.7, p. ej. Android Studio).
+- **APK**: la fuente Android ya corrige `vehiculo_id` (resuelve el vehículo real con `/quien-soy`
+  en vez de `-1`) y permite intervalo configurable. Decisión del cliente: **no recompilar por
+  ahora**; la app se llevará a **Play Store** en el futuro con una versión renovada.
 - Cola offline del dispositivo: reenvío con backoff implementado; validar en pruebas de campo
   extensas con señal intermitente real.
 - **Backup de la nube**: el script avisa que hace falta `pg_dump` 18+ para Neon (instalarlo y
