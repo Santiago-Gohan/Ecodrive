@@ -92,6 +92,9 @@ router.post('/', async (req, res, next) => {
     if (!placaFinal) {
       return res.status(400).json({ error: 'La placa es obligatoria' });
     }
+    if (placaFinal.length > 12 || String(nombre || '').length > 80) {
+      return res.status(400).json({ error: 'Campos demasiado largos (placa ≤ 12, nombre ≤ 80)' });
+    }
 
     const veredicto = evaluarCompatibilidad({ combustible, anio, tipo });
 

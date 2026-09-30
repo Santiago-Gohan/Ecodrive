@@ -63,6 +63,26 @@
             android:background="#1e293b"
             android:padding="12dp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Intervalo de envío (segundos, 1–120)"
+            android:textColor="#94a3b8"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/inputIntervalo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="5"
+            android:textColorHint="#64748b"
+            android:textColor="#e2e8f0"
+            android:inputType="number"
+            android:maxLength="3"
+            android:background="#1e293b"
+            android:padding="12dp" />
+
         <Button
             android:id="@+id/btnConectar"
             android:layout_width="match_parent"

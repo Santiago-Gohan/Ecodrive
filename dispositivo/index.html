@@ -119,8 +119,15 @@
         </div>
       </div>
       <div id="gps-estado" class="gps-estado">📍 GPS: esperando señal…</div>
+      <label for="select-intervalo">Frecuencia de envío</label>
+      <select id="select-intervalo">
+        <option value="2000">Cada 2 segundos</option>
+        <option value="5000" selected>Cada 5 segundos (recomendado)</option>
+        <option value="10000">Cada 10 segundos</option>
+        <option value="30000">Cada 30 segundos</option>
+      </select>
       <div class="acciones-central">
-        <button id="btn-iniciar" class="btn-primario" disabled>Iniciar envío cada 5 s</button>
+        <button id="btn-iniciar" class="btn-primario" disabled>Iniciar envío</button>
         <button id="btn-detener" class="btn-secundario" disabled>Detener</button>
       </div>
       <div id="cola-offline" class="pista"></div>

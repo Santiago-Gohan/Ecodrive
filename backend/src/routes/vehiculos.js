@@ -34,6 +34,9 @@ router.post('/', async (req, res, next) => {
     if (!placa || !String(placa).trim()) {
       return res.status(400).json({ error: 'La placa es obligatoria' });
     }
+    if (String(nombre || '').length > 80) {
+      return res.status(400).json({ error: 'El nombre es demasiado largo (máx. 80)' });
+    }
     const apiKey = generarApiKey();
     const { rows } = await pool.query(
       `INSERT INTO vehiculos (placa, api_key, nombre, tipo_vehiculo, combustible, anio)
@@ -63,7 +66,12 @@ router.put('/:id', async (req, res, next) => {
     const b = req.body || {};
     const campos = [];
     const params = [req.params.id];
-    if ('nombre' in b) { campos.push(`nombre = $${params.length + 1}`); params.push(b.nombre ?? null); }
+    if ('nombre' in b) {
+          if (String(b.nombre || '').length > 80) {
+            return res.status(400).json({ error: 'El nombre es demasiado largo (máx. 80)' });
+          }
+          campos.push(`nombre = $${params.length + 1}`); params.push(b.nombre ?? null);
+        }
     if ('activo' in b) { campos.push(`activo = $${params.length + 1}`); params.push(!!b.activo); }
     if ('intervalo_mantenimiento' in b) {
       const v = Number(b.intervalo_mantenimiento);
@@ -71,6 +79,9 @@ router.put('/:id', async (req, res, next) => {
       params.push(Number.isFinite(v) && v > 0 ? v : null);
     }
     if ('plan_mantenimiento' in b) {
+      if (String(b.plan_mantenimiento || '').length > 500) {
+        return res.status(400).json({ error: 'El plan de mantenimiento es demasiado largo (máx. 500)' });
+      }
       campos.push(`plan_mantenimiento = $${params.length + 1}`);
       params.push(b.plan_mantenimiento ?? null);
     }

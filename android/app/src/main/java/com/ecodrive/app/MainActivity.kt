@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtLog: TextView
     private lateinit var inputServidor: EditText
     private lateinit var inputApikey: EditText
+    private lateinit var inputIntervalo: EditText
     private lateinit var btnConectar: Button
     private lateinit var btnIniciar: Button
     private lateinit var btnDetener: Button
@@ -66,12 +67,14 @@ class MainActivity : AppCompatActivity() {
         txtLog = findViewById(R.id.txtLog)
         inputServidor = findViewById(R.id.inputServidor)
         inputApikey = findViewById(R.id.inputApikey)
+        inputIntervalo = findViewById(R.id.inputIntervalo)
         btnConectar = findViewById(R.id.btnConectar)
         btnIniciar = findViewById(R.id.btnIniciar)
         btnDetener = findViewById(R.id.btnDetener)
 
         inputServidor.setText(prefs("servidor", SERVIDOR_DEFECTO))
         inputApikey.setText(prefs("apikey", ""))
+        inputIntervalo.setText(prefs("intervalo", "5"))
         val pendientes = db.contar()
         if (pendientes > 0) txtLog.text = "Hay $pendientes lectura(s) sin sincronizar."
 
@@ -211,9 +214,11 @@ class MainActivity : AppCompatActivity() {
         ect >= -40 && ect <= 150 && rpm >= 0 && rpm <= 9000
 
     private fun iniciarEnvio() {
+        val segundos = (inputIntervalo.text.toString().toIntOrNull() ?: 5).coerceIn(1, 120)
         btnIniciar.isEnabled = false
         guardarPrefs("servidor", inputServidor.text.toString())
         guardarPrefs("apikey", inputApikey.text.toString())
+        guardarPrefs("intervalo", segundos.toString())
         hiloEnvio = Thread {
             // 1) Resolver el vehiculo real con la API Key (antes era "-1" fijo -> 403)
             val id = consultarVehiculo()
@@ -226,12 +231,12 @@ class MainActivity : AppCompatActivity() {
             }
             vehiculoId = id.first
             vehiculoPlaca = id.second
-            correrEnMain { txtEstado.text = "Monitoreando ${id.second} (cada 5 s)" }
+            correrEnMain { txtEstado.text = "Monitoreando ${id.second} (cada $segundos s)" }
             activo = true
             correrEnMain { btnDetener.isEnabled = true }
             while (activo) {
                 try {
-                    Thread.sleep(5000)
+                    Thread.sleep(segundos * 1000L)
                 } catch (e: InterruptedException) {
                     break
                 }

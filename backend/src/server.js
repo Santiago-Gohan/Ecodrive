@@ -16,7 +16,38 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-app.use(express.json());
+const EPSILON_PROD = process.env.NODE_ENV === 'production';
+
+const securityHeaders = (req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self)');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline'; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: blob: https:; " +
+      "media-src 'self' blob:; " +
+      "font-src 'self' data:; " +
+      "connect-src 'self' ws: wss: https:; " +
+      "object-src 'none'; " +
+      "base-uri 'self'; " +
+      "frame-ancestors 'none'; " +
+      "form-action 'self'"
+  );
+  if (req.secure) {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+};
+
+app.use(securityHeaders);
+app.use(express.json({ limit: '1mb' }));
 app.set('io', io);
 
 app.use((req, res, next) => {
@@ -54,6 +85,9 @@ app.use('/apk', express.static(path.join(__dirname, '../public')));
 
 app.use((err, req, res, next) => {
   console.error('Error no controlado:', err.message);
+  if (EPSILON_PROD) {
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
   res.status(500).json({ error: 'Error interno del servidor', detalle: err.message });
 });
 

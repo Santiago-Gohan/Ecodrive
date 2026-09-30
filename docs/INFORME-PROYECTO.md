@@ -229,7 +229,8 @@ Backend compara con la BD ── coincidencia ──► se almacena y se evalúa
   `dispositivo`, `/apk` → binario Android.
 - Variables: `PORT`, `DATABASE_URL`, `PGSSL`, `JWT_SECRET`, `ADMIN_USER`, `ADMIN_PASS`,
   `THRESHOLD_ECT` (105 °C), `SEVERIDAD_ALERTA`, `TELEMETRIA_RETENCION_DIAS` (30),
-  `PURGA_INTERVALO_MIN` (60), `LIMITE_LECTURAS_MINUTO` (2400).
+  `PURGA_INTERVALO_MIN` (60), `LIMITE_LECTURAS_MINUTO` (2400), `LOGIN_MAX_INTENTOS` (10),
+  `LOGIN_VENTANA_MIN` (5).
 
 ### Contexto local
 
@@ -240,6 +241,24 @@ npm start                                        # → http://localhost:3000
 # Panel: /panel · App conductor: /dispositivo · Landing: /
 # Admin local de demo: admin / admin123
 ```
+
+## 5.1 Postura de seguridad
+
+- **Cabeceras HTTP**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
+  `Referrer-Policy: no-referrer`, `Permissions-Policy` (cámara/GPS solo same-origin),
+  **CSP** (scripts/styles inline limitados; externos solo del mismo origen; `object-src 'none'`),
+  HSTS cuando va por HTTPS y `Cache-Control: no-store` en `/api`.
+- **Autenticación**: JWT (8 h, rol admin) + API Keys por vehículo (`ECDV-…`); la llave del
+  vehículo NUNCA valida rutas de admin.
+- **Anti fuerza bruta en login** (`LOGIN_MAX_INTENTOS` = 10 / `LOGIN_VENTANA_MIN` = 5): al superar
+  los intentos responde **429 con `Retry-After`** por IP.
+- **Validación estricta de entrada**: rangos plausibles en telemetría (ECT -40..150, RPM 0..9000,
+  combustible 0..100 % y lat/lng), lotes ≤ 5000, cuerpo JSON ≤ 1 MB, longitud de nombres/planes
+  acotada; **SQL siempre parametrizado** (sin riesgo de inyección).
+- **Límite de caudal** por vehículo (ver Fase 1) evita saturación por una llave filtrada.
+- **Errores**: en producción el cliente recibe mensaje genérico (sin rutas/consultas internas);
+  el detalle queda solo en los logs del servidor.
+- Advertencia en arranque si `JWT_SECRET` no está definido en producción.
 
 ---
 
@@ -253,6 +272,9 @@ npm start                                        # → http://localhost:3000
   demo en vivo, y el **flujo completo de mantenimiento** (abrir modal → KPIs correctos → registrar
   servicio → toast de éxito → historial actualizado → sumatoria de costos → eliminar → totales
   recalculados). Verificado también que no existe desplazamiento horizontal con 27 servicios.
+- **Postura de seguridad verificada**: cabeceras (nosniff/DENY/CSP) presentes, lockout de login
+  (10 fallos → 429 con `Retry-After`, incluso para el usuario legítimo), y las tres páginas
+  cargan con CSP sin errores JS en Chrome headless.
 - Depuración realizada sobre el propio navegador: se detectó y corrigió el bug `dataset.id` vs
   `data-mant` que impedía registrar mantenimientos (el id llegaba `undefined`).
 - **Backups**: `backend/scripts/backup.ps1` hace `pg_dump` de la BD local o de Neon
@@ -285,12 +307,19 @@ Línea de evolución del proyecto (los más recientes arriba):
     caudal por vehículo (429 + `Retry-After`).
 13. **Fase 2 (confiabilidad)** — health real con BD, reenvío con backoff exponencial y backups
     `pg_dump` (local y Neon).
+14. **Endurecimiento de seguridad** — cabeceras CSP/nosniff/frame/Referrer-Policy, límite de
+    intentos de login (anti fuerza bruta), oculta detalles de errores en producción, límite de
+    1 MB en cuerpos JSON y caps de longitud en vehículos/registro.
+15. **Fase 3 (campo)** — frecuencia de envío configurable (PWA + Android); APK en fuente corregida
+    (resuelve vehículo real vía `/quien-soy`), pendiente recompilar.
 
 ---
 
 ## 8. Deuda técnica y pendientes conocidos
 
-- **App Android**: envía `vehiculo_id = "-1"` fijo y el backend la rechaza (403) — pendiente.
+- **APK desactualizado**: la fuente Android ya corrige `vehiculo_id` (resuelve el vehículo real
+  con `/quien-soy` en vez de `-1`) y permite intervalo configurable, pero falta recompilar el
+  `EcoDrive-v1.1.apk` y servirlo en `/apk` (requiere JDK 17 + Gradle 8.7, p. ej. Android Studio).
 - Cola offline del dispositivo: reenvío con backoff implementado; validar en pruebas de campo
   extensas con señal intermitente real.
 - **Backup de la nube**: el script avisa que hace falta `pg_dump` 18+ para Neon (instalarlo y

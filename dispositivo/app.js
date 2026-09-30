@@ -21,6 +21,23 @@ const $btnEscanear = document.getElementById('btn-escanear');
 const $cajaCamara = document.getElementById('caja-camara');
 const $video = document.getElementById('camara');
 const $estadoEscaneo = document.getElementById('estado-escaneo');
+const $selectIntervalo = document.getElementById('select-intervalo');
+
+// Frecuencia de envío configurable (se guarda en el navegador del dispositivo).
+const RANGOS_INTERVALO = [2000, 5000, 10000, 30000];
+function intervaloLecturaMs() {
+  const v = parseInt(localStorage.getItem('ecodrive_intervalo_ms') || '5000', 10);
+  return RANGOS_INTERVALO.includes(v) ? v : 5000;
+}
+if ($selectIntervalo) {
+  $selectIntervalo.value = String(intervaloLecturaMs());
+  $selectIntervalo.addEventListener('change', () => {
+    localStorage.setItem('ecodrive_intervalo_ms', $selectIntervalo.value);
+    if (monitoreoActivo) {
+      log('Frecuencia cambiada. Detén y vuelve a iniciar para aplicarla.');
+    }
+  });
+}
 
 let flujoCamara = null;
 let decodificando = false;
@@ -570,11 +587,12 @@ function iniciar() {
   iniciarGps();
   $btnIniciar.disabled = true;
   $btnDetener.disabled = false;
+  const periodo = intervaloLecturaMs();
   log(modoVirtual
-    ? 'Monitoreo con ECU virtual iniciado cada 5 s (RN-03).'
-    : 'Monitoreo iniciado cada 5 segundos (RN-03).');
+    ? `Monitoreo con ECU virtual iniciado cada ${Math.round(periodo / 1000)} s.`
+    : `Monitoreo iniciado cada ${Math.round(periodo / 1000)} segundos.`);
   ciclodeLectura();
-  intervalo = setInterval(ciclodeLectura, 5000);
+  intervalo = setInterval(ciclodeLectura, periodo);
 }
 
 let modoVirtual = null;
