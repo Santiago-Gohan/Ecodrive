@@ -29,6 +29,12 @@
         <input type="text" id="input-apikey" placeholder="key_..." />
         <button id="btn-guardar" class="btn-primario">Guardar</button>
       </div>
+      <div class="separador">o escanea para vincular</div>
+      <button id="btn-escanear" class="btn-primario">📷 Escanear código QR</button>
+      <div id="caja-camara" class="oculto caja-camara">
+        <video id="camara" playsinline muted></video>
+        <p id="estado-escaneo" class="pista">Enfoca el código QR del panel <em>Flota → 🔑 Key</em>. El vehículo se vinculó solo.</p>
+      </div>
       <p class="pista">La API Key la encuentras en el Panel Admin → Flota → "Ver API Key".</p>
       <details class="reg">
         <summary>¿No encuentras tu vehículo? Regístralo aquí</summary>
@@ -121,6 +127,7 @@
     </section>
   </main>
 
+  <script src="vendor/jsqr.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

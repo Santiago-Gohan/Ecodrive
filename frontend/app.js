@@ -843,6 +843,18 @@ function abrirModalKey(data) {
   document.getElementById('key-titulo').textContent = `Vehículo: ${data.placa}`;
   document.getElementById('key-valor').textContent = data.api_key;
   document.getElementById('modal-key').classList.remove('oculto');
+  const qr = document.getElementById('qr-key');
+  qr.classList.add('oculto');
+  qr.src = '';
+  fetchApi(`${API}/vehiculos/${data.id}/qr`)
+    .then((r) => r.json())
+    .then((d) => {
+      if (d && d.png) {
+        qr.src = d.png;
+        qr.classList.remove('oculto');
+      }
+    })
+    .catch(() => {});
 }
 
 function cerrarModalKey() {

@@ -175,6 +175,38 @@ CTA. Se está personalizando precio/contacto en `pagina-web/`.
 - Credenciales por variables de entorno (`ADMIN_USER`, `ADMIN_PASS`, `JWT_SECRET`) — nunca en el repo.
 - Errores del servidor no exponen detalles internos al cliente (mensajes genéricos + log).
 
+### 4.3 ¿Qué es una API Key y para qué sirve?
+
+Una **API Key** es como **una contraseña exclusiva por vehículo** que permite que **solo ese
+dispositivo** envíe datos de telemetría al sistema. Es la "llave" con la que el sensor OBD-II se
+identifica ante el servidor.
+
+- **Se genera sola** al registrar el vehículo (formato `ECDV-XXXX-XXXX-XXXX`) y nunca se vuelve a ver
+  en texto plano salvo desde el panel → botón **🔑 Key** en la tarjeta del vehículo.
+- **Se usa** en la app del conductor al elegir el vehículo: aparece como `x-api-key` en la cabecera
+  del envío. El backend la compara con la guardada en la base de datos:
+  - ✅ Coincide → acepta y guarda la lectura.
+  - ❌ No coincide → rechaza con `401`/`403` y **descarta el dato**.
+- Si un dispositivo deja de reportar (llave filtrada, vehículo vendido…), el admin puede
+  **regenerarla** (botón 🔄) y el dispositivo anterior deja de funcionar.
+- Sin API Key **no es posible** inyectar lecturas falsas o de PCs ajenos: cada vehículo tiene la suya.
+
+**Flujo completo:**
+
+```
+Registrar vehículo  →  se crea api_key (ECDV-…) en la BD
+        │
+App conductor ── lleva la api_key del vehículo
+        │
+Enviar lectura ──►  POST /api/v1/telemetry  (X-API-Key)
+        │
+Backend compara con la BD ── coincidencia ──► se almacena y se evalúan alertas
+                                ✗            ──► 401/403, dato descartado
+```
+
+> ⚠️ **Consejo de seguridad:** si una llave se filtra o se vende el vehículo, regenera esa API Key
+> desde Flota → 🔄 y comparte la nueva con el conductor.
+
 ---
 
 ## 5. Despliegue y operación

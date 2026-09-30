@@ -17,6 +17,13 @@ const $textoEstado = document.getElementById('texto-estado');
 const $valEct = document.getElementById('val-ect');
 const $valRpm = document.getElementById('val-rpm');
 const $colaOffline = document.getElementById('cola-offline');
+const $btnEscanear = document.getElementById('btn-escanear');
+const $cajaCamara = document.getElementById('caja-camara');
+const $video = document.getElementById('camara');
+const $estadoEscaneo = document.getElementById('estado-escaneo');
+
+let flujoCamara = null;
+let decodificando = false;
 
 let vehiculoActual = null;
 let dispositivoBT = null;
@@ -106,6 +113,105 @@ $btnGuardar.addEventListener('click', () => {
   );
   log(`Vehículo ${vehiculoActual.placa} guardado.`);
 });
+
+/* ---------- Vinculación por código QR ---------- */
+
+function detenerCamara() {
+  decodificando = false;
+  if (flujoCamara) {
+    flujoCamara.getTracks().forEach((t) => t.stop());
+    flujoCamara = null;
+  }
+  $video.srcObject = null;
+  $cajaCamara.classList.add('oculto');
+  $btnEscanear.textContent = '📷 Escanear código QR';
+}
+
+async function escanearQR() {
+  if (flujoCamara) {
+    detenerCamara();
+    return;
+  }
+  if (typeof jsQR === 'undefined') {
+    log('El escáner QR no está disponible en este navegador. Escribe la API Key manualmente.');
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    log('Este navegador no permite la cámara. Escribe la API Key manualmente.');
+    return;
+  }
+  try {
+    flujoCamara = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+      audio: false,
+    });
+  } catch (err) {
+    log(`No se pudo abrir la cámara (${err.name || 'desconocido'}). Escribe la API Key manualmente.`);
+    return;
+  }
+  $cajaCamara.classList.remove('oculto');
+  $btnEscanear.textContent = '✖ Detener escaneo';
+  $video.srcObject = flujoCamara;
+  try {
+    await $video.play();
+  } catch (err) {
+    log('No se pudo reproducir la cámara. Escribe la API Key manualmente.');
+    detenerCamara();
+    return;
+  }
+  decodificando = true;
+  leerFrameQR();
+}
+
+function leerFrameQR() {
+  if (!decodificando) return;
+  if ($video.readyState < 2) {
+    requestAnimationFrame(leerFrameQR);
+    return;
+  }
+  const canvas = document.createElement('canvas');
+  const escala = Math.min(1, 480 / Math.max($video.videoWidth, $video.videoHeight || 1));
+  canvas.width = Math.max(1, Math.round($video.videoWidth * escala));
+  canvas.height = Math.max(1, Math.round($video.videoHeight * escala));
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage($video, 0, 0, canvas.width, canvas.height);
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+  if (code && code.data) {
+    const m = /^ecodrive:\/\/vincular\?([\s\S]*)$/.exec(String(code.data).trim());
+    const params = m ? new URLSearchParams(m[1]) : null;
+    const placa = params ? params.get('placa') : null;
+    const key = params ? params.get('key') : null;
+    if (placa && key) {
+      vincularPorQr(placa.toUpperCase(), key);
+      return;
+    }
+    $estadoEscaneo.textContent = 'Ese QR no es de EcoDrive. Usa el de Flota → 🔑 Key.';
+  }
+  requestAnimationFrame(leerFrameQR);
+}
+
+function vincularPorQr(placa, key) {
+  const opt = [...$selectVehiculo.options].find(
+    (o) => (o.dataset.placa || '').toUpperCase() === placa
+  );
+  if (!opt) {
+    $estadoEscaneo.textContent = `El vehículo ${placa} no está en tu flota. Regístralo primero o pide al admin que lo agregue.`;
+    return;
+  }
+  $selectVehiculo.value = opt.value;
+  vehiculoActual = { id: opt.value, placa: opt.dataset.placa };
+  $inputApikey.value = key;
+  localStorage.setItem(
+    'ecodrive_dispositivo',
+    JSON.stringify({ vehiculoId: vehiculoActual.id, placa: vehiculoActual.placa, apiKey: key })
+  );
+  $estadoEscaneo.textContent = `✅ Vehículo ${placa} vinculado con su API Key.`;
+  log(`Vehículo ${placa} vinculado por QR y guardado.`);
+  detenerCamara();
+}
+
+$btnEscanear.addEventListener('click', escanearQR);
 
 function log(texto) {
   $log.textContent = texto;

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
 const { generarApiKey } = require('../utils/apiKey');
+const QRCode = require('qrcode');
 
 router.use(adminAuth);
 
@@ -144,6 +145,29 @@ router.post('/:id/apikey/regenerar', async (req, res, next) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
     res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/:id/qr', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, placa, api_key FROM vehiculos WHERE id = $1',
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
+    const v = rows[0];
+    const payload =
+      'ecodrive://vincular?placa=' + encodeURIComponent(v.placa) +
+      '&key=' + encodeURIComponent(v.api_key);
+    const png = await QRCode.toDataURL(payload, {
+      width: 240,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#0b1220', light: '#ffffff' },
+    });
+    res.json({ png, payload });
   } catch (err) {
     next(err);
   }
