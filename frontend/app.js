@@ -224,7 +224,7 @@ function diasHasta(fecha) {
   if (!fecha) return null;
   const d = new Date(fecha);
   if (isNaN(d)) return null;
-  return Math.ceil((d.getTime() - Date.now()) / 86400000);
+  return Math.round((d.getTime() - Date.now()) / 86400000);
 }
 
 function formatearFecha(fecha) {
@@ -489,33 +489,44 @@ function renderVehiculos(filas) {
   vehiculosCache = {};
   filas.forEach((v) => { vehiculosCache[v.id] = v; });
   if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="13" class="vacio">No hay vehículos registrados</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="12" class="vacio">No hay vehículos registrados</td></tr>';
     return;
   }
   cuerpo.innerHTML = filas
     .map(
-      (v) => `<tr>
+      (v) => {
+        const mnt = infoMnt(v);
+        return `<tr>
         <td><strong>${v.placa}</strong></td>
         <td>${v.nombre || '--'}</td>
         <td><span class="pill cyan">${v.tipo_vehiculo || 'CARRO'}</span></td>
         <td>${v.combustible ? v.combustible.charAt(0) + v.combustible.slice(1).toLowerCase() : '--'}</td>
         <td>${v.anio || '--'}</td>
-        <td><button class="btn-ver-key" data-id="${v.id}" data-placa="${v.placa}">Ver API Key</button></td>
+        <td><button class="btn-ver-key" data-id="${v.id}" data-placa="${v.placa}">🔑 Ver API Key</button></td>
         <td>${v.total_lecturas}</td>
         <td><span class="pill ${clasePillAlertas(v.alertas_activas)}">${v.alertas_activas}</span></td>
         <td><span class="pill ${saludVehiculo(v).clase}">${saludVehiculo(v).texto}</span></td>
         <td>${v.activo ? '<span class="pill verde">Activo</span>' : '<span class="pill rojo">Inactivo</span>'}</td>
-        <td>${formatearFecha(v.ultimo_mantenimiento) || '—'}</td>
-        <td>${pillProximoMnt(v.proximo_mantenimiento)}</td>
-        <td class="acciones">
-          <button class="btn-mini" data-mant="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}">Mant.</button>
-          <button class="btn-mini ${v.activo ? '' : 'ok'}" data-toggle="${v.id}" data-activo="${v.activo}">
-            ${v.activo ? 'Desactivar' : 'Activar'}
+        <td class="celda-mnt">
+          <button class="btn-mnt ${mnt.clase}" data-mant="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}"
+            title="${mnt.title}">
+            🛠️ Mantenimiento${v.total_mnt ? `<span class="btn-mnt-badge">${v.total_mnt}</span>` : ''}
           </button>
-          <button class="btn-mini" data-regen="${v.id}">Regen. Key</button>
-          <button class="btn-mini peligro" data-del="${v.id}" data-placa="${v.placa}">Eliminar</button>
+          <div class="celda-mnt-sub">
+            <span class="pill ${mnt.clase}">${mnt.etiqueta}</span>
+            <span class="celda-mnt-cuando">${mnt.fecha}</span>
+          </div>
+          <div class="celda-mnt-ult">Últ: ${formatearFecha(v.ultimo_mantenimiento) || 'sin registros'}</div>
         </td>
-      </tr>`
+        <td class="acciones">
+          <button class="btn-mini" data-regen="${v.id}" title="Regenerar API Key">🔄 Regen. Key</button>
+          <button class="btn-mini ${v.activo ? '' : 'ok'}" data-toggle="${v.id}" data-activo="${v.activo}">
+            ${v.activo ? '⏸ Desactivar' : '▶️ Activar'}
+          </button>
+          <button class="btn-mini peligro" data-del="${v.id}" data-placa="${v.placa}">🗑 Eliminar</button>
+        </td>
+      </tr>`;
+      }
     )
     .join('');
 
@@ -536,13 +547,37 @@ function renderVehiculos(filas) {
   );
 }
 
-function pillProximoMnt(proximo) {
-  const dias = diasHasta(proximo);
-  if (dias === null) return '—';
-  const f = formatearFecha(proximo);
-  if (dias < 0) return `<span class="pill rojo">${f} · vencido</span>`;
-  if (dias === 0) return `<span class="pill ambar">${f} · hoy</span>`;
-  return `<span class="pill gris">${f}</span>`;
+function infoMnt(v) {
+  const dias = diasHasta(v.proximo_mantenimiento);
+  const fecha = formatearFecha(v.proximo_mantenimiento);
+  if (dias === null) {
+    return {
+      clase: 'gris',
+      etiqueta: 'Sin programar',
+      fecha: '—',
+      title: 'Programa el próximo servicio en este vehículo',
+    };
+  }
+  if (dias < 0) {
+    return {
+      clase: 'rojo',
+      etiqueta: `Vencido hace ${Math.abs(dias) === 1 ? '1 día' : Math.abs(dias) + ' días'}`,
+      fecha,
+      title: 'Servicio vencido — agenda el mantenimiento ya',
+    };
+  }
+  if (dias === 0) {
+    return { clase: 'ambar', etiqueta: 'Vence hoy', fecha, title: 'El mantenimiento vence hoy' };
+  }
+  if (dias <= 15) {
+    return {
+      clase: 'ambar',
+      etiqueta: `Vence en ${dias === 1 ? '1 día' : dias + ' días'}`,
+      fecha,
+      title: 'Servicio próximo a vencerse',
+    };
+  }
+  return { clase: 'verde', etiqueta: 'En orden', fecha, title: 'Mantenimiento al día' };
 }
 
 /* ---------- Modal de mantenimiento completo ---------- */

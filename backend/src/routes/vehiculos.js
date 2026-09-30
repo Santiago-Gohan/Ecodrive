@@ -17,7 +17,8 @@ router.get('/', async (req, res, next) => {
          v.activo, v.fecha_creacion,
          (SELECT COUNT(*) FROM telemetria_lectura t WHERE t.vehiculo_id = v.id) AS total_lecturas,
          (SELECT COUNT(*) FROM alerta_mantenimiento a
-          WHERE a.vehiculo_id = v.id AND a.estado IN ('PENDIENTE', 'ACTIVA')) AS alertas_activas
+          WHERE a.vehiculo_id = v.id AND a.estado IN ('PENDIENTE', 'ACTIVA')) AS alertas_activas,
+         (SELECT COUNT(*) FROM mantenimientos m WHERE m.vehiculo_id = v.id) AS total_mnt
        FROM vehiculos v ORDER BY v.placa`
     );
     res.json(rows);
