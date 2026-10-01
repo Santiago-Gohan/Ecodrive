@@ -26,10 +26,11 @@
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#precios">Precios</a>
         <a href="#preguntas">Preguntas</a>
+        <a href="#opiniones">Opiniones</a>
       </nav>
       <div class="acciones">
         <a href="/panel" class="btn-outline">Entrar al panel</a>
-        <a href="/apk/EcoDrive-v1.0.apk" class="btn-cta">Descargar app</a>
+        <a href="/panel" class="btn-cta">Pruébalo gratis</a>
       </div>
       <button class="menu-movil" aria-label="Menú">☰</button>
     </div>
@@ -38,8 +39,9 @@
       <a href="#como-funciona">Cómo funciona</a>
       <a href="#precios">Precios</a>
       <a href="#preguntas">Preguntas</a>
+      <a href="#opiniones">Opiniones</a>
       <a href="/panel" class="btn-outline">Entrar al panel</a>
-      <a href="/apk/EcoDrive-v1.0.apk" class="btn-cta">Descargar app</a>
+      <a href="/panel" class="btn-cta">Pruébalo gratis</a>
     </div>
   </header>
 
@@ -217,6 +219,38 @@
       </div>
     </section>
 
+    <section id="opiniones" class="seccion alterna">
+      <div class="seccion-cabecera">
+        <h2>Pruébalo gratis y <span class="degradado">cuéntanos qué necesitas</span></h2>
+        <p>Somos un proyecto en crecimiento y tu opinión define lo que construimos. La demo no requiere ningún hardware: el panel y la app funcionan con el modo «ECU virtual».</p>
+      </div>
+      <div class="opiniones-form">
+        <div class="opiniones-campos">
+          <label>¿Eres conductor o empresa?</label>
+          <div class="chips" id="chips-rol">
+            <button type="button" class="chip" data-val="Conductor">Conductor</button>
+            <button type="button" class="chip" data-val="Empresa de transporte">Empresa de transporte</button>
+            <button type="button" class="chip" data-val="Tecnico o taller">Tecnico o taller</button>
+          </div>
+          <label>¿Qué te gustaría que EcoDrive tenga?</label>
+          <div class="chips" id="chips-tema" data-multiple>
+            <button type="button" class="chip" data-val="Alertas por WhatsApp">Alertas por WhatsApp</button>
+            <button type="button" class="chip" data-val="App Android mas completa">App Android mas completa</button>
+            <button type="button" class="chip" data-val="Mapa de rutas y geocercas">Mapa de rutas y geocercas</button>
+            <button type="button" class="chip" data-val="Varios usuarios y empresas">Varios usuarios y empresas</button>
+            <button type="button" class="chip" data-val="Reportes y exportacion">Reportes y exportacion</button>
+          </div>
+          <label for="opinion-texto">Cuéntanos más (opcional)</label>
+          <textarea id="opinion-texto" rows="3" placeholder="Ej.: trabajo en una ruta intermunicipal; me serviría que me avisara por WhatsApp cuando el motor se caliente…"></textarea>
+        </div>
+        <div class="opiniones-acciones">
+          <button id="btn-op-whatsapp" class="btn-cta">Enviar por WhatsApp</button>
+          <button id="btn-op-correo" class="btn-outline">Enviar por correo</button>
+          <p class="nota-precios">Se abre un mensaje ya redactado; solo presiona enviar. Así recibes seguimiento y una propuesta a tu medida.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="cta-final">
       <h2>¿Listo para ver tu flota trabajando?</h2>
       <p>Entra a la demo, descarga la app y conéctate a un vehículo. Todo en vivo, sin instalaciones.</p>
@@ -259,6 +293,39 @@
     const btn = document.querySelector('.menu-movil');
     const menu = document.getElementById('menu-movil');
     btn.addEventListener('click', () => menu.classList.toggle('abierto'));
+
+    const CONTACTO_WHATSAPP = '573000000000';
+    const CONTACTO_CORREO = 'hola@ecodrive.app';
+
+    document.querySelectorAll('.chips').forEach((caja) => {
+      caja.addEventListener('click', (e) => {
+        const boton = e.target.closest('.chip');
+        if (!boton) return;
+        if (caja.dataset.multiple !== undefined) {
+          boton.classList.toggle('activo');
+        } else {
+          caja.querySelectorAll('.chip').forEach((c) => c.classList.remove('activo'));
+          boton.classList.add('activo');
+        }
+      });
+    });
+
+    function armarOpinion() {
+      const rol = [...document.querySelectorAll('#chips-rol .chip.activo')].map((c) => c.dataset.val).join(', ');
+      const temas = [...document.querySelectorAll('#chips-tema .chip.activo')].map((c) => c.dataset.val).join(', ');
+      const detalle = document.getElementById('opinion-texto').value.trim();
+      return 'Hola EcoDrive\n\nSoy: ' + (rol || 'no indicado') +
+        '\n\nMe interesa: ' + (temas || 'no seleccionado') +
+        '\n\n' + (detalle ? 'Detalle: ' + detalle + '\n\n' : '\n') +
+        'Enviado desde la landing de EcoDrive';
+    }
+
+    document.getElementById('btn-op-whatsapp').addEventListener('click', () => {
+      window.open('https://wa.me/' + CONTACTO_WHATSAPP + '?text=' + encodeURIComponent(armarOpinion()), '_blank');
+    });
+    document.getElementById('btn-op-correo').addEventListener('click', () => {
+      location.href = 'mailto:' + CONTACTO_CORREO + '?subject=Opinion EcoDrive&body=' + encodeURIComponent(armarOpinion());
+    });
 
     const observar = new IntersectionObserver((entradas) => {
       entradas.forEach((e) => {

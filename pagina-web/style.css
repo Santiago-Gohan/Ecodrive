@@ -478,6 +478,54 @@ a { color: inherit; text-decoration: none; }
 
 .faq p { color: var(--muted); font-size: 0.9rem; margin-top: 12px; }
 
+/* ---------- Opiniones / prueba gratis ---------- */
+.opiniones-form {
+  max-width: 760px;
+  margin: 0 auto;
+  background: var(--fondo3, #fff);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 28px;
+  display: grid;
+  gap: 24px;
+}
+
+.opiniones-campos { display: grid; gap: 10px; }
+.opiniones-campos label { font-weight: 700; margin-top: 6px; font-size: 0.95rem; }
+.opiniones-campos label:first-child { margin-top: 0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--borde);
+  background: transparent;
+  color: inherit;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chip:hover { border-color: var(--acento, #0ea5e9); color: var(--acento, #0ea5e9); }
+.chip.activo { background: var(--acento, #0ea5e9); border-color: var(--acento, #0ea5e9); color: #fff; }
+
+.opiniones-campos textarea {
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  resize: vertical;
+  background: var(--fondo2, #f8fafc);
+}
+
+.opiniones-acciones { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.opiniones-acciones .nota-precios { margin-top: 2px; text-align: left; }
+@media (min-width: 620px) {
+  .opiniones-acciones { flex-direction: row; align-items: center; }
+  .opiniones-acciones .btn-cta, .opiniones-acciones .btn-outline { flex: 1; }
+}
+
 /* ---------- CTA final ---------- */
 .cta-final {
   max-width: 1160px;
