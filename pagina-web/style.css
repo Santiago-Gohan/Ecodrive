@@ -482,12 +482,25 @@ a { color: inherit; text-decoration: none; }
 .opiniones-form {
   max-width: 760px;
   margin: 0 auto;
-  background: var(--fondo3, #fff);
-  border: 1px solid var(--borde);
-  border-radius: 16px;
-  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 150% at 100% 0%, rgba(34, 211, 238, 0.12), transparent 55%),
+    radial-gradient(120% 150% at 0% 100%, rgba(52, 211, 153, 0.10), transparent 55%),
+    var(--fondo2);
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 22px;
+  padding: 32px;
   display: grid;
   gap: 24px;
+  box-shadow: var(--sombra);
+}
+.opiniones-form::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--degradado);
 }
 
 .opiniones-campos { display: grid; gap: 10px; }
@@ -511,12 +524,20 @@ a { color: inherit; text-decoration: none; }
 
 .opiniones-campos textarea {
   border: 1px solid var(--borde);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px 14px;
   font-family: inherit;
   font-size: 0.92rem;
   resize: vertical;
-  background: var(--fondo2, #f8fafc);
+  color: var(--texto);
+  background: var(--tarjeta);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.opiniones-campos textarea::placeholder { color: var(--muted); }
+.opiniones-campos textarea:focus {
+  outline: none;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
 }
 
 .opiniones-acciones { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
