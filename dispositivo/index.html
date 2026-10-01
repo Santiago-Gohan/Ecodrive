@@ -13,6 +13,8 @@
     <span id="texto-estado">Sin conexión</span>
   </div>
 
+  <div id="alerta-aviso" class="alerta-aviso oculto"></div>
+
   <header>
     <h1>EcoDrive <span>Dispositivo OBD-II</span></h1>
     <a href="/panel" class="link-admin">¿Eres administrador? Ir al panel →</a>
@@ -119,6 +121,9 @@
         </div>
       </div>
       <div id="gps-estado" class="gps-estado">📍 GPS: esperando señal…</div>
+      <div id="stats-jornada" class="chips-jornada">Jornada: 0 min · 🔥 -- · 📍 0.0 km · # 0</div>
+      <label class="check-sim chk-sonido"><input type="checkbox" id="chk-sonido" checked />
+        <span>Sonido y vibración en alertas</span></label>
       <label for="select-intervalo">Frecuencia de envío</label>
       <select id="select-intervalo">
         <option value="2000">Cada 2 segundos</option>
@@ -133,6 +138,14 @@
       <div id="cola-offline" class="pista"></div>
     </section>
   </main>
+
+  <div id="resumen-jornada" class="overlay oculto">
+    <div class="tarjeta resumen">
+      <h2>📋 Resumen de jornada</h2>
+      <div id="resumen-grid" class="resumen-grid"></div>
+      <button id="btn-cerrar-resumen" class="btn-primario full">Cerrar</button>
+    </div>
+  </div>
 
   <script src="vendor/jsqr.js"></script>
   <script src="app.js"></script>

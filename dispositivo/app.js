@@ -52,6 +52,10 @@ let intervalo = null;
 let posicionGps = null;      // { lat, lng, accuracy }
 let watchGps = null;         // id del watchPosition
 
+let jornada = null;          // estadísticas de la jornada en curso
+let ultimoAviso = { estado: 'normal', ts: 0 };
+let ctxAudio = null;         // AudioContext (se desbloquea con un gesto del usuario)
+
 const configLocal = JSON.parse(localStorage.getItem('ecodrive_dispositivo') || '{}');
 
 /* ---------- GPS del celular ---------- */
@@ -245,6 +249,183 @@ function statusOff() {
   $textoEstado.textContent = 'Sin conexión';
 }
 
+/* ---------- Alertas térmicas (vibración + sonido + banner) ---------- */
+
+function sonidoActivado() {
+  return localStorage.getItem('ecodrive_sonido') !== '0';
+}
+
+function bipAviso(tipo) {
+  if (!sonidoActivado()) return;
+  try {
+    if (!ctxAudio) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctxAudio = new AC();
+    }
+    const t0 = ctxAudio.currentTime;
+    const tonos = tipo === 'alert'
+      ? [[880, 0.14, 0], [660, 0.12, 0.18], [880, 0.14, 0.32]]
+      : [[660, 0.12, 0]];
+    for (const [freq, dur, off] of tonos) {
+      const osc = ctxAudio.createOscillator();
+      const gan = ctxAudio.createGain();
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      osc.connect(gan);
+      gan.connect(ctxAudio.destination);
+      gan.gain.setValueAtTime(0.0001, t0 + off);
+      gan.gain.exponentialRampToValueAtTime(0.3, t0 + off + 0.02);
+      gan.gain.exponentialRampToValueAtTime(0.0001, t0 + off + dur);
+      osc.start(t0 + off);
+      osc.stop(t0 + off + dur + 0.05);
+    }
+  } catch (e) {
+    console.error('Audio:', e.message);
+  }
+}
+
+function vibra(esAlerta) {
+  if (!sonidoActivado() || !navigator.vibrate) return;
+  navigator.vibrate(esAlerta ? [300, 150, 300, 150, 300] : [120]);
+}
+
+function mostrarAlertaBanner(esAlerta, ect, placa) {
+  const el = document.getElementById('alerta-aviso');
+  if (!el) return;
+  el.textContent = esAlerta
+    ? `🔥 ${placa ? placa + ' · ' : ''}ECT ${ect}°C — SOBRECALENTAMIENTO. Reduce carga o revisa el motor.`
+    : `⚠️ ${placa ? placa + ' · ' : ''}ECT ${ect}°C — temperatura alta, vigila el motor.`;
+  el.className = 'alerta-aviso ' + (esAlerta ? 'peligro' : 'aviso');
+}
+
+function ocultarAlertaBanner() {
+  const el = document.getElementById('alerta-aviso');
+  if (el) el.className = 'alerta-aviso oculto';
+}
+
+// Umbrales alineados con el backend (THRESHOLD_ECT = 105 °C).
+function evaluarAlertaLocal(ect, placa) {
+  const estado = ect >= 105 ? 'alert' : ect >= 95 ? 'warn' : 'normal';
+  const ahora = Date.now();
+  if (estado === 'normal') {
+    if (ultimoAviso.estado !== 'normal') ocultarAlertaBanner();
+    ultimoAviso = { estado: 'normal', ts: ahora };
+    return;
+  }
+  const subio = (estado === 'alert' && ultimoAviso.estado !== 'alert')
+    || (estado === 'warn' && ultimoAviso.estado === 'normal');
+  const cooldown = ahora - ultimoAviso.ts > 20000;
+  if (subio || cooldown) {
+    mostrarAlertaBanner(estado === 'alert', ect, placa);
+    bipAviso(estado);
+    vibra(estado === 'alert');
+    if (estado === 'alert') asegurarJornada().alertas++;
+    ultimoAviso = { estado, ts: ahora };
+  }
+}
+
+/* ---------- Estadísticas de la jornada ---------- */
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function asegurarJornada() {
+  if (!jornada) {
+    jornada = {
+      inicio: Date.now(),
+      lecturas: 0,
+      offline: 0,
+      ectMin: null,
+      ectMax: null,
+      ectSum: 0,
+      rpmMax: 0,
+      rpmSum: 0,
+      combSum: 0,
+      combN: 0,
+      lat: null,
+      lng: null,
+      distanciaM: 0,
+      alertas: 0,
+    };
+  }
+  return jornada;
+}
+
+function registrarJornada(payload, online) {
+  const j = asegurarJornada();
+  j.lecturas++;
+  if (!online) j.offline++;
+  if (j.ectMin === null || payload.ect < j.ectMin) j.ectMin = payload.ect;
+  if (payload.ect > j.ectMax) j.ectMax = payload.ect;
+  j.ectSum += payload.ect;
+  if (payload.rpm > j.rpmMax) j.rpmMax = payload.rpm;
+  j.rpmSum += payload.rpm;
+  if (payload.nivel_combustible !== null && payload.nivel_combustible !== undefined) {
+    j.combSum += payload.nivel_combustible;
+    j.combN++;
+  }
+  if (payload.lat !== null && payload.lat !== undefined &&
+      payload.lng !== null && payload.lng !== undefined) {
+    if (j.lat !== null && j.lng !== null) {
+      j.distanciaM += haversine(j.lat, j.lng, payload.lat, payload.lng);
+    }
+    j.lat = payload.lat;
+    j.lng = payload.lng;
+  }
+  actualizarChipsJornada();
+}
+
+function actualizarChipsJornada() {
+  const el = document.getElementById('stats-jornada');
+  if (!el || !jornada) return;
+  const durMin = Math.round((Date.now() - jornada.inicio) / 60000);
+  el.textContent = `Jornada: ${durMin} min · 🔥 ${jornada.ectMax ?? '--'}°C máx · 📍 ${(jornada.distanciaM / 1000).toFixed(1)} km · # ${jornada.lecturas} lecturas`;
+}
+
+function reiniciarChipsJornada() {
+  const el = document.getElementById('stats-jornada');
+  if (el) el.textContent = 'Jornada: 0 min · 🔥 -- · 📍 0.0 km · # 0';
+}
+
+function mostrarResumenJornada(j) {
+  const durMin = Math.max(0, Math.round((Date.now() - j.inicio) / 60000));
+  const ectProm = j.lecturas ? (j.ectSum / j.lecturas).toFixed(1) : '--';
+  const rpmProm = j.lecturas ? Math.round(j.rpmSum / j.lecturas) : '--';
+  const combProm = j.combN ? Math.round(j.combSum / j.combN) : '--';
+  const filas = [
+    ['⏱ Duración de la jornada', durMin + ' min'],
+    ['Lecturas registradas', String(j.lecturas)],
+    ['Sin cobertura (cola local)', String(j.offline)],
+    ['🔥 ECT mín / máx / prom', `${j.ectMin ?? '--'} / ${j.ectMax ?? '--'} / ${ectProm} °C`],
+    ['⚙️ RPM máx / prom', `${j.rpmMax ?? 0} / ${rpmProm}`],
+    ['⛽ Combustible promedio', combProm + '%'],
+    ['📍 Recorrido estimado', (j.distanciaM / 1000).toFixed(1) + ' km'],
+    ['🚨 Alertas térmicas', String(j.alertas)],
+  ];
+  const grid = document.getElementById('resumen-grid');
+  if (grid) {
+    grid.innerHTML = filas
+      .map(([k, v]) => `<div class="resumen-fila"><span>${k}</span><strong>${v}</strong></div>`)
+      .join('');
+  }
+  const overlay = document.getElementById('resumen-jornada');
+  if (overlay) overlay.classList.remove('oculto');
+}
+
+function cerrarResumen() {
+  const overlay = document.getElementById('resumen-jornada');
+  if (overlay) overlay.classList.add('oculto');
+  reiniciarChipsJornada();
+}
+
 async function conectarObd() {
   if (!navigator.bluetooth) {
     log('Este navegador no soporta Web Bluetooth. Usa Chrome (escritorio o Android).');
@@ -428,6 +609,7 @@ async function ciclodeLectura() {
     log(`Lectura descartada (fuera de rango o sin respuesta): ECT=${ect} RPM=${rpm}. Revisa el adaptador.`);
     return; // no se envia basura ni se llena la cola offline
   }
+  evaluarAlertaLocal(ect, vehiculoActual && vehiculoActual.placa);
   await enviarTelemetria({
     vehiculo_id: vehiculoActual.id,
     ect,
@@ -547,12 +729,14 @@ async function enviarTelemetria(payload) {
 
   try {
     await postLectura(payload, config.apiKey);
+    registrarJornada(payload, true);
     const { enviadas, pendientes } = await reenviarCola(config.apiKey);
     log(`Enviado: ECT=${payload.ect}°C RPM=${payload.rpm}` +
       (enviadas ? ` (+${enviadas} lectura(s) sincronizada(s) de zona sin cobertura)` : '') +
       (pendientes ? ` [quedan ${pendientes} pendientes]` : ''));
   } catch (err) {
     console.error(err);
+    registrarJornada(payload, false);
     guardarOffline(payload);
     actualizarCola();
     log(`Sin conexión al servidor. ${getCola().length} lectura(s) en buffer local. Se enviarán solas al volver la señal.`);
@@ -583,6 +767,10 @@ function iniciar() {
   }
 
   limpiarBuffer();
+  jornada = null;
+  ultimoAviso = { estado: 'normal', ts: 0 };
+  ocultarAlertaBanner();
+  reiniciarChipsJornada();
   monitoreoActivo = true;
   iniciarGps();
   $btnIniciar.disabled = true;
@@ -682,6 +870,9 @@ function detener() {
   detenerGps();
   $btnIniciar.disabled = false;
   $btnDetener.disabled = true;
+  ocultarAlertaBanner();
+  if (jornada && jornada.lecturas > 0) mostrarResumenJornada(jornada);
+  jornada = null;
   log('Envío detenido.');
 }
 
@@ -708,6 +899,17 @@ document.getElementById('chk-simulacion').addEventListener('change', (e) => {
 });
 
 document.getElementById('select-perfil').addEventListener('change', reconectarVirtual);
+
+const chkSonido = document.getElementById('chk-sonido');
+if (chkSonido) {
+  chkSonido.checked = sonidoActivado();
+  chkSonido.addEventListener('change', () => {
+    localStorage.setItem('ecodrive_sonido', chkSonido.checked ? '1' : '0');
+  });
+}
+
+const btnCerrarResumen = document.getElementById('btn-cerrar-resumen');
+if (btnCerrarResumen) btnCerrarResumen.addEventListener('click', cerrarResumen);
 
 document.getElementById('btn-registrar').addEventListener('click', registrarVehiculo);
 

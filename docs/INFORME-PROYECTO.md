@@ -71,7 +71,14 @@ headless de principio a fin).
 
 - Conexión al **adaptador OBD-II ELM327 por Web Bluetooth** (Chrome/Edge).
 - **ECU virtual** integrada (simulador) para demostraciones sin hardware.
-- Envío de lecturas cada 5 s: **ECT, RPM, nivel de combustible, latitud y longitud**.
+- Envío de lecturas configurables (2/5/10/30 s en la PWA; 1–120 s en Android): **ECT, RPM,
+  nivel de combustible, latitud y longitud**.
+- **Alertas térmicas en el dispositivo**: banner flotante, **sonido** (Web Audio) y **vibración**
+  (`navigator.vibrate`) cuando ECT ≥ 95 °C (aviso) o ≥ 105 °C (alerta, alineado al backend);
+  silenciable, con rearme por cooldown y conteo de alertas.
+- **Resumen de jornada** al detener: duración, lecturas (y sin cobertura), ECT mín/máx/prom,
+  RPM máx/prom, combustible promedio, **recorrido estimado con GPS (haversine)** y alertas;
+  con chips en vivo durante el monitoreo.
 - **Cola offline**: si no hay conexión, las lecturas se guardan y se reenvían al volver la señal
   (diseñado para zonas rurales con señal intermitente de 3–6 h).
 - **Reenvío con backoff exponencial**: si el servidor está caído o responde 429, el siguiente
@@ -312,6 +319,8 @@ Línea de evolución del proyecto (los más recientes arriba):
     1 MB en cuerpos JSON y caps de longitud en vehículos/registro.
 15. **Fase 3 (campo)** — frecuencia de envío configurable (PWA + Android); APK en fuente corregida
     (resuelve vehículo real vía `/quien-soy`), pendiente recompilar.
+16. **Alertas + resumen en el conductor** — aviso térmico local con sonido/vibración/banner,
+    chips en vivo y resumen de jornada (km, ECT/RPM, combustible) al detener.
 
 ---
 
