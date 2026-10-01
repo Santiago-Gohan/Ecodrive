@@ -321,6 +321,9 @@ Línea de evolución del proyecto (los más recientes arriba):
     (resuelve vehículo real vía `/quien-soy`), pendiente recompilar.
 16. **Alertas + resumen en el conductor** — aviso térmico local con sonido/vibración/banner,
     chips en vivo y resumen de jornada (km, ECT/RPM, combustible) al detener.
+17. **Prueba sin hardware + captación de opinión** — CTA «Pruébalo gratis» y sección de
+    opiniones en la landing (chips de perfil y necesidades, envío por WhatsApp o correo) y
+    `docs/GUIA-PRUEBAS.md` con el flujo de pruebas usando la ECU virtual.
 
 ---
 
