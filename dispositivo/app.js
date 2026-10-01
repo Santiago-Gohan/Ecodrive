@@ -122,20 +122,107 @@ function vehSeleccionado(id, placa) {
   vehiculoActual = { id, placa };
 }
 
-$btnGuardar.addEventListener('click', () => {
-  const apiKey = $inputApikey.value.trim();
-  if (!vehiculoActual || !vehiculoActual.id || !apiKey) {
-    log('Guarda primero el vehículo y su API Key.');
-    return;
-  }
+/* ---------- Vinculación: código corto, placa, API Key, QR o VIN ---------- */
+
+function esApiKey(texto) {
+  return /^ECDV-|^key_/i.test(texto);
+}
+
+function seleccionarEnLista(placa) {
+  if (!$selectVehiculo) return;
+  const opcion = [...$selectVehiculo.options].find((o) => o.dataset.placa === placa);
+  if (opcion) $selectVehiculo.value = opcion.value;
+}
+
+function guardarVinculo(vehiculoId, placa, apiKey) {
+  vehiculoActual = { id: vehiculoId, placa };
   localStorage.setItem(
     'ecodrive_dispositivo',
-    JSON.stringify({ vehiculoId: vehiculoActual.id, placa: vehiculoActual.placa, apiKey })
+    JSON.stringify({ vehiculoId, placa, apiKey })
   );
-  log(`Vehículo ${vehiculoActual.placa} guardado.`);
+  seleccionarEnLista(placa);
+}
+
+// Consulta el backend para resolver código / placa / VIN en la API Key del vehículo.
+async function resolverVinculo(datos, alternativa) {
+  const msj = document.getElementById('msj-vinculo');
+  try {
+    const resp = await fetch(`${API}/telemetry/vincular`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      // "ABC123" puede ser placa o código: si el primer intento falla, prueba el otro.
+      if (alternativa) return resolverVinculo(alternativa);
+      if (msj) msj.textContent = data.error || 'No encontramos ese vehículo.';
+      log(data.error || 'No encontramos ese vehículo.');
+      return false;
+    }
+    guardarVinculo(data.vehiculo_id, data.placa, data.api_key);
+    $inputApikey.value = '';
+    if (msj) msj.textContent = `Vehículo ${data.placa} vinculado. Ya puedes iniciar el envío.`;
+    log(`Vehículo ${data.placa} vinculado correctamente.`);
+    return true;
+  } catch {
+    if (msj) msj.textContent = 'Sin conexión con el servidor. Intenta de nuevo con señal.';
+    log('No se pudo contactar al servidor para vincular.');
+    return false;
+  }
+}
+
+function vincularPorTexto() {
+  const texto = $inputApikey.value.trim();
+  if (!texto) {
+    log('Escribe el código de 6 caracteres o tu placa.');
+    return;
+  }
+  if (esApiKey(texto)) {
+    if (!vehiculoActual || !vehiculoActual.id) {
+      log('Elige el vehículo de la lista antes de pegar la API Key.');
+      return;
+    }
+    guardarVinculo(vehiculoActual.id, vehiculoActual.placa, texto);
+    const msj = document.getElementById('msj-vinculo');
+    if (msj) msj.textContent = `Vehículo ${vehiculoActual.placa} vinculado.`;
+    log(`Vehículo ${vehiculoActual.placa} guardado.`);
+    return;
+  }
+  const esPlaca = /^[A-Z]{3}-?\d{3}$/i.test(texto);
+  if (esPlaca) {
+    resolverVinculo({ placa: texto }, { codigo: texto });
+    return;
+  }
+  if (/^[A-Z0-9]{5,8}$/i.test(texto)) {
+    resolverVinculo({ codigo: texto }, { placa: texto });
+    return;
+  }
+  log('Formato no reconocido. Usa el código de 6 caracteres, la placa o la API Key.');
+}
+
+$btnGuardar.addEventListener('click', () => {
+  if (monitoreoActivo) {
+    log('Detén el monitoreo antes de cambiar de vehículo.');
+    return;
+  }
+  vincularPorTexto();
 });
 
-/* ---------- Vinculación por código QR ---------- */
+$inputApikey.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $btnGuardar.click();
+  }
+});
+
+$inputApikey.addEventListener('paste', () => {
+  setTimeout(() => {
+    if (esApiKey($inputApikey.value.trim())) {
+      $btnGuardar.click();
+    }
+  }, 0);
+});
 
 function detenerCamara() {
   decodificando = false;
@@ -203,8 +290,16 @@ function leerFrameQR() {
     const params = m ? new URLSearchParams(m[1]) : null;
     const placa = params ? params.get('placa') : null;
     const key = params ? params.get('key') : null;
+    const codigo = params ? params.get('codigo') : null;
     if (placa && key) {
       vincularPorQr(placa.toUpperCase(), key);
+      return;
+    }
+    if (codigo) {
+      $inputApikey.value = codigo.toUpperCase();
+      $btnGuardar.click();
+      $estadoEscaneo.textContent = `Código ${codigo} leído.`;
+      detenerCamara();
       return;
     }
     $estadoEscaneo.textContent = 'Ese QR no es de EcoDrive. Usa el de Flota → 🔑 Key.';
@@ -220,13 +315,7 @@ function vincularPorQr(placa, key) {
     $estadoEscaneo.textContent = `El vehículo ${placa} no está en tu flota. Regístralo primero o pide al admin que lo agregue.`;
     return;
   }
-  $selectVehiculo.value = opt.value;
-  vehiculoActual = { id: opt.value, placa: opt.dataset.placa };
-  $inputApikey.value = key;
-  localStorage.setItem(
-    'ecodrive_dispositivo',
-    JSON.stringify({ vehiculoId: vehiculoActual.id, placa: vehiculoActual.placa, apiKey: key })
-  );
+  guardarVinculo(opt.value, opt.dataset.placa, key);
   $estadoEscaneo.textContent = `✅ Vehículo ${placa} vinculado con su API Key.`;
   log(`Vehículo ${placa} vinculado por QR y guardado.`);
   detenerCamara();
@@ -491,7 +580,34 @@ async function probarCompatibilidad() {
 
   $btnIniciar.disabled = false;
   log('Vehículo compatible: ECT y RPM soportados. Puede iniciar el envío.');
+  await vincularPorVin();
   return { ect, rpm };
+}
+
+// Con adaptador real: lee el VIN (PID 0900) y vincula el vehículo sin escribir nada.
+async function vincularPorVin() {
+  try {
+    const resp = await cmd('0900');
+    const m = resp.match(/^4902 0?1([0-9A-Fa-f]{2})/);
+    if (!m) return false;
+    let hex = m[1];
+    if (hex.length === 2) hex += '';
+    // Respuesta multilínea: 49 02 01 <17 bytes> -> reconstruye los caracteres.
+    const crudos = resp.replace(/^4902\s*/, '').replace(/\r/g, ' ').trim().split(/\s+/);
+    let vin = '';
+    for (const b of crudos) {
+      const n = parseInt(b, 16);
+      if (!Number.isFinite(n)) break;
+      if (n >= 0x21 && n <= 0x7a) vin += String.fromCharCode(n);
+      else if (vin.length) break;
+    }
+    vin = vin.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+    if (vin.length < 6) return false;
+    log(`VIN detectado: ${vin}. Buscando vehículo...`);
+    return await resolverVinculo({ vin });
+  } catch {
+    return false;
+  }
 }
 
 async function buscarServicio(server) {

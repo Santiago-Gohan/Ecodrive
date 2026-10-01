@@ -71,10 +71,12 @@ SENA - ADSO - Ficha 3535013 - Santiago Barrera Barbosa
 | POST | `/api/v1/telemetry` | Ingesta telemétrica (API Key). |
 | GET | `/api/v1/telemetry/resumen` | Estado actual de la flota. |
 | POST | `/api/v1/telemetry/demo` | Simular lectura (pruebas en el panel). |
+| POST | `/api/v1/telemetry/vincular` | Vincular dispositivo por código/placa/VIN (límite por IP). |
 | POST | `/api/v1/auth/login` | Login admin → JWT. |
 | GET/POST/PUT/DELETE | `/api/v1/vehiculos` | CRUD de flota (JWT admin). |
 | GET | `/api/v1/vehiculos/:id/apikey` | Ver API Key (JWT admin). |
 | POST | `/api/v1/vehiculos/:id/apikey/regenerar` | Regenerar API Key (JWT admin). |
+| POST | `/api/v1/vehiculos/:id/codigo/regenerar` | Regenerar código corto de vínculo (JWT admin). |
 | GET | `/api/v1/historial/telemetria` | Historial de lecturas (JWT admin). |
 | GET | `/api/v1/historial/alertas` | Historial de alertas (JWT admin). |
 | POST | `/api/v1/historial/alertas/:id/atender` | Marcar alerta ATENDIDA (JWT admin). |

@@ -26,18 +26,19 @@
       <h2>1 · Configurar vehículo</h2>
       <label>Vehículo (placa)</label>
       <select id="select-vehiculo"></select>
-      <label>API Key del vehículo</label>
+      <label>Código, placa o API Key del vehículo</label>
       <div class="fila-key">
-        <input type="text" id="input-apikey" placeholder="key_..." />
-        <button id="btn-guardar" class="btn-primario">Guardar</button>
+        <input type="text" id="input-apikey" placeholder="Ej.: 6E78FE o ABC-123" autocomplete="off" autocapitalize="characters" />
+        <button id="btn-guardar" class="btn-primario">Vincular</button>
       </div>
+      <p id="msj-vinculo" class="pista">Escribe el código de 6 caracteres del panel o tu placa: la app busca el vehículo sola.</p>
       <div class="separador">o escanea para vincular</div>
       <button id="btn-escanear" class="btn-primario">📷 Escanear código QR</button>
       <div id="caja-camara" class="oculto caja-camara">
         <video id="camara" playsinline muted></video>
-        <p id="estado-escaneo" class="pista">Enfoca el código QR del panel <em>Flota → 🔑 Key</em>. El vehículo se vinculó solo.</p>
+        <p id="estado-escaneo" class="pista">Enfoca el código QR del panel <em>Flota → 🔑 Key</em>. El vehículo se vincula solo.</p>
       </div>
-      <p class="pista">La API Key la encuentras en el Panel Admin → Flota → "Ver API Key".</p>
+      <p class="pista">Con adaptador ELM327 el VIN se lee solo y el vehículo se vincula automáticamente.</p>
       <details class="reg">
         <summary>¿No encuentras tu vehículo? Regístralo aquí</summary>
         <div class="grid-reg">

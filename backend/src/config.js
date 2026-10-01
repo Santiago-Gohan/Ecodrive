@@ -17,4 +17,5 @@ module.exports = {
   telemetriaRetencionDias: parseInt(process.env.TELEMETRIA_RETENCION_DIAS || '30', 10),
   purgaIntervaloMin: parseInt(process.env.PURGA_INTERVALO_MIN || '60', 10),
   limiteLecturasMinuto: parseInt(process.env.LIMITE_LECTURAS_MINUTO || '2400', 10),
+  limiteVinculosMinuto: parseInt(process.env.LIMITE_VINCULOS_MINUTO || '10', 10),
 };

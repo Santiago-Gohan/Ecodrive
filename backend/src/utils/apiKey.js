@@ -15,4 +15,9 @@ function generarApiKey() {
   return `ECDV-${aleatorio(4)}-${aleatorio(4)}-${aleatorio(4)}`;
 }
 
-module.exports = { generarApiKey };
+// Código corto de vinculación (6 caracteres) que teclea el conductor en la app.
+function generarCodigoVinculo() {
+  return aleatorio(6);
+}
+
+module.exports = { generarApiKey, generarCodigoVinculo };

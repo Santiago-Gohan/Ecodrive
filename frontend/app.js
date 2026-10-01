@@ -842,6 +842,27 @@ function abrirModalKey(data) {
   keyVehiculoId = data.id;
   document.getElementById('key-titulo').textContent = `Vehículo: ${data.placa}`;
   document.getElementById('key-valor').textContent = data.api_key;
+  document.getElementById('key-codigo').textContent = data.codigo_vinculo || '—';
+  const chkPlaca = document.getElementById('key-placa');
+  chkPlaca.checked = !!data.vinculo_por_placa;
+  chkPlaca.onchange = async () => {
+    try {
+      const resp = await fetchApi(`${API}/vehiculos/${data.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ vinculo_por_placa: chkPlaca.checked }),
+      });
+      const r = await resp.json();
+      if (!resp.ok) return toast(r.error || 'Error', 'err');
+      toast(
+        chkPlaca.checked
+          ? `Ahora se puede vincular con la placa ${data.placa}`
+          : 'Vinculación por placa desactivada',
+        'ok'
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
   document.getElementById('modal-key').classList.remove('oculto');
   const qr = document.getElementById('qr-key');
   qr.classList.add('oculto');
@@ -1226,7 +1247,19 @@ document.getElementById('modal-mant').addEventListener('click', (ev) => {
   if (ev.target === ev.currentTarget) cerrarModalMant();
 });
 document.getElementById('key-copiar').addEventListener('click', copiarKey);
+document.getElementById('key-copiar-codigo').addEventListener('click', copiarCodigo);
 document.getElementById('key-regenerar').addEventListener('click', regenerarKey);
+
+async function copiarCodigo() {
+  const codigo = document.getElementById('key-codigo').textContent.trim();
+  if (!codigo || codigo === '—') return;
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(codigo);
+    toast(`Código ${codigo} copiado`, 'ok');
+  } catch (err) {
+    toast('No se pudo copiar, anótalo a mano', 'info');
+  }
+}
 document.getElementById('key-cancelar').addEventListener('click', cerrarModalKey);
 document.getElementById('key-cerrar').addEventListener('click', cerrarModalKey);
 document.getElementById('modal-key').addEventListener('click', (ev) => {

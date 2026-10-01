@@ -4,7 +4,7 @@ const config = require('../config');
 const deviceAuth = require('../middleware/deviceAuth');
 const adminAuth = require('../middleware/adminAuth');
 const { registraLectura } = require('../services/alertService');
-const { consumirCaudal } = require('../middleware/rateLimiter');
+const { consumirCaudal, consumirPorIp } = require('../middleware/rateLimiter');
 
 function responderCaudal(req, res, unidades) {
   const r = consumirCaudal(req.vehiculo.id, unidades);
@@ -14,6 +14,61 @@ function responderCaudal(req, res, unidades) {
     error: `Demasiadas lecturas para este vehículo. Intenta en ${r.retrySe}s.`,
   });
 }
+
+// Vinculación del dispositivo sin teclear la API Key: acepta el código corto del
+// panel, el VIN leído por el adaptador ELM327 o la placa (si el vehículo lo permite).
+router.post('/vincular', async (req, res, next) => {
+  try {
+    const limite = consumirPorIp(`vincular:${req.ip}`, config.limiteVinculosMinuto, 60000);
+    if (!limite.ok) {
+      res.set('Retry-After', String(limite.retrySe));
+      return res.status(429).json({
+        error: `Demasiados intentos de vinculación. Espera ${limite.retrySe}s.`,
+      });
+    }
+
+    const b = req.body || {};
+    const codigo = String(b.codigo || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const vin = String(b.vin || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const placa = String(b.placa || '').trim().toUpperCase();
+
+    if (!codigo && !vin && !placa) {
+      return res.status(400).json({ error: 'Envía el código, el VIN o la placa del vehículo' });
+    }
+
+    let filas;
+    if (codigo) {
+      ({ rows: filas } = await pool.query(
+        'SELECT id, placa, api_key FROM vehiculos WHERE codigo_vinculo = $1 AND activo = true',
+        [codigo]
+      ));
+    } else if (vin) {
+      ({ rows: filas } = await pool.query(
+        'SELECT id, placa, api_key FROM vehiculos WHERE vin = $1 AND activo = true',
+        [vin]
+      ));
+    } else {
+      ({ rows: filas } = await pool.query(
+        `SELECT id, placa, api_key FROM vehiculos
+         WHERE regexp_replace(UPPER(placa), '[^A-Z0-9]', '', 'g') = $1
+           AND activo = true AND vinculo_por_placa = true`,
+        [placa.replace(/[^A-Z0-9]/g, '')]
+      ));
+    }
+
+    if (!filas.length) {
+      return res.status(404).json({ error: 'No encontramos ese vehículo. Revisa el código o la placa.' });
+    }
+
+    res.json({
+      vehiculo_id: filas[0].id,
+      placa: filas[0].placa,
+      api_key: filas[0].api_key,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.post('/demo', adminAuth, async (req, res, next) => {
   try {

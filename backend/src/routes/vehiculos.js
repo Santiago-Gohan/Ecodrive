@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
-const { generarApiKey } = require('../utils/apiKey');
+const { generarApiKey, generarCodigoVinculo } = require('../utils/apiKey');
 const QRCode = require('qrcode');
 
 router.use(adminAuth);
@@ -11,6 +11,7 @@ router.get('/', async (req, res, next) => {
     const { rows } = await pool.query(
       `SELECT
          v.id, v.placa, v.nombre, v.anio, v.combustible, v.tipo_vehiculo,
+         v.codigo_vinculo, v.vin, v.vinculo_por_placa,
          v.ultimo_mantenimiento, v.intervalo_mantenimiento, v.plan_mantenimiento,
          COALESCE(v.proximo_mantenimiento,
            (v.ultimo_mantenimiento + (v.intervalo_mantenimiento || ' days')::interval)
@@ -38,13 +39,15 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'El nombre es demasiado largo (máx. 80)' });
     }
     const apiKey = generarApiKey();
+    const codigo = generarCodigoVinculo();
     const { rows } = await pool.query(
-      `INSERT INTO vehiculos (placa, api_key, nombre, tipo_vehiculo, combustible, anio)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, placa, api_key, nombre, anio, combustible, tipo_vehiculo, activo, fecha_creacion`,
+      `INSERT INTO vehiculos (placa, api_key, codigo_vinculo, nombre, tipo_vehiculo, combustible, anio)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, placa, api_key, codigo_vinculo, nombre, anio, combustible, tipo_vehiculo, activo, fecha_creacion`,
       [
         String(placa).trim().toUpperCase(),
         apiKey,
+        codigo,
         nombre || null,
         String(tipo || 'CARRO').trim().toUpperCase(),
         (combustible || '').toString().trim().toLowerCase() === 'diesel' ? 'DIESEL' :
@@ -73,6 +76,15 @@ router.put('/:id', async (req, res, next) => {
           campos.push(`nombre = $${params.length + 1}`); params.push(b.nombre ?? null);
         }
     if ('activo' in b) { campos.push(`activo = $${params.length + 1}`); params.push(!!b.activo); }
+    if ('vinculo_por_placa' in b) {
+      campos.push(`vinculo_por_placa = $${params.length + 1}`);
+      params.push(!!b.vinculo_por_placa);
+    }
+    if ('vin' in b) {
+      const vin = String(b.vin || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+      campos.push(`vin = $${params.length + 1}`);
+      params.push(vin || null);
+    }
     if ('intervalo_mantenimiento' in b) {
       const v = Number(b.intervalo_mantenimiento);
       campos.push(`intervalo_mantenimiento = $${params.length + 1}`);
@@ -97,6 +109,7 @@ router.put('/:id', async (req, res, next) => {
       `UPDATE vehiculos SET ${campos.join(', ')}
        WHERE id = $1
        RETURNING id, placa, nombre, activo, fecha_creacion,
+         codigo_vinculo, vin, vinculo_por_placa,
          ultimo_mantenimiento, intervalo_mantenimiento, plan_mantenimiento,
          COALESCE(proximo_mantenimiento,
            (ultimo_mantenimiento + (intervalo_mantenimiento || ' days')::interval)
@@ -137,12 +150,30 @@ router.delete('/:id', async (req, res, next) => {
 router.get('/:id/apikey', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, placa, api_key FROM vehiculos WHERE id = $1',
+      'SELECT id, placa, api_key, codigo_vinculo, vinculo_por_placa FROM vehiculos WHERE id = $1',
       [req.params.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
     res.json(rows[0]);
   } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/:id/codigo/regenerar', async (req, res, next) => {
+  try {
+    const codigo = generarCodigoVinculo();
+    const { rows } = await pool.query(
+      `UPDATE vehiculos SET codigo_vinculo = $2 WHERE id = $1
+       RETURNING id, placa, api_key, codigo_vinculo`,
+      [req.params.id, codigo]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ese código ya existe, genera otro' });
+    }
     next(err);
   }
 });
@@ -164,13 +195,14 @@ router.post('/:id/apikey/regenerar', async (req, res, next) => {
 router.get('/:id/qr', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, placa, api_key FROM vehiculos WHERE id = $1',
+      'SELECT id, placa, api_key, codigo_vinculo FROM vehiculos WHERE id = $1',
       [req.params.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Vehículo no encontrado' });
     const v = rows[0];
     const payload =
       'ecodrive://vincular?placa=' + encodeURIComponent(v.placa) +
+      '&codigo=' + encodeURIComponent(v.codigo_vinculo || '') +
       '&key=' + encodeURIComponent(v.api_key);
     const png = await QRCode.toDataURL(payload, {
       width: 240,

@@ -19,9 +19,22 @@ hardware para ver el sistema completo en funcionamiento.
 3. Elige un perfil de vehículo:
    - **Carro gasolina 2013 / Bus diésel 2015** → compatible, envía telemetría.
    - **Carro diésel 2008 / Moto** → rechazado por incompatibilidad (prueba el control).
-4. Selecciona el vehículo (o escanea el QR del panel) y pégalo con su **API Key**.
+4. Vincula el vehículo (ver más abajo: por **código**, **placa**, **API Key** o **QR**).
 5. Presiona **Iniciar**. Verás lecturas en vivo cada 5 s (ECT, RPM, combustible).
 6. Presiona **Detener** → aparece el **resumen de jornada**.
+
+### Vincular el vehículo (fácil, sin copiar la API Key)
+1. En el **panel** → Flota → botón **Key** del vehículo: verás un **código corto de 6 caracteres**
+   (ej. `6E78FE`), el QR y la casilla *Permitir vincular escribiendo solo la placa*.
+2. En la **app del conductor**, en el único campo de vinculación escribe **una** de estas cosas:
+   - el **código** de 6 caracteres (lo más fácil), o
+   - la **placa** (ej. `ABC-123` o `ABC123`) si el vehículo lo permite, o
+   - la **API Key** completa (`ECDV-…`, se pega y vincula sola).
+3. Con adaptador **ELM327**, al conectar la app **lee el VIN** (PID 0900) y vincula el vehículo
+   automáticamente, sin escribir nada.
+
+> La vinculación por placa está apagada por defecto (por seguridad): actívala por vehículo
+> desde el panel. La búsqueda por código/placa/VIN está limitada a 10 intentos por minuto por IP.
 
 ### Probar la alerta de sobrecalentamiento
 - En modo virtual, cada ~50 s el simulador genera un **pico de 108 °C**.

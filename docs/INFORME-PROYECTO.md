@@ -93,16 +93,18 @@ headless de principio a fin).
 | GET | `/health` | — | Estado: `db` en vivo, `uptime`, `hora` (503 si la BD falla) |
 | POST | `/auth/login` | — | Login admin → JWT (8 h) |
 | GET | `/vehiculos` | admin | Listar flota (con próximos mantenimientos calculados) |
-| POST | `/vehiculos` | admin | Crear vehículo (genera API Key `ECDV-…`) |
-| PUT | `/vehiculos/:id` | admin | Actualizar (SET dinámico; soporta programación de mantenimiento) |
+| POST | `/vehiculos` | admin | Crear vehículo (genera API Key `ECDV-…` y código de vínculo) |
+| PUT | `/vehiculos/:id` | admin | Actualizar (SET dinámico; mantenimiento, VIN, vínculo por placa) |
 | DELETE | `/vehiculos/:id` | admin | Eliminar (con limpieza en cascada) |
-| GET | `/vehiculos/:id/apikey` | admin | Ver API Key del vehículo |
+| GET | `/vehiculos/:id/apikey` | admin | Ver API Key y código de vínculo |
 | POST | `/vehiculos/:id/apikey/regenerar` | admin | Regenerar API Key |
+| POST | `/vehiculos/:id/codigo/regenerar` | admin | Regenerar el código corto de vínculo |
 | GET | `/vehiculos/:id/mantenimientos` | admin | Historial de servicios del vehículo |
 | POST | `/vehiculos/:id/mantenimientos` | admin | Registrar servicio (actualiza últ/próx automáticamente) |
 | DELETE | `/vehiculos/:id/mantenimientos/:mnt` | admin | Eliminar servicio (recalcula fechas) |
 | GET | `/telemetry/resumen` | — | Última lectura por vehículo + salud |
 | POST | `/telemetry` | API Key | Enviar lectura individual |
+| POST | `/telemetry/vincular` | — | Vincular dispositivo por código corto, placa o VIN (límite por IP) |
 | POST | `/telemetry/lote` | API Key | Enviar lote de lecturas |
 | POST | `/telemetry/demo` | admin | Demo en vivo (genera telemetría simulada) |
 | GET | `/telemetry/quien-soy` | API Key | Identificación del dispositivo |
@@ -324,6 +326,10 @@ Línea de evolución del proyecto (los más recientes arriba):
 17. **Prueba sin hardware + captación de opinión** — CTA «Pruébalo gratis» y sección de
     opiniones en la landing (chips de perfil y necesidades, envío por WhatsApp o correo) y
     `docs/GUIA-PRUEBAS.md` con el flujo de pruebas usando la ECU virtual.
+18. **Vinculación sencilla y automática** — código corto de 6 caracteres por vehículo (con QR),
+    vinculación por código, placa o **VIN leído por el ELM327** (endpoint público con límite
+    por IP) y opción «vincular por placa» por vehículo. Corrección de CSP que bloqueaba
+    Leaflet (mapa) y Google Fonts, y de serialización JSON en el panel.
 
 ---
 

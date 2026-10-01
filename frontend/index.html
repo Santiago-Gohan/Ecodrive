@@ -325,6 +325,16 @@
         <button id="key-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
       </div>
       <p class="modal-sub" id="key-titulo"></p>
+      <div class="codigo-vinculo">
+        <span class="codigo-rotulo">Código para el conductor</span>
+        <code id="key-codigo">—</code>
+        <button id="key-copiar-codigo" class="btn-secundario btn-chico">Copiar código</button>
+        <p class="modal-hint">El conductor escribe este código de 6 caracteres en la app (o escanea el QR) y el vehículo queda vinculado. No necesita copiar la API Key.</p>
+        <label class="check-placa">
+          <input type="checkbox" id="key-placa" />
+          Permitir vincular escribiendo solo la placa
+        </label>
+      </div>
       <code class="modal-key-caja" id="key-valor"></code>
       <div class="qr-key-bloque">
         <div class="qr-key-marco"><img id="qr-key" class="qr-key oculto" alt="QR de vinculación" /></div>
