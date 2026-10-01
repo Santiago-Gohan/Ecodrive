@@ -11,6 +11,10 @@
 </head>
 <body>
 
+  <div class="banner-top">
+    🛠️ Nuevo: vinculación por código o QR en segundos · <a href="#opiniones">Pruébalo gratis →</a>
+  </div>
+
   <header class="nav">
     <div class="nav-inner">
       <a href="#inicio" class="logo">
@@ -23,6 +27,7 @@
       </a>
       <nav class="links">
         <a href="#caracteristicas">Características</a>
+        <a href="#en-accion">Soluciones</a>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#precios">Precios</a>
         <a href="#preguntas">Preguntas</a>
@@ -36,6 +41,7 @@
     </div>
     <div class="menu-desplegable" id="menu-movil">
       <a href="#caracteristicas">Características</a>
+      <a href="#en-accion">Soluciones</a>
       <a href="#como-funciona">Cómo funciona</a>
       <a href="#precios">Precios</a>
       <a href="#preguntas">Preguntas</a>
@@ -64,6 +70,11 @@
           <li>📡 Funciona incluso sin cobertura (buffer offline)</li>
           <li>💸 Planes por vehículo, sin pagar por lo que no usas</li>
         </ul>
+        <div class="hero-confianza">
+          <span>✔ Prueba sin hardware</span>
+          <span>✔ Alertas al instante</span>
+          <span>✔ Hecho en Colombia</span>
+        </div>
       </div>
 
       <div class="hero-visual">
@@ -92,11 +103,23 @@
       </div>
     </section>
 
+    <section class="franja-logos">
+      <p>Diseñado para operaciones reales</p>
+      <div class="logos">
+        <span>🚚 Transporte de carga</span>
+        <span>🚌 Transporte de pasajeros</span>
+        <span>🏗️ Construcción</span>
+        <span>🌾 Agro y campo</span>
+        <span>🔧 Talleres y flotas</span>
+        <span>🥤 Distribución de alimentos</span>
+      </div>
+    </section>
+
     <section class="stats">
-      <div class="stat"><strong>100 %</strong><span>visibilidad del motor en tiempo real</span></div>
-      <div class="stat"><strong>24/7</strong><span>alertas automáticas de temperatura y mantenimiento</span></div>
-      <div class="stat"><strong>5 s</strong><span>entre cada lectura que envía el dispositivo</span></div>
-      <div class="stat"><strong>5 000</strong><span>lecturas guardadas sin cobertura y reenviadas</span></div>
+      <div class="stat"><div class="stat-ico">👁️</div><strong>100 %</strong><span>visibilidad del motor en tiempo real</span></div>
+      <div class="stat"><div class="stat-ico">🔔</div><strong>24/7</strong><span>alertas automáticas de temperatura y mantenimiento</span></div>
+      <div class="stat"><div class="stat-ico">⚡</div><strong>5 s</strong><span>entre cada lectura que envía el dispositivo</span></div>
+      <div class="stat"><div class="stat-ico">📡</div><strong>5 000</strong><span>lecturas guardadas sin cobertura y reenviadas</span></div>
     </section>
 
     <section id="caracteristicas" class="seccion">
@@ -135,6 +158,84 @@
           <h3>App en el celular del conductor</h3>
           <p>Sin cajas ni instalaciones. El conductor conecta un adaptador Bluetooth a la toma OBD-II y la app hace el resto.</p>
         </article>
+      </div>
+    </section>
+
+    <section id="en-accion" class="seccion">
+      <div class="seccion-cabecera">
+        <span class="etiqueta">En acción</span>
+        <h2>Todo lo que pasa en el motor, <span class="degradado">en una sola pantalla</span></h2>
+        <p>EcoDrive conecta el vehículo, el conductor y tu oficina en tiempo real, incluso donde no hay señal.</p>
+      </div>
+
+      <div class="bloque-accion">
+        <div class="bloque-texto">
+          <span class="etiqueta">Seguridad del motor</span>
+          <h3>Frena el sobrecalentamiento antes de que sea una reparación</h3>
+          <p>Si el refrigerante supera el umbral, el conductor recibe una alerta en el celular (banner, sonido y vibración)
+            y tu panel marca el vehículo en rojo al instante. Un motor salvado paga la plataforma por años.</p>
+          <a href="#precios" class="link-flecha">Ver planes →</a>
+        </div>
+        <div class="bloque-visual">
+          <div class="mock-tarjeta mock-grande">
+            <div class="mock-cab">🌡️ ABC-123 · en marcha</div>
+            <div class="medidor-lista">
+              <div><span>ECT</span><b>108 °C</b><i class="bar naranja" style="width:88%"></i></div>
+              <div><span>RPM</span><b>2 980</b><i class="bar celeste" style="width:52%"></i></div>
+              <div><span>⛽</span><b>41 %</b><i class="bar verde" style="width:41%"></i></div>
+            </div>
+            <div class="mock-alerta">🚨 SOBRECALENTAMIENTO — alerta enviada al panel</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bloque-accion invertido">
+        <div class="bloque-texto">
+          <span class="etiqueta">Ubicación y rutas</span>
+          <h3>Mira tu flota moverse en vivo sobre el mapa</h3>
+          <p>Cada vehículo aparece con su temperatura actual y su recorrido del día, con kilómetros calculados por GPS.
+            Los colores te dicen al instante quién va bien y quién necesita atención.</p>
+          <a href="/panel" class="link-flecha">Ver demo en vivo →</a>
+        </div>
+        <div class="bloque-visual">
+          <div class="mock-tarjeta mock-map mock-grande">
+            <div class="mock-cab">🗺️ Flota en tiempo real</div>
+            <div class="mock-leyenda">
+              <span><i class="dot celeste"></i>Normal</span>
+              <span><i class="dot naranja"></i>Atención</span>
+              <span><i class="dot rojo"></i>Crítico</span>
+            </div>
+            <div class="mock-grid" aria-hidden="true"></div>
+            <div class="pin p1"></div>
+            <div class="pin p2"></div>
+            <div class="pin p3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bloque-accion">
+        <div class="bloque-texto">
+          <span class="etiqueta">Mantenimiento predictivo</span>
+          <h3>Adiós a los servicios olvidados</h3>
+          <p>Registra el último servicio y el plan de cada vehículo: EcoDrive calcula el próximo y te avisa con días
+            de anticipación, con historial y costos por unidad.</p>
+          <div class="cinta-metricas">
+            <div class="metrica-item"><b>-35 %</b><span>paradas imprevistas*</span></div>
+            <div class="metrica-item"><b>24/7</b><span>monitoreo automático</span></div>
+            <div class="metrica-item"><b>30 días</b><span>de historial en el plan base</span></div>
+          </div>
+        </div>
+        <div class="bloque-visual">
+          <div class="mock-tarjeta mock-grande">
+            <div class="mock-cab">🛠️ Próximos mantenimientos</div>
+            <div class="medidor-lista">
+              <div><span>ABC-123 · servicio en 12 días</span><b>OK</b><i class="bar celeste" style="width:70%"></i></div>
+              <div><span>PLK-908 · servicio en 3 días</span><b>Pronto</b><i class="bar naranja" style="width:40%"></i></div>
+              <div><span>XYZ-789 · servicio vencido</span><b>Vencido</b><i class="bar naranja" style="width:100%"></i></div>
+            </div>
+            <div class="mock-alerta">⚠️ ABC-888: próximo servicio vencido hace 2 días</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -193,6 +294,22 @@
         </article>
       </div>
       <p class="nota-precios">Los valores son de referencia para tu demostración del proyecto. Ajusta las tarifas según tu mercado.</p>
+    </section>
+
+    <section id="testimonios" class="seccion">
+      <div class="seccion-cabecera">
+        <span class="etiqueta">Voces reales</span>
+        <h2>Lo que dicen <span class="degradado">los conductores</span></h2>
+        <p>Estamos empezando y queremos construir esto escuchando a quien vive la carretera todos los días.</p>
+      </div>
+      <div class="testimonios">
+        <div class="testimonio-vacio">
+          <h3>🚧 Aún no tenemos testimonios publicados</h3>
+          <p>No vamos a inventar opiniones. Si eres conductor, dueño de flota o taller, prueba la plataforma gratis
+            y déjanos tu opinión: los primeros testimonios reales ocuparán este espacio.</p>
+          <a href="#opiniones" class="btn-cta grande">Quiero probar y opinar →</a>
+        </div>
+      </div>
     </section>
 
     <section id="preguntas" class="seccion alterna">
@@ -289,6 +406,8 @@
     <p class="footer-final">© 2026 EcoDrive · Hecho con 💙 en Colombia · SENA ADSO</p>
   </footer>
 
+  <a id="wa-flotante" class="wa-flotante" href="#" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">💬</a>
+
   <script>
     const btn = document.querySelector('.menu-movil');
     const menu = document.getElementById('menu-movil');
@@ -296,6 +415,9 @@
 
     const CONTACTO_WHATSAPP = '573000000000';
     const CONTACTO_CORREO = 'hola@ecodrive.app';
+
+    document.getElementById('wa-flotante').href =
+      'https://wa.me/' + CONTACTO_WHATSAPP + '?text=' + encodeURIComponent('Hola, quiero probar EcoDrive en mi flota');
 
     document.querySelectorAll('.chips').forEach((caja) => {
       caja.addEventListener('click', (e) => {

@@ -584,8 +584,227 @@ footer {
   .footer-inner { grid-template-columns: 1fr 1fr; }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1000px) {
   .links, .acciones { display: none; }
-  .menu-movil { display: block; }
+  .menu-movil { display: block; margin-left: auto; }
+}
+
+@media (max-width: 720px) {
   .hero h1 { font-size: 2.2rem; }
+}
+/* ===== Mejoras visuales estilo Samsara (2026) ===== */
+
+/* Fondo con brillo ambiental */
+body {
+  background:
+    radial-gradient(58% 42% at 82% -6%, rgba(34, 211, 238, 0.16), transparent 62%),
+    radial-gradient(46% 40% at 4% 22%, rgba(52, 211, 153, 0.10), transparent 62%),
+    var(--fondo);
+  background-attachment: fixed;
+}
+
+/* Barra superior de anuncio */
+.banner-top {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.14), rgba(52, 211, 153, 0.14));
+  border-bottom: 1px solid var(--borde);
+  text-align: center;
+  font-size: 0.82rem;
+  padding: 9px 16px;
+  color: var(--texto);
+}
+.banner-top a { color: var(--acento); font-weight: 800; }
+.banner-top a:hover { text-decoration: underline; }
+
+/* Etiqueta de sección (eyebrow) */
+.etiqueta {
+  display: inline-block;
+  color: var(--acento);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* Hero con línea de confianza */
+.hero { padding-top: 58px; }
+.hero h1 { font-size: 3.2rem; }
+.hero-confianza {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.hero-confianza span {
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* Franja de segmentos / confianza */
+.franja-logos {
+  border-top: 1px solid var(--borde);
+  border-bottom: 1px solid var(--borde);
+  background: rgba(11, 19, 34, 0.35);
+  padding: 28px 24px;
+}
+.franja-logos p {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 18px;
+}
+.franja-logos .logos {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 30px;
+}
+.franja-logos .logos span {
+  color: var(--texto);
+  font-weight: 700;
+  font-size: 0.98rem;
+  opacity: 0.72;
+  transition: opacity 0.2s;
+}
+.franja-logos .logos span:hover { opacity: 1; }
+
+/* Banda de cifras más grande */
+.stats { padding: 44px 24px; }
+.stat { position: relative; overflow: hidden; }
+.stat::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--degradado);
+  opacity: 0.85;
+}
+.stat strong { font-size: 2.3rem; }
+.stat .stat-ico { font-size: 1.4rem; margin-bottom: 8px; }
+
+/* Bloques "en acción" (imagen/texto alternados) */
+.bloque-accion {
+  display: grid;
+  grid-template-columns: 1.03fr 0.97fr;
+  gap: 48px;
+  align-items: center;
+  padding: 34px 0;
+}
+.bloque-accion.invertido .bloque-visual { order: -1; }
+.bloque-texto h3 {
+  font-size: 1.95rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 6px 0 14px;
+}
+.bloque-texto p { color: var(--muted); font-size: 1rem; margin-bottom: 18px; }
+.link-flecha { color: var(--acento); font-weight: 800; font-size: 0.95rem; }
+.link-flecha:hover { text-decoration: underline; }
+
+.bloque-visual .mock-tarjeta { padding: 18px; }
+.mock-grande { min-height: 260px; }
+
+/* Cinta de métricas dentro de un bloque */
+.cinta-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 22px;
+}
+.cinta-metricas .metrica-item {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 14px;
+}
+.cinta-metricas b {
+  display: block;
+  font-size: 1.4rem;
+  background: var(--degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cinta-metricas span { color: var(--muted); font-size: 0.78rem; }
+
+/* Testimonios */
+.testimonios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.testimonio {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.testimonio .metrica { font-size: 1.5rem; font-weight: 800; color: var(--acento); }
+.testimonio .frase { color: var(--texto); font-size: 0.94rem; }
+.testimonio .autor { color: var(--muted); font-size: 0.82rem; margin-top: auto; }
+.testimonio-vacio {
+  grid-column: 1 / -1;
+  border: 1px dashed rgba(34, 211, 238, 0.45);
+  border-radius: var(--radio);
+  padding: 30px;
+  text-align: center;
+  background: rgba(34, 211, 238, 0.04);
+}
+.testimonio-vacio h3 { margin-bottom: 8px; }
+.testimonio-vacio p { color: var(--muted); max-width: 620px; margin: 0 auto 18px; }
+
+/* Botón flotante de WhatsApp */
+.wa-flotante {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 960;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #25d366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.4);
+  transition: transform 0.2s;
+}
+.wa-flotante:hover { transform: scale(1.08); }
+
+/* CTA final más llamativo */
+.cta-final {
+  margin: 40px auto 90px;
+  padding: 60px 24px;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  border-radius: 26px;
+  background:
+    radial-gradient(120% 160% at 50% -30%, rgba(34, 211, 238, 0.18), transparent 60%),
+    var(--fondo2);
+  max-width: 1160px;
+}
+.cta-final h2 { font-size: 2.4rem; }
+
+@media (max-width: 960px) {
+  .bloque-accion { grid-template-columns: 1fr; gap: 26px; }
+  .bloque-accion.invertido .bloque-visual { order: 0; }
+  .testimonios { grid-template-columns: 1fr; }
+  .cinta-metricas { grid-template-columns: repeat(3, 1fr); }
+  .hero h1 { font-size: 2.4rem; }
+  .cta-final h2 { font-size: 1.9rem; }
+}
+
+@media (max-width: 640px) {
+  .cinta-metricas { grid-template-columns: 1fr; }
+  .wa-flotante { width: 52px; height: 52px; font-size: 1.5rem; }
 }
