@@ -361,11 +361,19 @@
           </div>
           <label for="opinion-texto">Cuéntanos más (opcional)</label>
           <textarea id="opinion-texto" rows="3" placeholder="Ej.: trabajo en una ruta intermunicipal; me serviría que me avisara por WhatsApp cuando el motor se caliente…"></textarea>
+          <label for="opinion-nombre">Tu nombre (opcional, para publicar)</label>
+          <input type="text" id="opinion-nombre" maxlength="80" placeholder="Ej.: Juan Pérez" />
+          <label for="opinion-contacto">WhatsApp o correo (opcional)</label>
+          <input type="text" id="opinion-contacto" maxlength="120" placeholder="Ej.: 300 123 4567" />
         </div>
         <div class="opiniones-acciones">
-          <button id="btn-op-whatsapp" class="btn-cta">Enviar por WhatsApp</button>
-          <button id="btn-op-correo" class="btn-outline">Enviar por correo</button>
-          <p class="nota-precios">Se abre un mensaje ya redactado; solo presiona enviar. Así recibes seguimiento y una propuesta a tu medida.</p>
+          <div class="opiniones-botones">
+            <button id="btn-op-enviar" class="btn-cta">Enviar opinión</button>
+            <button id="btn-op-whatsapp" class="btn-outline">Enviar por WhatsApp</button>
+            <button id="btn-op-correo" class="btn-outline">Enviar por correo</button>
+          </div>
+          <p id="op-estado" class="op-estado" role="status"></p>
+          <p class="nota-precios">Tu opinión se publica en esta página solo si la aprobamos. También puedes escribirnos directo por WhatsApp o correo.</p>
         </div>
       </div>
     </section>
@@ -450,6 +458,89 @@
     document.getElementById('btn-op-correo').addEventListener('click', () => {
       location.href = 'mailto:' + CONTACTO_CORREO + '?subject=Opinion EcoDrive&body=' + encodeURIComponent(armarOpinion());
     });
+
+    function escaparHTML(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function enviarOpinion() {
+      const rol = [...document.querySelectorAll('#chips-rol .chip.activo')].map((c) => c.dataset.val).join(', ');
+      const temas = [...document.querySelectorAll('#chips-tema .chip.activo')].map((c) => c.dataset.val).join(', ');
+      const comentario = document.getElementById('opinion-texto').value.trim();
+      const nombre = document.getElementById('opinion-nombre').value.trim();
+      const contacto = document.getElementById('opinion-contacto').value.trim();
+      const estado = document.getElementById('op-estado');
+      const btn = document.getElementById('btn-op-enviar');
+
+      if (!rol && !temas && !comentario) {
+        estado.textContent = 'Selecciona o escribe algo antes de enviar.';
+        estado.className = 'op-estado error';
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Enviando…';
+      try {
+        const resp = await fetch('/api/v1/opiniones', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rol, temas, comentario, nombre, contacto }),
+        });
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({}));
+          throw new Error(e.error || 'No se pudo enviar la opinión');
+        }
+        estado.textContent = '¡Gracias! Recibimos tu opinión. La revisaremos y la publicaremos si aplica.';
+        estado.className = 'op-estado ok';
+        document.getElementById('opinion-texto').value = '';
+        document.getElementById('opinion-nombre').value = '';
+        document.getElementById('opinion-contacto').value = '';
+        document.querySelectorAll('#chips-rol .chip.activo, #chips-tema .chip.activo').forEach((c) => c.classList.remove('activo'));
+      } catch (err) {
+        estado.textContent = err.message;
+        estado.className = 'op-estado error';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar opinión';
+      }
+    }
+    document.getElementById('btn-op-enviar').addEventListener('click', enviarOpinion);
+
+    async function cargarTestimonios() {
+      const cont = document.querySelector('.testimonios');
+      if (!cont) return;
+      try {
+        const resp = await fetch('/api/v1/opiniones/publicas');
+        const filas = await resp.json();
+        if (!Array.isArray(filas) || !filas.length) return;
+        cont.innerHTML = filas
+          .map((o) => {
+            const autor = escaparHTML(o.nombre || o.rol || 'Usuario de EcoDrive');
+            const extra = o.nombre && o.rol ? ' · ' + escaparHTML(o.rol) : '';
+            const texto = o.comentario
+              ? escaparHTML(o.comentario)
+              : (o.temas ? 'Le interesaría: ' + escaparHTML(o.temas) : '');
+            const temas = o.temas
+              ? '<div class="testimonio-temas">' +
+                o.temas
+                  .split(',')
+                  .map((t) => (t.trim() ? '<span class="chip-mini">' + escaparHTML(t.trim()) + '</span>' : ''))
+                  .join('') +
+                '</div>'
+              : '';
+            return '<div class="testimonio"><div class="frase">“' + texto + '”</div>' + temas +
+              '<div class="autor">— ' + autor + extra + '</div></div>';
+          })
+          .join('');
+      } catch (e) {
+        /* si falla, se mantiene el aviso honesto de "aún sin testimonios" */
+      }
+    }
+    cargarTestimonios();
 
     const observar = new IntersectionObserver((entradas) => {
       entradas.forEach((e) => {

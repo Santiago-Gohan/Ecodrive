@@ -1711,3 +1711,102 @@ td.celda-alerta {
     flex-direction: column;
   }
 }
+
+/* ---------- Opiniones (moderación) ---------- */
+.lista-opiniones {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+.op-card {
+  background: var(--tarjeta2);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.op-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.op-cab-izq {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.op-nombre {
+  color: var(--texto);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.op-frase {
+  color: var(--texto);
+  font-size: 0.94rem;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.op-temas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.op-contacto {
+  color: var(--muted);
+  font-size: 0.82rem;
+  word-break: break-word;
+}
+
+.op-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--borde);
+  padding-top: 10px;
+}
+
+.op-fecha {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.op-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.op-acciones .btn-chico {
+  margin-top: 0;
+}
+
+.op-acciones .btn-peligro {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--rojo);
+}
+
+.op-acciones .btn-peligro:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.op-acciones .btn-secundario:disabled,
+.op-acciones .btn-peligro:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

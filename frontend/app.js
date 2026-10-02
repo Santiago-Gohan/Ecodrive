@@ -6,6 +6,7 @@ const $login = document.getElementById('vista-login');
 const $dash = document.getElementById('vista-dashboard');
 const $flota = document.getElementById('vista-flota');
 const $historial = document.getElementById('vista-historial');
+const $opiniones = document.getElementById('vista-opiniones');
 const $header = document.getElementById('header');
 const $banner = document.getElementById('banner-alerta');
 const $bannerTexto = document.getElementById('banner-texto');
@@ -13,7 +14,7 @@ const $tabla = document.getElementById('cuerpo-flota');
 const $conexion = document.getElementById('conexion');
 const $errorLogin = document.getElementById('error-login');
 
-const VISTAS = { dashboard: $dash, flota: $flota, historial: $historial };
+const VISTAS = { dashboard: $dash, flota: $flota, historial: $historial, opiniones: $opiniones };
 
 function conectarSocket() {
   socket = io();
@@ -113,6 +114,7 @@ function cambiarVista(nombre) {
   });
   if (nombre === 'flota') cargarVehiculos();
   if (nombre === 'historial') cargarHistorial();
+  if (nombre === 'opiniones') cargarOpiniones();
   if (nombre === 'dashboard' && mapaEco) {
     setTimeout(() => mapaEco.invalidateSize(), 60);
     cargarFlota();
@@ -1043,6 +1045,101 @@ function renderTelemetria(filas) {
     .join('');
 }
 
+/* ---------- Opiniones (moderación) ---------- */
+function escaparHTML(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function cargarOpiniones() {
+  const cont = document.getElementById('lista-opiniones');
+  if (!cont) return;
+  try {
+    const estado = document.getElementById('filtro-opinion-estado').value;
+    const resp = await fetchApi(`${API}/opiniones${estado ? '?estado=' + encodeURIComponent(estado) : ''}`);
+    const filas = await resp.json();
+    renderOpiniones(filas);
+  } catch (err) {
+    console.error('Error al cargar opiniones:', err);
+    cont.innerHTML = '<p class="vacio">No se pudieron cargar las opiniones.</p>';
+  }
+}
+
+function renderOpiniones(filas) {
+  const cont = document.getElementById('lista-opiniones');
+  if (!cont) return;
+  if (!filas.length) {
+    cont.innerHTML = '<p class="vacio">No hay opiniones con ese filtro.</p>';
+    return;
+  }
+  cont.innerHTML = filas
+    .map((o) => {
+      const rol = o.rol ? `<span class="pill cyan">${escaparHTML(o.rol)}</span>` : '';
+      const nombre = o.nombre ? `<span class="op-nombre">${escaparHTML(o.nombre)}</span>` : '';
+      const temas = o.temas
+        ? `<div class="op-temas">${o.temas
+            .split(',')
+            .map((t) => (t.trim() ? `<span class="pill gris">${escaparHTML(t.trim())}</span>` : ''))
+            .join('')}</div>`
+        : '';
+      const contacto = o.contacto ? `<div class="op-contacto">Contacto: ${escaparHTML(o.contacto)}</div>` : '';
+      const claseEstado = o.estado === 'APROBADA' ? 'verde' : o.estado === 'RECHAZADA' ? 'rojo' : 'ambar';
+      const desAprobar = o.estado === 'APROBADA' ? 'disabled' : '';
+      const desRechazar = o.estado === 'RECHAZADA' ? 'disabled' : '';
+      const frase = o.comentario ? escaparHTML(o.comentario) : '<em>(sin comentario escrito)</em>';
+      const f = o.creado_en ? new Date(o.creado_en) : null;
+      const fecha = f && !isNaN(f) ? f.toLocaleString('es-CO') : '';
+      return `<article class="op-card">
+        <div class="op-cab">
+          <div class="op-cab-izq">${rol}${nombre}</div>
+          <span class="pill ${claseEstado}">${o.estado}</span>
+        </div>
+        <p class="op-frase">${frase}</p>
+        ${temas}
+        ${contacto}
+        <div class="op-pie">
+          <span class="op-fecha">${fecha}</span>
+          <div class="op-acciones">
+            <button class="btn-secundario btn-chico" ${desAprobar} onclick="cambiarEstadoOpinion('${o.id}','APROBADA')">✔ Aprobar</button>
+            <button class="btn-secundario btn-chico" ${desRechazar} onclick="cambiarEstadoOpinion('${o.id}','RECHAZADA')">✖ Rechazar</button>
+            <button class="btn-peligro btn-chico" onclick="eliminarOpinion('${o.id}')">🗑 Eliminar</button>
+          </div>
+        </div>
+      </article>`;
+    })
+    .join('');
+}
+
+async function cambiarEstadoOpinion(id, estado) {
+  try {
+    const resp = await fetchApi(`${API}/opiniones/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ estado }),
+    });
+    if (!resp.ok) throw new Error('No se pudo actualizar la opinión');
+    toast(estado === 'APROBADA' ? 'Opinión publicada en la web' : 'Opinión ocultada', 'ok');
+    cargarOpiniones();
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+}
+
+async function eliminarOpinion(id) {
+  if (!confirm('¿Eliminar esta opinión definitivamente?')) return;
+  try {
+    const resp = await fetchApi(`${API}/opiniones/${id}`, { method: 'DELETE' });
+    if (!resp.ok) throw new Error('No se pudo eliminar la opinión');
+    toast('Opinión eliminada', 'ok');
+    cargarOpiniones();
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+}
+
 function salir() {
   token = null;
   localStorage.removeItem('ecodrive_token');
@@ -1051,6 +1148,7 @@ function salir() {
   VISTAS.dashboard.classList.add('oculto');
   VISTAS.flota.classList.add('oculto');
   VISTAS.historial.classList.add('oculto');
+  VISTAS.opiniones.classList.add('oculto');
 }
 
 async function simularAlerta() {
@@ -1269,6 +1367,8 @@ document.querySelectorAll('.nav-btn').forEach((btn) => {
   if (!btn.dataset.vista) return; // enlaces externos (ej. /dispositivo/)
   btn.addEventListener('click', () => cambiarVista(btn.dataset.vista));
 });
+
+document.getElementById('btn-cargar-opiniones')?.addEventListener('click', cargarOpiniones);
 
 conectarSocket();
 

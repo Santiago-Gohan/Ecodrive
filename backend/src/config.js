@@ -18,4 +18,5 @@ module.exports = {
   purgaIntervaloMin: parseInt(process.env.PURGA_INTERVALO_MIN || '60', 10),
   limiteLecturasMinuto: parseInt(process.env.LIMITE_LECTURAS_MINUTO || '2400', 10),
   limiteVinculosMinuto: parseInt(process.env.LIMITE_VINCULOS_MINUTO || '10', 10),
+  limiteOpinionesMinuto: parseInt(process.env.LIMITE_OPINIONES_MINUTO || '5', 10),
 };

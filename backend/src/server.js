@@ -10,6 +10,7 @@ const authRoute = require('./routes/auth');
 const vehiculosRoute = require('./routes/vehiculos');
 const historialRoute = require('./routes/historial');
 const registrationRoute = require('./routes/registration');
+const opinionesRoute = require('./routes/opiniones');
 const { iniciarRetencion } = require('./services/retention');
 
 const app = express();
@@ -62,6 +63,7 @@ app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/vehiculos', vehiculosRoute);
 app.use('/api/v1/historial', historialRoute);
 app.use('/api/v1/registration', registrationRoute);
+app.use('/api/v1/opiniones', opinionesRoute);
 
 app.get('/api/v1/health', async (req, res) => {
   const base = {

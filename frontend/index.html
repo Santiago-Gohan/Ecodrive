@@ -32,6 +32,7 @@
       <button data-vista="dashboard" class="nav-btn activo">📊 Dashboard</button>
       <button data-vista="flota" class="nav-btn">🚛 Flota</button>
       <button data-vista="historial" class="nav-btn">📜 Historial</button>
+      <button data-vista="opiniones" class="nav-btn">💬 Opiniones</button>
       <button id="btn-tour" class="nav-btn">🎬 Tour guiado</button>
       <a href="/dispositivo/" target="_blank" class="nav-btn link">📱 Dispositivo</a>
       <a href="/" class="nav-btn link">🌐 Sitio web</a>
@@ -225,6 +226,27 @@
             <tr><td colspan="5" class="vacio">Cargando...</td></tr>
           </tbody>
         </table>
+      </div>
+    </section>
+  </main>
+
+  <main id="vista-opiniones" class="vista oculto">
+    <section class="tarjeta">
+      <div class="tarjeta-cabecera">
+        <h2>💬 Opiniones de usuarios</h2>
+        <span class="pista-grafica">Aprueba una opinión para publicarla en el sitio web</span>
+      </div>
+      <div class="filtros">
+        <select id="filtro-opinion-estado">
+          <option value="">Todas</option>
+          <option value="PENDIENTE" selected>Pendientes</option>
+          <option value="APROBADA">Aprobadas</option>
+          <option value="RECHAZADA">Rechazadas</option>
+        </select>
+        <button id="btn-cargar-opiniones" class="btn-secundario">Filtrar</button>
+      </div>
+      <div id="lista-opiniones" class="lista-opiniones">
+        <p class="vacio">Cargando opiniones...</p>
       </div>
     </section>
   </main>

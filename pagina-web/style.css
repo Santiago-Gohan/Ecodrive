@@ -524,7 +524,8 @@ a { color: inherit; text-decoration: none; }
 .chip:hover { border-color: var(--acento, #0ea5e9); color: var(--acento, #0ea5e9); }
 .chip.activo { background: var(--acento, #0ea5e9); border-color: var(--acento, #0ea5e9); color: #fff; }
 
-.opiniones-campos textarea {
+.opiniones-campos textarea,
+.opiniones-campos input {
   border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 12px 14px;
@@ -535,18 +536,24 @@ a { color: inherit; text-decoration: none; }
   background: var(--tarjeta);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.opiniones-campos textarea::placeholder { color: var(--muted); }
-.opiniones-campos textarea:focus {
+.opiniones-campos textarea::placeholder,
+.opiniones-campos input::placeholder { color: var(--muted); }
+.opiniones-campos textarea:focus,
+.opiniones-campos input:focus {
   outline: none;
   border-color: var(--acento);
   box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
 }
 
 .opiniones-acciones { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.opiniones-botones { display: flex; flex-direction: column; gap: 10px; }
 .opiniones-acciones .nota-precios { margin-top: 2px; text-align: left; }
+.op-estado { margin: 0; font-size: 0.85rem; }
+.op-estado.ok { color: var(--verde); }
+.op-estado.error { color: #f87171; }
 @media (min-width: 620px) {
-  .opiniones-acciones { flex-direction: row; align-items: center; }
-  .opiniones-acciones .btn-cta, .opiniones-acciones .btn-outline { flex: 1; }
+  .opiniones-botones { flex-direction: row; align-items: center; }
+  .opiniones-botones .btn-cta, .opiniones-botones .btn-outline { flex: 1; }
 }
 
 /* ---------- CTA final ---------- */
@@ -866,4 +873,21 @@ footer { background: rgba(11, 19, 34, 0.82); }
 
 @media (max-width: 640px) {
   #fondo-pagina { opacity: 0.45; filter: blur(10px) brightness(0.55); }
+}
+
+/* Tarjetas de testimonios reales (opiniones aprobadas) */
+.testimonio-temas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-mini {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--acento);
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 999px;
+  padding: 3px 9px;
 }
