@@ -68,6 +68,20 @@ CREATE TABLE opiniones (
 
 CREATE INDEX IF NOT EXISTS idx_opiniones_estado ON opiniones (estado, creado_en DESC);
 
+CREATE TABLE eventos_viales (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tipo        VARCHAR(20) NOT NULL
+              CHECK (tipo IN ('POLICIA', 'ACCIDENTE', 'RETEN', 'OBRA', 'OTRO')),
+  lat         DOUBLE PRECISION NOT NULL,
+  lng         DOUBLE PRECISION NOT NULL,
+  descripcion VARCHAR(300),
+  placa       VARCHAR(20),
+  vehiculo_id UUID REFERENCES vehiculos(id) ON DELETE SET NULL,
+  creado_en   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_eventos_viales_creado ON eventos_viales (creado_en DESC);
+
 -- Datos semilla (vehículos de demostración)
 INSERT INTO vehiculos (placa, api_key, nombre, anio, combustible, tipo_vehiculo) VALUES
   ('ABC-123', 'ECDV-K7M2-RQ9X-D4JA', 'Camioneta Toyota Hilux', 2018, 'DIESEL', 'CAMION'),

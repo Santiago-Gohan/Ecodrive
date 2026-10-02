@@ -141,6 +141,21 @@
       <div id="cola-offline" class="pista"></div>
     </section>
 
+    <section class="tarjeta config" id="reportar-evento">
+      <h2>🚨 Reportar en la vía</h2>
+      <p class="pista">¿Viste policía, un accidente o un cierre? Avísale a tu flota. Se usa tu ubicación GPS actual.</p>
+      <div class="chips" id="ev-chips-tipo">
+        <button type="button" class="chip" data-tipo="POLICIA">🚓 Policía</button>
+        <button type="button" class="chip" data-tipo="ACCIDENTE">💥 Accidente</button>
+        <button type="button" class="chip" data-tipo="RETEN">⛔ Retén</button>
+        <button type="button" class="chip" data-tipo="OBRA">🚧 Obra</button>
+        <button type="button" class="chip" data-tipo="OTRO">⚠️ Otro</button>
+      </div>
+      <input type="text" id="ev-descripcion" placeholder="Descripción (opcional)" maxlength="200" autocomplete="off" />
+      <button id="btn-reportar-evento" class="btn-primario">📨 Reportar con mi ubicación</button>
+      <p id="msj-evento" class="pista"></p>
+    </section>
+
     <section class="tarjeta" id="opiniones">
       <h2>💬 Déjanos tu opinión</h2>
       <p class="pista">¿Cómo te va con EcoDrive? Cuéntanos qué mejorarías. Tu comentario nos ayuda a hacer una mejor app para conductores y empresas.</p>
@@ -180,6 +195,7 @@
           { sel: '#conf-vincular', etiqueta: 'Vinculación', titulo: '1 · Vincula tu vehículo', texto: 'Escribe el código de 6 caracteres del panel o tu placa, o escanea el QR. La app encuentra el vehículo sola, sin copiar claves.' },
           { sel: '#conf-conectar', etiqueta: 'Conexión', titulo: '2 · Conecta el adaptador', texto: 'Con un ELM327 leemos el motor de verdad. ¿No tienes adaptador? Activa "ECU virtual" y prueba todo igual.' },
           { sel: '#conf-monitoreo', etiqueta: 'Monitoreo', titulo: '3 · Monitorea en vivo', texto: 'Temperatura, RPM y combustible en tiempo real, con alertas sonoras y resumen de jornada al terminar.' },
+          { sel: '#reportar-evento', etiqueta: 'En la vía', titulo: 'Reporta lo que ves', texto: 'Policía, accidente, retén u obra: con un toque reportas tu ubicación y el panel de tu flota lo ve en el mapa.' },
           { sel: '#opiniones', etiqueta: 'Opiniones', titulo: 'Déjanos tu opinión', texto: 'Al final puedes contarnos cómo te va y qué mejorarías. Tu comentario nos ayuda a construir una mejor herramienta para conductores y empresas.' }
         ]
       });

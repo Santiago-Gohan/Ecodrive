@@ -19,4 +19,6 @@ module.exports = {
   limiteLecturasMinuto: parseInt(process.env.LIMITE_LECTURAS_MINUTO || '2400', 10),
   limiteVinculosMinuto: parseInt(process.env.LIMITE_VINCULOS_MINUTO || '10', 10),
   limiteOpinionesMinuto: parseInt(process.env.LIMITE_OPINIONES_MINUTO || '5', 10),
+  limiteEventosMinuto: parseInt(process.env.LIMITE_EVENTOS_MINUTO || '10', 10),
+  eventosRetencionHoras: parseInt(process.env.EVENTOS_RETENCION_HORAS || '3', 10),
 };

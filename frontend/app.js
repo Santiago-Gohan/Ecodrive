@@ -30,6 +30,7 @@ function conectarSocket() {
     mostrarAlerta(evento);
     cargarFlota();
   });
+  socket.on('evento:nuevo', () => cargarEventos());
 }
 
 function setConexion(conectado) {
@@ -100,6 +101,7 @@ function mostrarDashboard() {
   cambiarVista('dashboard');
   inicializarMapa();
   cargarFlota();
+  cargarEventos();
   iniciarPollingGrafica();
   setTimeout(dibujarGrafica, 80);
   setTimeout(() => mapaEco && mapaEco.invalidateSize(), 150);
@@ -118,6 +120,7 @@ function cambiarVista(nombre) {
   if (nombre === 'dashboard' && mapaEco) {
     setTimeout(() => mapaEco.invalidateSize(), 60);
     cargarFlota();
+    cargarEventos();
   }
 }
 
@@ -271,7 +274,17 @@ function renderProximosMantenimientos(filas) {
 /* ---------- Mapa en vivo (Leaflet) ---------- */
 let mapaEco = null;
 let capaMarcadores = null;
+let capaEventos = null;
 let primeraCargaMapa = true;
+
+const ICONO_EVENTO = { POLICIA: '🚓', ACCIDENTE: '💥', RETEN: '⛔', OBRA: '🚧', OTRO: '⚠️' };
+const ETIQUETA_EVENTO = {
+  POLICIA: 'Policía',
+  ACCIDENTE: 'Accidente',
+  RETEN: 'Retén',
+  OBRA: 'Obra',
+  OTRO: 'Otro',
+};
 
 function inicializarMapa() {
   const cont = document.getElementById('mapa-eco');
@@ -282,6 +295,41 @@ function inicializarMapa() {
     attribution: '&copy; OpenStreetMap',
   }).addTo(mapaEco);
   capaMarcadores = L.layerGroup().addTo(mapaEco);
+  capaEventos = L.layerGroup().addTo(mapaEco);
+}
+
+async function cargarEventos() {
+  if (!mapaEco || !capaEventos) return;
+  try {
+    const resp = await fetchApi(`${API}/eventos`);
+    const filas = await resp.json();
+    actualizarEventos(Array.isArray(filas) ? filas : []);
+  } catch (err) {
+    console.error('Error al cargar eventos viales:', err);
+  }
+}
+
+function actualizarEventos(filas) {
+  if (!mapaEco || !capaEventos) return;
+  capaEventos.clearLayers();
+  filas.forEach((ev) => {
+    const tipo = ICONO_EVENTO[ev.tipo] ? ev.tipo : 'OTRO';
+    const icono = L.divIcon({
+      className: '',
+      html: `<div class="marcador-evento" title="${ETIQUETA_EVENTO[tipo]}">${ICONO_EVENTO[tipo]}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -14],
+    });
+    const hora = ev.creado_en ? new Date(ev.creado_en).toLocaleTimeString('es-CO') : '';
+    const desc = ev.descripcion ? `<br>${escaparHTML(ev.descripcion)}` : '';
+    const placa = ev.placa ? `<br><small>Reportado por ${escaparHTML(String(ev.placa))}</small>` : '';
+    const html = `<strong>${ICONO_EVENTO[tipo]} ${ETIQUETA_EVENTO[tipo]}</strong>${desc}<br>
+      <small>🕐 ${hora}</small>${placa}`;
+    L.marker([Number(ev.lat), Number(ev.lng)], { icon: icono }).bindPopup(html).addTo(capaEventos);
+  });
+  const conteo = document.getElementById('eventos-conteo');
+  if (conteo) conteo.textContent = filas.length ? `(${filas.length} reciente${filas.length === 1 ? '' : 's'})` : '(sin reportes recientes)';
 }
 
 function colorMarcador(ect) {
@@ -458,7 +506,10 @@ function dibujarGrafica() {
 }
 
 function iniciarPollingGrafica() {
-  setInterval(() => cargarFlota(), 5000);
+  setInterval(() => {
+    cargarFlota();
+    cargarEventos();
+  }, 5000);
 }
 
 window.addEventListener('resize', () => {

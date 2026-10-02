@@ -60,6 +60,7 @@ const configLocal = JSON.parse(localStorage.getItem('ecodrive_dispositivo') || '
 
 /* ---------- GPS del celular ---------- */
 function iniciarGps() {
+  if (watchGps !== null) return;
   if (!navigator.geolocation) {
     log('Este navegador no ofrece GPS. Los puntos se enviarán sin ubicación.');
     return;
@@ -88,6 +89,73 @@ function detenerGps() {
     navigator.geolocation.clearWatch(watchGps);
     watchGps = null;
   }
+}
+
+/* ---------- Reportar evento en la vía ---------- */
+let tipoEventoSeleccionado = null;
+
+function mostrarMsjEvento(texto, esError) {
+  const el = document.getElementById('msj-evento');
+  if (!el) return;
+  el.textContent = texto;
+  el.className = 'pista ' + (esError ? 'error' : 'ok');
+}
+
+async function reportarEvento() {
+  if (!tipoEventoSeleccionado) {
+    mostrarMsjEvento('Elige primero qué viste (policía, accidente…).', true);
+    return;
+  }
+  if (!posicionGps) {
+    mostrarMsjEvento('Esperando GPS… activa la ubicación para reportar.', true);
+    return;
+  }
+  const btn = document.getElementById('btn-reportar-evento');
+  if (btn) btn.disabled = true;
+  mostrarMsjEvento('Enviando reporte…', false);
+  try {
+    const descripcion = (document.getElementById('ev-descripcion').value || '').trim();
+    const resp = await fetch(`${API}/eventos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: tipoEventoSeleccionado,
+        lat: posicionGps.lat,
+        lng: posicionGps.lng,
+        descripcion,
+        placa: vehiculoActual ? vehiculoActual.placa : null,
+      }),
+    });
+    if (resp.status === 429) {
+      mostrarMsjEvento('Demasiados reportes seguidos. Espera un momento.', true);
+    } else if (!resp.ok) {
+      mostrarMsjEvento('No se pudo enviar el reporte.', true);
+    } else {
+      mostrarMsjEvento('✅ Reporte enviado a tu flota. ¡Gracias!', false);
+      const d = document.getElementById('ev-descripcion');
+      if (d) d.value = '';
+      log('Evento en la vía reportado.');
+    }
+  } catch (err) {
+    mostrarMsjEvento('Sin conexión: el reporte no se envió.', true);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function iniciarChipsEvento() {
+  const cont = document.getElementById('ev-chips-tipo');
+  if (cont) {
+    cont.querySelectorAll('.chip').forEach((c) => {
+      c.addEventListener('click', () => {
+        cont.querySelectorAll('.chip').forEach((x) => x.classList.remove('activo'));
+        c.classList.add('activo');
+        tipoEventoSeleccionado = c.getAttribute('data-tipo');
+      });
+    });
+  }
+  const btn = document.getElementById('btn-reportar-evento');
+  if (btn) btn.addEventListener('click', reportarEvento);
 }
 
 async function cargarVehiculos() {
@@ -1081,3 +1149,5 @@ async function registrarVehiculo() {
 
 cargarVehiculos();
 actualizarCola();
+iniciarChipsEvento();
+iniciarGps();

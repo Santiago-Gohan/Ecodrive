@@ -144,6 +144,18 @@ header {
   margin-top: 10px;
 }
 
+.pista.ok { color: #34d399; }
+.pista.error { color: #f87171; }
+
+#reportar-evento #ev-descripcion {
+  margin-top: 12px;
+}
+
+#reportar-evento #btn-reportar-evento {
+  margin-top: 12px;
+  width: 100%;
+}
+
 .separador {
   text-align: center;
   color: #64748b;
