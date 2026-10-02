@@ -461,6 +461,24 @@
       el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
       observar.observe(el);
     });
+
+    // Parallax suave del fondo: se mueve un poco con el texto
+    const fondoPagina = document.getElementById('fondo-pagina');
+    if (fondoPagina && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      let pendiente = false;
+      const moverFondo = () => {
+        const recorrido = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const avance = window.scrollY / recorrido;
+        const desplazamiento = (avance - 0.5) * (window.innerHeight * 0.16);
+        fondoPagina.style.transform = 'translate3d(0,' + desplazamiento.toFixed(1) + 'px,0)';
+        pendiente = false;
+      };
+      window.addEventListener('scroll', () => {
+        if (!pendiente) { requestAnimationFrame(moverFondo); pendiente = true; }
+      }, { passive: true });
+      window.addEventListener('resize', moverFondo);
+      moverFondo();
+    }
   </script>
 </body>
 </html>

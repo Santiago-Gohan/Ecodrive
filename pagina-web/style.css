@@ -835,15 +835,29 @@ body {
 /* ===== Fondo fotográfico sutil para toda la página (<img>) ===== */
 #fondo-pagina {
   position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: -8%;
+  left: -8%;
+  width: 116%;
+  height: 116%;
   object-fit: cover;
   z-index: -1;
   filter: blur(10px) brightness(0.6) saturate(0.95);
   opacity: 0.58;
   pointer-events: none;
   user-select: none;
+  will-change: transform;
+}
+
+/* Viñeteado + brillo para dar profundidad y mantener el texto legible */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(34, 211, 238, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(6, 11, 22, 0.5) 0%, rgba(6, 11, 22, 0.25) 40%, rgba(6, 11, 22, 0.7) 100%);
 }
 
 /* Secciones que antes eran opacas ahora dejan entrever el fondo */
