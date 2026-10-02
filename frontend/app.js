@@ -103,6 +103,7 @@ function mostrarDashboard() {
   cargarFlota();
   cargarEventos();
   iniciarPollingGrafica();
+  if (window.EcoDriveTour && EcoDriveTour.iniciarSiNuevo) EcoDriveTour.iniciarSiNuevo();
   setTimeout(dibujarGrafica, 80);
   setTimeout(() => mapaEco && mapaEco.invalidateSize(), 150);
 }

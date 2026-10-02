@@ -392,6 +392,9 @@
       EcoDriveTour.configurar({
         boton: '#btn-tour',
         espera: 240,
+        auto: true,
+        clave: 'ecodrive_tour_panel_v2',
+        retraso: 1100,
         alIniciar: function () {
           var b = document.querySelector('[data-vista="dashboard"]');
           if (b) b.click();
@@ -399,14 +402,18 @@
         },
         pasos: [
           { sel: '.kpis', etiqueta: 'Dashboard', titulo: 'Tus indicadores clave', texto: 'De un vistazo ves cuántos vehículos tienes, cuántos están en línea, las alertas activas y la temperatura máxima de la flota.' },
-          { sel: '.tarjeta.mapa', etiqueta: 'Ubicación', titulo: 'Flota en tiempo real', texto: 'Cada vehículo aparece en el mapa con su posición GPS, que llega desde el celular del conductor cada 5 segundos.' },
+          { sel: '.tarjeta.mapa', etiqueta: 'Ubicación', titulo: 'Flota y eventos en la vía', texto: 'Cada vehículo aparece en el mapa con su GPS. Abajo está la leyenda de eventos: los conductores reportan policía, accidentes, retenes u obras y los ves aquí en tiempo real.' },
           { sel: '.tarjeta.grafica', etiqueta: 'Telemetría', titulo: 'Temperatura del motor (ECT)', texto: 'La tendencia en vivo del refrigerante. Si supera 105 °C, el vehículo se marca en rojo y se dispara la alerta.' },
           { sel: '#tarjeta-mantenimientos', etiqueta: 'Mantenimiento', titulo: 'Mantenimiento predictivo', texto: 'Aquí ves los servicios vencidos y los que vencen en los próximos 15 días, para que no se te pase ninguno.' },
           { sel: '#tarjeta-flota', etiqueta: 'Flota', titulo: 'Estado de cada vehículo', texto: 'La tabla con ECT, combustible, RPM, última lectura y salud de cada unidad.' },
+          { sel: '[data-vista="historial"]', etiqueta: 'Historial', titulo: 'Historial de lecturas', texto: 'Consulta la telemetría pasada por vehículo y rango de fechas para revisar qué pasó en la ruta.' },
+          { sel: '[data-vista="opiniones"]', etiqueta: 'Opiniones', titulo: 'Opiniones de los usuarios', texto: 'Aquí llegan los comentarios de conductores y empresas. Aprueba los mejores y se publican solos en la página web.' },
           { sel: '#btn-demo', etiqueta: 'Demo', titulo: 'Pruébalo sin hardware', texto: 'Con "Demo en vivo" generamos datos simulados para que veas todo funcionando al instante.' },
           { sel: '#btn-informe', etiqueta: 'Reportes', titulo: 'Informe para tu cliente o jefe', texto: 'Genera un informe de flota listo para imprimir o guardar en PDF.' }
         ]
       });
+      var dash = document.getElementById('vista-dashboard');
+      if (dash && !dash.classList.contains('oculto')) EcoDriveTour.iniciarSiNuevo();
     }
   </script>
 </body>

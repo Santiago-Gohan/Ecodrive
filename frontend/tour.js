@@ -188,6 +188,7 @@
     });
     if (!pasos.length) return;
 
+    marcarVisto();
     construir();
     activo = true;
     document.documentElement.classList.add('tour-activo');
@@ -198,8 +199,32 @@
     ir(0);
   }
 
+  function marcarVisto() {
+    try {
+      if (cfg.clave) localStorage.setItem(cfg.clave, '1');
+    } catch (e) { /* ignora */ }
+  }
+
+  function yaVisto() {
+    try {
+      return cfg.clave ? !!localStorage.getItem(cfg.clave) : false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function iniciarSiNuevo() {
+    if (cfg.auto === false || !cfg.clave) return;
+    if (activo || yaVisto()) return;
+    setTimeout(function () {
+      if (activo || yaVisto()) return;
+      iniciar(cfg.pasos);
+    }, cfg.retraso || 900);
+  }
+
   function terminar() {
     if (!activo) return;
+    marcarVisto();
     activo = false;
     elActual = null;
     document.documentElement.classList.remove('tour-activo');
@@ -227,6 +252,7 @@
   window.EcoDriveTour = {
     configurar: configurar,
     iniciar: iniciar,
+    iniciarSiNuevo: iniciarSiNuevo,
     terminar: terminar
   };
 })();

@@ -190,6 +190,9 @@
       EcoDriveTour.configurar({
         boton: '#btn-tour',
         espera: 120,
+        auto: true,
+        clave: 'ecodrive_tour_device_v2',
+        retraso: 900,
         pasos: [
           { sel: '#barra-estado', etiqueta: 'Conductor', titulo: 'Estado de conexión', texto: 'Arriba ves si la app tiene señal. Si no hay cobertura, guarda las lecturas y las reenvía cuando vuelve la red.' },
           { sel: '#conf-vincular', etiqueta: 'Vinculación', titulo: '1 · Vincula tu vehículo', texto: 'Escribe el código de 6 caracteres del panel o tu placa, o escanea el QR. La app encuentra el vehículo sola, sin copiar claves.' },
@@ -199,6 +202,7 @@
           { sel: '#opiniones', etiqueta: 'Opiniones', titulo: 'Déjanos tu opinión', texto: 'Al final puedes contarnos cómo te va y qué mejorarías. Tu comentario nos ayuda a construir una mejor herramienta para conductores y empresas.' }
         ]
       });
+      EcoDriveTour.iniciarSiNuevo();
     }
   </script>
 
