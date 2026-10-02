@@ -6,6 +6,7 @@
   <title>EcoDrive - Panel Administrador</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="tour.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
@@ -31,6 +32,7 @@
       <button data-vista="dashboard" class="nav-btn activo">📊 Dashboard</button>
       <button data-vista="flota" class="nav-btn">🚛 Flota</button>
       <button data-vista="historial" class="nav-btn">📜 Historial</button>
+      <button id="btn-tour" class="nav-btn">🎬 Tour guiado</button>
       <a href="/dispositivo/" target="_blank" class="nav-btn link">📱 Dispositivo</a>
       <a href="/" class="nav-btn link">🌐 Sitio web</a>
     </nav>
@@ -96,7 +98,7 @@
       <canvas id="grafica-ect" width="960" height="220"></canvas>
     </section>
 
-    <section class="tarjeta">
+    <section class="tarjeta" id="tarjeta-mantenimientos">
       <div class="tarjeta-cabecera">
         <h2>🛠️ Próximos mantenimientos</h2>
         <span class="pista-grafica">Vencidos y siguientes 15 días</span>
@@ -104,7 +106,7 @@
       <div id="lista-mantenimientos" class="mants"><p class="vacio-ligero">Cargando…</p></div>
     </section>
 
-    <section class="tarjeta">
+    <section class="tarjeta" id="tarjeta-flota">
       <div class="tarjeta-cabecera">
         <h2>Flota vehicular - estado en tiempo real</h2>
         <div class="cabecera-derecha">
@@ -353,5 +355,28 @@
   <footer id="pie">EcoDrive · Mantenimiento predictivo para tu flota · SENA ADSO</footer>
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
+  <script src="tour.js"></script>
+  <script>
+    if (window.EcoDriveTour) {
+      EcoDriveTour.configurar({
+        boton: '#btn-tour',
+        espera: 240,
+        alIniciar: function () {
+          var b = document.querySelector('[data-vista="dashboard"]');
+          if (b) b.click();
+          document.querySelectorAll('.modal').forEach(function (m) { m.classList.add('oculto'); });
+        },
+        pasos: [
+          { sel: '.kpis', etiqueta: 'Dashboard', titulo: 'Tus indicadores clave', texto: 'De un vistazo ves cuántos vehículos tienes, cuántos están en línea, las alertas activas y la temperatura máxima de la flota.' },
+          { sel: '.tarjeta.mapa', etiqueta: 'Ubicación', titulo: 'Flota en tiempo real', texto: 'Cada vehículo aparece en el mapa con su posición GPS, que llega desde el celular del conductor cada 5 segundos.' },
+          { sel: '.tarjeta.grafica', etiqueta: 'Telemetría', titulo: 'Temperatura del motor (ECT)', texto: 'La tendencia en vivo del refrigerante. Si supera 105 °C, el vehículo se marca en rojo y se dispara la alerta.' },
+          { sel: '#tarjeta-mantenimientos', etiqueta: 'Mantenimiento', titulo: 'Mantenimiento predictivo', texto: 'Aquí ves los servicios vencidos y los que vencen en los próximos 15 días, para que no se te pase ninguno.' },
+          { sel: '#tarjeta-flota', etiqueta: 'Flota', titulo: 'Estado de cada vehículo', texto: 'La tabla con ECT, combustible, RPM, última lectura y salud de cada unidad.' },
+          { sel: '#btn-demo', etiqueta: 'Demo', titulo: 'Pruébalo sin hardware', texto: 'Con "Demo en vivo" generamos datos simulados para que veas todo funcionando al instante.' },
+          { sel: '#btn-informe', etiqueta: 'Reportes', titulo: 'Informe para tu cliente o jefe', texto: 'Genera un informe de flota listo para imprimir o guardar en PDF.' }
+        ]
+      });
+    }
+  </script>
 </body>
 </html>

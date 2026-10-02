@@ -6,6 +6,7 @@
   <title>EcoDrive - Toma de Telemetría OBD-II</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="tour.css" />
 </head>
 <body>
   <div id="barra-estado">
@@ -19,10 +20,11 @@
     <h1>EcoDrive <span>Dispositivo OBD-II</span></h1>
     <a href="/panel" class="link-admin">¿Eres administrador? Ir al panel →</a>
     <a href="/apk/EcoDrive-v1.0.apk" class="link-admin">Descargar app para Android ↓</a>
+    <button id="btn-tour" class="tour-lanzador">🎬 Ver tour guiado</button>
   </header>
 
   <main>
-    <section class="tarjeta config">
+    <section class="tarjeta config" id="conf-vincular">
       <h2>1 · Configurar vehículo</h2>
       <label>Vehículo (placa)</label>
       <select id="select-vehiculo"></select>
@@ -61,7 +63,7 @@
       </details>
     </section>
 
-    <section class="tarjeta config">
+    <section class="tarjeta config" id="conf-conectar">
       <h2>2 · Conectar adaptador OBD-II</h2>
       <ol class="pasos">
         <li>Enciende el vehículo y conecta el adaptador ELM327 al puerto OBD-II.</li>
@@ -86,7 +88,7 @@
       <div id="log-obd" class="log"></div>
     </section>
 
-    <section class="tarjeta config">
+    <section class="tarjeta config" id="conf-monitoreo">
       <h2>3 · Monitoreo en vivo</h2>
       <div class="lecturas">
         <div class="lectura medidor">
@@ -150,5 +152,20 @@
 
   <script src="vendor/jsqr.js"></script>
   <script src="app.js"></script>
+  <script src="tour.js"></script>
+  <script>
+    if (window.EcoDriveTour) {
+      EcoDriveTour.configurar({
+        boton: '#btn-tour',
+        espera: 120,
+        pasos: [
+          { sel: '#barra-estado', etiqueta: 'Conductor', titulo: 'Estado de conexión', texto: 'Arriba ves si la app tiene señal. Si no hay cobertura, guarda las lecturas y las reenvía cuando vuelve la red.' },
+          { sel: '#conf-vincular', etiqueta: 'Vinculación', titulo: '1 · Vincula tu vehículo', texto: 'Escribe el código de 6 caracteres del panel o tu placa, o escanea el QR. La app encuentra el vehículo sola, sin copiar claves.' },
+          { sel: '#conf-conectar', etiqueta: 'Conexión', titulo: '2 · Conecta el adaptador', texto: 'Con un ELM327 leemos el motor de verdad. ¿No tienes adaptador? Activa "ECU virtual" y prueba todo igual.' },
+          { sel: '#conf-monitoreo', etiqueta: 'Monitoreo', titulo: '3 · Monitorea en vivo', texto: 'Temperatura, RPM y combustible en tiempo real, con alertas sonoras y resumen de jornada al terminar.' }
+        ]
+      });
+    }
+  </script>
 </body>
 </html>
