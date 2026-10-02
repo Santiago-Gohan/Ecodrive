@@ -309,27 +309,63 @@ async function cargarEventos() {
   }
 }
 
+function distanciaAproxM(lat1, lng1, lat2, lng2) {
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * 111320;
+  const dLng = (lng2 - lng1) * 111320 * Math.cos(((lat1 + lat2) / 2) * rad);
+  return Math.sqrt(dLat * dLat + dLng * dLng);
+}
+
 function actualizarEventos(filas) {
   if (!mapaEco || !capaEventos) return;
   capaEventos.clearLayers();
+
+  // Agrupa reportes a menos de 60 m para que no queden superpuestos.
+  const grupos = [];
   filas.forEach((ev) => {
-    const tipo = ICONO_EVENTO[ev.tipo] ? ev.tipo : 'OTRO';
+    const lat = Number(ev.lat);
+    const lng = Number(ev.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    let grupo = grupos.find((g) => distanciaAproxM(g.lat, g.lng, lat, lng) < 60);
+    if (!grupo) {
+      grupo = { lat, lng, eventos: [] };
+      grupos.push(grupo);
+    }
+    grupo.eventos.push(ev);
+  });
+
+  grupos.forEach((g) => {
+    const principal = g.eventos[0];
+    const tipo = ICONO_EVENTO[principal.tipo] ? principal.tipo : 'OTRO';
+    const n = g.eventos.length;
     const icono = L.divIcon({
       className: '',
-      html: `<div class="marcador-evento" title="${ETIQUETA_EVENTO[tipo]}">${ICONO_EVENTO[tipo]}</div>`,
+      html: `<div class="marcador-evento" title="${ETIQUETA_EVENTO[tipo]}${n > 1 ? ` (${n} reportes)` : ''}">
+        ${ICONO_EVENTO[tipo]}${n > 1 ? `<span class="marcador-evento-badge">${n}</span>` : ''}</div>`,
       iconSize: [30, 30],
       iconAnchor: [15, 15],
       popupAnchor: [0, -14],
     });
-    const hora = ev.creado_en ? new Date(ev.creado_en).toLocaleTimeString('es-CO') : '';
-    const desc = ev.descripcion ? `<br>${escaparHTML(ev.descripcion)}` : '';
-    const placa = ev.placa ? `<br><small>Reportado por ${escaparHTML(String(ev.placa))}</small>` : '';
-    const html = `<strong>${ICONO_EVENTO[tipo]} ${ETIQUETA_EVENTO[tipo]}</strong>${desc}<br>
-      <small>🕐 ${hora}</small>${placa}`;
-    L.marker([Number(ev.lat), Number(ev.lng)], { icon: icono }).bindPopup(html).addTo(capaEventos);
+    const html = g.eventos
+      .map((ev) => {
+        const t = ICONO_EVENTO[ev.tipo] ? ev.tipo : 'OTRO';
+        const hora = ev.creado_en ? new Date(ev.creado_en).toLocaleTimeString('es-CO') : '';
+        const desc = ev.descripcion ? `<br>${escaparHTML(ev.descripcion)}` : '';
+        const placa = ev.placa ? ` · ${escaparHTML(String(ev.placa))}` : '';
+        return `<div class="ev-popup"><strong>${ICONO_EVENTO[t]} ${ETIQUETA_EVENTO[t]}</strong>${desc}<br>
+          <small>🕐 ${hora}${placa}</small></div>`;
+      })
+      .join('');
+    L.marker([g.lat, g.lng], { icon: icono }).bindPopup(html).addTo(capaEventos);
   });
+
   const conteo = document.getElementById('eventos-conteo');
-  if (conteo) conteo.textContent = filas.length ? `(${filas.length} reciente${filas.length === 1 ? '' : 's'})` : '(sin reportes recientes)';
+  if (conteo) {
+    const extra = grupos.length < filas.length ? `, en ${grupos.length} punto${grupos.length === 1 ? '' : 's'}` : '';
+    conteo.textContent = filas.length
+      ? `(${filas.length} reporte${filas.length === 1 ? '' : 's'}${extra})`
+      : '(sin reportes recientes)';
+  }
 }
 
 function colorMarcador(ect) {

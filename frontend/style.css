@@ -914,6 +914,7 @@ td.celda-alerta {
 }
 
 .marcador-evento {
+  position: relative;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -925,6 +926,32 @@ td.celda-alerta {
   justify-content: center;
   font-size: 0.95rem;
   line-height: 1;
+}
+
+.marcador-evento-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 9px;
+  background: #f97316;
+  color: #fff;
+  border: 1.5px solid #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
+}
+
+.ev-popup {
+  padding: 6px 2px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ev-popup:last-child {
+  border-bottom: 0;
 }
 
 .leyenda-eventos {
