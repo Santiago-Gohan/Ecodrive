@@ -465,3 +465,63 @@ header {
     font-size: 13px;
   }
 }
+
+/* Sección de opiniones (final de la app) */
+#opiniones .pista {
+  margin-bottom: 10px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+
+.chip {
+  border: 1px solid var(--borde);
+  background: transparent;
+  color: inherit;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.chip:hover {
+  border-color: var(--acento);
+  color: var(--acento);
+}
+
+.chip.activo {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: #06202a;
+}
+
+#opiniones textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--borde);
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.opiniones-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.opiniones-acciones .btn-secundario {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}

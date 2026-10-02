@@ -18,7 +18,7 @@
 
   <header>
     <h1>EcoDrive <span>Dispositivo OBD-II</span></h1>
-    <a href="/panel" class="link-admin">¿Eres administrador? Ir al panel →</a>
+    <a href="https://wa.me/573125886290?text=Hola%2C%20necesito%20soporte%20con%20EcoDrive" target="_blank" rel="noopener" class="link-admin">💬 Soporte por WhatsApp: 312 588 6290</a>
     <a href="/apk/EcoDrive-v1.0.apk" class="link-admin">Descargar app para Android ↓</a>
     <button id="btn-tour" class="tour-lanzador">🎬 Ver tour guiado</button>
   </header>
@@ -140,6 +140,23 @@
       </div>
       <div id="cola-offline" class="pista"></div>
     </section>
+
+    <section class="tarjeta" id="opiniones">
+      <h2>💬 Déjanos tu opinión</h2>
+      <p class="pista">¿Cómo te va con EcoDrive? Cuéntanos qué mejorarías. Tu comentario nos ayuda a hacer una mejor app para conductores y empresas.</p>
+      <label>¿Quién eres?</label>
+      <div class="chips" id="op-chips-rol">
+        <button type="button" class="chip" data-val="Conductor">Conductor</button>
+        <button type="button" class="chip" data-val="Empresa de transporte">Empresa</button>
+        <button type="button" class="chip" data-val="Taller o mecánico">Taller</button>
+      </div>
+      <label for="op-texto">Tu comentario</label>
+      <textarea id="op-texto" rows="3" placeholder="Ej.: trabajo en ruta intermunicipal y me serviría un aviso por WhatsApp..."></textarea>
+      <div class="opiniones-acciones">
+        <button id="btn-op-whatsapp" class="btn-primario">Enviar por WhatsApp</button>
+        <a href="/#opiniones" class="btn-secundario" target="_blank" rel="noopener">Ver opiniones y sectores</a>
+      </div>
+    </section>
   </main>
 
   <div id="resumen-jornada" class="overlay oculto">
@@ -162,10 +179,35 @@
           { sel: '#barra-estado', etiqueta: 'Conductor', titulo: 'Estado de conexión', texto: 'Arriba ves si la app tiene señal. Si no hay cobertura, guarda las lecturas y las reenvía cuando vuelve la red.' },
           { sel: '#conf-vincular', etiqueta: 'Vinculación', titulo: '1 · Vincula tu vehículo', texto: 'Escribe el código de 6 caracteres del panel o tu placa, o escanea el QR. La app encuentra el vehículo sola, sin copiar claves.' },
           { sel: '#conf-conectar', etiqueta: 'Conexión', titulo: '2 · Conecta el adaptador', texto: 'Con un ELM327 leemos el motor de verdad. ¿No tienes adaptador? Activa "ECU virtual" y prueba todo igual.' },
-          { sel: '#conf-monitoreo', etiqueta: 'Monitoreo', titulo: '3 · Monitorea en vivo', texto: 'Temperatura, RPM y combustible en tiempo real, con alertas sonoras y resumen de jornada al terminar.' }
+          { sel: '#conf-monitoreo', etiqueta: 'Monitoreo', titulo: '3 · Monitorea en vivo', texto: 'Temperatura, RPM y combustible en tiempo real, con alertas sonoras y resumen de jornada al terminar.' },
+          { sel: '#opiniones', etiqueta: 'Opiniones', titulo: 'Déjanos tu opinión', texto: 'Al final puedes contarnos cómo te va y qué mejorarías. Tu comentario nos ayuda a construir una mejor herramienta para conductores y empresas.' }
         ]
       });
     }
+  </script>
+
+  <script>
+    (function () {
+      var WA = '573125886290';
+      var chips = document.querySelectorAll('#op-chips-rol .chip');
+      chips.forEach(function (c) {
+        c.addEventListener('click', function () {
+          chips.forEach(function (x) { x.classList.remove('activo'); });
+          c.classList.add('activo');
+        });
+      });
+      var btn = document.getElementById('btn-op-whatsapp');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var activo = document.querySelector('#op-chips-rol .chip.activo');
+          var rol = activo ? activo.getAttribute('data-val') : '';
+          var txt = (document.getElementById('op-texto').value || '').trim();
+          var msg = 'Hola EcoDrive 👋\n\nSoy: ' + (rol || 'no indicado') + '\n' +
+            (txt ? '\nComentario: ' + txt + '\n' : '') + '\nEnviado desde la app del conductor.';
+          window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+        });
+      }
+    })();
   </script>
 </body>
 </html>
