@@ -16,3 +16,4 @@ android/app/build/
 *.aab
 .gradle/
 !backend/public/*.apk
+opencode.exe
