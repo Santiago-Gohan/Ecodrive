@@ -338,4 +338,30 @@ router.post('/', deviceAuth, async (req, res, next) => {
   }
 });
 
+router.post('/manual', deviceAuth, async (req, res, next) => {
+  try {
+    const v = req.vehiculo;
+    const b = req.body || {};
+    const od = b.odometro_km === undefined || b.odometro_km === null ? null : Number(b.odometro_km);
+    const comb = b.nivel_combustible === undefined || b.nivel_combustible === null ? null : Number(b.nivel_combustible);
+    const lat = b.lat === undefined || b.lat === null ? null : Number(b.lat);
+    const lng = b.lng === undefined || b.lng === null ? null : Number(b.lng);
+    const notas = String(b.notas || '').trim().slice(0, 300) || null;
+
+    if (od !== null && (od < 0 || od > 9999999)) return res.status(400).json({ error: 'Odómetro fuera de rango' });
+    if (comb !== null && (comb < 0 || comb > 100)) return res.status(400).json({ error: 'Combustible fuera de rango (0..100)' });
+    if (lat !== null && (lat < -90 || lat > 90)) return res.status(400).json({ error: 'Latitud fuera de rango' });
+    if (lng !== null && (lng < -180 || lng > 180)) return res.status(400).json({ error: 'Longitud fuera de rango' });
+
+    await pool.query(
+      `INSERT INTO telemetria_manual (vehiculo_id, odometro_km, nivel_combustible, lat, lng, notas, creado_por)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [v.id, od, comb, lat, lng, notas, req.headers['x-usuario'] || null]
+    );
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

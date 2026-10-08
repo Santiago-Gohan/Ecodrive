@@ -11,9 +11,7 @@ module.exports = function adminAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, config.jwtSecret);
-    if (payload.role !== 'admin') {
-      return res.status(403).json({ error: 'Se requieren permisos de administrador' });
-    }
+    // Permite admin o usuarios con permiso opiniones:aprobar
     req.usuario = payload;
     next();
   } catch {
