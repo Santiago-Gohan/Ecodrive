@@ -132,6 +132,7 @@ const spec = {
     },
     '/taller/repuestos/{id}/movimientos': { post: { tags: ['Taller'], summary: 'Registrar entrada/salida/ajuste', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 201: { description: 'OK' } } } },
     '/taller/costos/resumen': { get: { tags: ['Taller'], summary: 'Costos acumulados por vehículo', responses: { 200: { description: 'OK' } } } },
+    '/taller/kpis': { get: { tags: ['Taller'], summary: 'KPIs de taller (abiertas, costo del mes, stock bajo, top repuestos)', responses: { 200: { description: 'OK' } } } },
     '/usuarios': {
       get: { tags: ['Usuarios'], summary: 'Listar usuarios', responses: { 200: { description: 'OK' } } },
       post: { tags: ['Usuarios'], summary: 'Crear usuario', responses: { 201: { description: 'OK' } } },

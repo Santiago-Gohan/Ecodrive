@@ -281,7 +281,25 @@ async function cargarVehiculosCache() {
   return VEHICULOS;
 }
 
+async function cargarKpisTaller() {
+  try {
+    const k = await json('/taller/kpis');
+    $('kpi-ot-abiertas').textContent = k.ordenes_abiertas;
+    $('kpi-ot-mes').textContent = k.ordenes_del_mes;
+    $('kpi-ot-costo').textContent = money(k.costo_mes);
+    $('kpi-ot-bajo').textContent = k.repuestos_bajo_stock;
+    $('kpi-top-repuestos').innerHTML = (k.top_repuestos || []).length
+      ? k.top_repuestos
+          .map((r) => `<li><span>${esc(r.nombre)}</span><b>${r.veces}× · ${money(r.total)}</b></li>`)
+          .join('')
+      : '<li class="g-vacio">Sin repuestos usados todavía.</li>';
+  } catch (e) {
+    /* KPIs informativos: no romper la pestaña */
+  }
+}
+
 async function cargarOrdenes() {
+  cargarKpisTaller();
   await cargarVehiculosCache();
   const estado = $('o-filtro-estado').value;
   const ordenes = await json('/taller/ordenes' + (estado ? `?estado=${estado}` : ''));

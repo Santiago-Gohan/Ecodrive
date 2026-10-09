@@ -896,6 +896,34 @@ async function eliminarMantenimiento(id) {
   }
 }
 
+async function crearOTDesdeMant() {
+  if (!mantActivo) return;
+  const v = vehiculosCache[mantActivo] || {};
+  const odometro = document.getElementById('mnt-odometro').value || null;
+  const btn = document.getElementById('mant-crear-ot');
+  btn.disabled = true;
+  try {
+    const resp = await fetchApi(`${API}/taller/ordenes`, {
+      method: 'POST',
+      body: JSON.stringify({
+        vehiculo_id: mantActivo,
+        tipo: 'PREVENTIVO',
+        prioridad: 'MEDIA',
+        odometro: odometro ? Number(odometro) : null,
+        descripcion: `Orden generada desde mantenimiento (${v.placa || ''})`.trim(),
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) return toast(data.error || 'Error al crear la orden', 'err');
+    toast(`OT ${data.codigo} creada en taller`, 'ok');
+  } catch (err) {
+    console.error(err);
+    toast('Error al crear la orden de trabajo', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function crearVehiculo() {
   const placa = document.getElementById('nueva-placa').value.trim();
   const nombre = document.getElementById('nuevo-nombre').value.trim();
@@ -1435,6 +1463,7 @@ document.getElementById('btn-crear').addEventListener('click', crearVehiculo);
 document.getElementById('btn-cargar-alertas').addEventListener('click', cargarAlertas);
 document.getElementById('mant-guardar').addEventListener('click', guardarModalMant);
 document.getElementById('mnt-registrar').addEventListener('click', registrarMantenimiento);
+document.getElementById('mant-crear-ot').addEventListener('click', crearOTDesdeMant);
 document.getElementById('mant-cancelar').addEventListener('click', cerrarModalMant);
 document.getElementById('modal-cerrar').addEventListener('click', cerrarModalMant);
 document.getElementById('modal-mant').addEventListener('click', (ev) => {

@@ -401,6 +401,43 @@ router.get('/costos/resumen', requierePermiso('reportes:ver'), async (req, res, 
   }
 });
 
+/* --- KPIs de taller --- */
+
+router.get('/kpis', requierePermiso('taller:ver'), async (req, res, next) => {
+  try {
+    const [abiertas, delMes, costoMes, bajoStock, top, gasto] = await Promise.all([
+      pool.query(`SELECT COUNT(*)::int AS n FROM ordenes_trabajo
+                  WHERE estado IN ('ABIERTA','EN_PROCESO','ESPERA_REPUESTOS')`),
+      pool.query(`SELECT COUNT(*)::int AS n FROM ordenes_trabajo
+                  WHERE fecha_apertura >= date_trunc('month', now())`),
+      pool.query(`SELECT COALESCE(SUM(costo_total),0) AS n FROM ordenes_trabajo
+                  WHERE estado = 'CERRADA' AND fecha_cierre >= date_trunc('month', now())`),
+      pool.query(`SELECT COUNT(*)::int AS n FROM repuestos
+                  WHERE activo = true AND stock_actual <= stock_minimo`),
+      pool.query(`SELECT COALESCE(rep.codigo, r.descripcion) AS nombre,
+                         COUNT(*)::int AS veces,
+                         SUM(r.subtotal) AS total
+                  FROM orden_repuestos r
+                  LEFT JOIN repuestos rep ON rep.id = r.repuesto_id
+                  GROUP BY COALESCE(rep.codigo, r.descripcion) 
+                  ORDER BY veces DESC, total DESC
+                  LIMIT 5`),
+      pool.query(`SELECT COALESCE(SUM(costo_total),0) AS n FROM ordenes_trabajo
+                  WHERE estado = 'CERRADA'`),
+    ]);
+    res.json({
+      ordenes_abiertas: abiertas.rows[0].n,
+      ordenes_del_mes: delMes.rows[0].n,
+      costo_mes: Number(costoMes.rows[0].n),
+      repuestos_bajo_stock: bajoStock.rows[0].n,
+      top_repuestos: top.rows,
+      gasto_total: Number(gasto.rows[0].n),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 async function recalcular(client, ordenId) {
   const { rows } = await client.query(
     'SELECT COALESCE(SUM(subtotal),0) AS rep FROM orden_repuestos WHERE orden_id = $1',

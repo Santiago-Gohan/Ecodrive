@@ -176,3 +176,34 @@ table.g-tabla tbody tr:hover { background: #1b2742; }
 body.embed .g-marca, body.embed .a-panel { display: none; }
 body.embed .g-header { position: static; }
 body.embed .g-main { padding-top: 4px; }
+
+/* KPIs de taller */
+.g-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.g-kpi {
+  background: linear-gradient(160deg, #13233a, #0e1726);
+  border: 1px solid var(--g-borde);
+  border-radius: 14px;
+  padding: 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.g-kpi-num { font-size: 27px; font-weight: 800; color: var(--g-cyan); letter-spacing: .3px; }
+.g-kpi-lab { color: var(--g-suave); font-size: 12px; }
+.g-top-rep { margin: 0 0 4px; padding: 0; list-style: none; display: grid; gap: 8px; }
+.g-top-rep li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: #0f1a2e;
+  border: 1px solid var(--g-borde);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+.g-top-rep b { color: var(--g-verde); font-weight: 600; white-space: nowrap; }
