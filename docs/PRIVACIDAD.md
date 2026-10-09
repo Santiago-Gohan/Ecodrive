@@ -43,12 +43,26 @@ Acceso, Rectificación, Cancelación (supresión) y Oposición.
 | Auditoría | tabla `audit_log` (quién, IP, recurso, acción, detalles) |
 | Cabeceras | `securityHeaders` (helmet-like) |
 | HTTPS | redirección forzada en producción, `trust proxy` |
+| En tránsito | TLS/HTTPS obligatorio + HSTS |
+| En reposo | base gestionada (Neon/Render) con cifrado en reposo de discos y respaldos; conexiones por SSL |
 | Dispositivos | API Key por vehículo/dispositivo, regenerable |
 | Webhooks | firma HMAC-SHA256 con secreto por integración |
 
 > Recomendaciones de puesta en producción: definir un `JWT_SECRET` largo y
 > aleatorio, habilitar `PGSSL=require` con base gestionada (Neon/Render),
 > rotar tokens de API periódicamente y activar copias de seguridad.
+
+## 4b. Geolocalización de conductores
+
+- **Finalidad:** monitoreo operativo, alertas, mantenimiento predictivo y
+  reportes. No se vende ni comparte la ubicación con terceros (salvo obligación
+  legal o autorización expresa).
+- **Acceso:** historial de rutas únicamente para roles autorizados (admin,
+  supervisión); el conductor consulta solo su propio vehículo.
+- **Conservación:** posiciones retenidas por un periodo definido; luego se
+  agregan o eliminan (sin trazabilidad histórica indefinida).
+- **Derechos del titular:** ARCO aplicable a la geolocalización (acceso,
+  rectificación, eliminación, oposición) y revocatoria de la autorización.
 
 ## 5. Roles sugeridos
 

@@ -41,7 +41,7 @@
 
   <div class="priv-wrap">
     <h1>Privacidad y tratamiento de datos</h1>
-    <p class="priv-fecha">Política de Tratamiento de Datos Personales · Versión 1.0 · Vigente para Colombia (Ley 1581 de 2012 y Decreto 1377 de 2013).</p>
+    <p class="priv-fecha">Política de Tratamiento de Datos Personales · Versión 2.0 · Vigente para Colombia (Ley 1581 de 2012 y Decreto 1377 de 2013).</p>
 
     <h2>1. Responsable del tratamiento</h2>
     <p>EcoDrive es una plataforma de monitoreo y mantenimiento predictivo de flotas vehiculares (proyecto SENA ADSO). El responsable del tratamiento es el equipo EcoDrive. Canal de atención: <a href="mailto:hola@ecodrive.app">hola@ecodrive.app</a>.</p>
@@ -59,8 +59,27 @@
     <h2>4. Sus derechos (ARCO)</h2>
     <p>Como titular puedes <b>conocer, actualizar, rectificar</b> y <b>solicitar la supresión</b> de tus datos, así como <b>revocar la autorización</b> otorgada. Puedes radicar tu solicitud usando el formulario disponible más abajo.</p>
 
-    <h2>5. Conservación y seguridad</h2>
-    <p>Aplicamos medidas técnicas y administrativas (cifrado en tránsito, control de acceso por roles, registro de auditoría). Las lecturas de telemetría se conservan por un periodo definido y luego se agregan o eliminan.</p>
+    <h2>5. Seguridad de la información</h2>
+    <p>Aplicamos medidas técnicas y administrativas, por capas, para proteger los datos que tratamos:</p>
+    <ul>
+      <li><b>En tránsito:</b> todo el tráfico va cifrado con <b>HTTPS/TLS</b> (forzado en producción, con redirección a HTTPS y cabecera HSTS), tanto en la web como en la API.</li>
+      <li><b>En reposo:</b> la base de datos está alojada en infraestructura gestionada con <b>cifrado en reposo</b> de discos y respaldos (neon.tech/Render), y se conecta únicamente por canal SSL/TLS.</li>
+      <li><b>Credenciales:</b> las contraseñas se guardan <b>hash con bcrypt</b> (nunca en texto plano); las sesiones usan <b>tokens JWT firmados</b> con expiración.</li>
+      <li><b>Dispositivos e integraciones:</b> cada vehículo/dispositivo tiene una <b>API Key</b> propia y regenerable; los webhooks se firman con <b>HMAC-SHA256</b> para verificar su origen.</li>
+      <li><b>Acceso:</b> control por <b>roles y permisos</b> (cada rol puede ver solo lo que necesita) y <b>registro de auditoría</b> de quién accede y qué hace.</li>
+    </ul>
+
+    <h2>6. Datos de geolocalización de los conductores</h2>
+    <p>EcoDrive trata la posición GPS de los vehículos para operar el monitoreo de la flota. Estos son los términos específicos:</p>
+    <ul>
+      <li><b>Finalidad:</b> monitoreo operativo, alertas y mantenimiento predictivo, seguridad preventiva y reportes para la flota. <b>No vendemos ni compartimos la ubicación con terceros</b>, salvo obligación legal o autorización expresa.</li>
+      <li><b>Acceso:</b> el historial de rutas/posiciones lo pueden consultar únicamente los roles autorizados del equipo (por ejemplo, administración y supervisión). El conductor puede consultar la información de su propio vehículo.</li>
+      <li><b>Conservación:</b> las posiciones se conservan por un periodo definido y luego se <b>agregan o eliminan</b>, para no mantener trazabilidad histórica indefinida.</li>
+      <li><b>Derechos del conductor:</b> sobre su geolocalización puedes ejercer los derechos ARCO (acceso, rectificación, eliminación y oposición) con el formulario más abajo, y revocar la autorización en cualquier momento.</li>
+    </ul>
+
+    <h2>7. Conservación y respaldos</h2>
+    <p>Las lecturas de telemetría se conservan por un periodo definido y luego se agregan a resúmenes o se eliminan. Contamos con respaldos periódicos de la base de datos gestionada por el proveedor de hosting, con cifrado en reposo de los mismos.</p>
 
     <!-- Consentimiento -->
     <div class="priv-card">
