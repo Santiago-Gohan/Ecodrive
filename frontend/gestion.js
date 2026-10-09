@@ -14,6 +14,10 @@ const esc = (s) =>
     .replace(/"/g, '&quot;');
 const money = (n) =>
   '$ ' + Number(n || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+const cant = (n) => {
+  const v = Number(n);
+  return Number.isFinite(v) ? v.toLocaleString('es-CO', { maximumFractionDigits: 3 }) : '0';
+};
 const fecha = (s) => (s ? new Date(s).toLocaleString('es-CO') : '—');
 
 let ROLES = [];
@@ -352,7 +356,7 @@ async function abrirOrden(id) {
         (r) => `<tr>
         <td>${esc(r.repuesto_codigo || '—')}</td>
         <td>${esc(r.descripcion)}</td>
-        <td>${r.cantidad}</td>
+        <td>${cant(r.cantidad)}</td>
         <td>${money(r.costo_unitario)}</td>
         <td>${money(r.subtotal)}</td>
         <td>${o.estado !== 'CERRADA' ? `<button class="g-btn peligro chico" data-delitem="${r.id}">×</button>` : ''}</td>
@@ -366,7 +370,7 @@ async function abrirOrden(id) {
         <tbody id="ot-items">${filas}</tbody>
       </table></div>
       <div class="g-form" style="margin-top:14px">
-        <select id="ot-repuesto">${REPUESTOS.map((r) => `<option value="${r.id}">${esc(r.codigo)} · ${esc(r.nombre)} (stock ${r.stock_actual})</option>`).join('')}</select>
+        <select id="ot-repuesto">${REPUESTOS.map((r) => `<option value="${r.id}">${esc(r.codigo)} · ${esc(r.nombre)} (stock ${cant(r.stock_actual)})</option>`).join('')}</select>
         <input id="ot-cantidad" type="number" value="1" min="1" style="width:90px" />
         <button class="g-btn" id="ot-add">Agregar repuesto</button>
       </div>
@@ -459,8 +463,8 @@ async function cargarInventario() {
     (r) => `<tr>
       <td class="g-log">${esc(r.codigo)}</td>
       <td>${esc(r.nombre)}</td>
-      <td>${Number(r.stock_actual)}</td>
-      <td>${Number(r.stock_minimo)}</td>
+      <td>${cant(r.stock_actual)}</td>
+      <td>${cant(r.stock_minimo)}</td>
       <td>${money(r.costo_unitario)}</td>
       <td>${esc(r.ubicacion || '—')}</td>
       <td>${r.bajo_stock ? pill('BAJO') : pill('OK')}</td>
@@ -492,7 +496,7 @@ async function cargarInventario() {
 
 function movimientoRepuesto(r) {
   modal(`<h3>Movimiento · ${esc(r.codigo)} ${esc(r.nombre)}</h3>
-    <p class="g-sub">Stock actual: <b>${Number(r.stock_actual)}</b></p>
+    <p class="g-sub">Stock actual: <b>${cant(r.stock_actual)}</b></p>
     <div class="g-form" style="flex-direction:column;align-items:stretch">
       <div class="g-campo"><label>Tipo</label><select id="mv-tipo">
         <option value="ENTRADA">Entrada (compra)</option>
@@ -534,7 +538,7 @@ async function movimientosRepuesto(r) {
       <thead><tr><th>Fecha</th><th>Tipo</th><th>Cant.</th><th>Costo</th><th>Motivo</th><th>OT</th></tr></thead>
       <tbody>${movs.map((m) => `<tr>
         <td class="g-log">${fecha(m.created_at)}</td><td>${pill(m.tipo)}</td>
-        <td>${m.cantidad}</td><td>${m.costo_unitario != null ? money(m.costo_unitario) : '—'}</td>
+        <td>${cant(m.cantidad)}</td><td>${m.costo_unitario != null ? money(m.costo_unitario) : '—'}</td>
         <td>${esc(m.motivo || '—')}</td><td class="g-log">${esc(m.orden_codigo || '—')}</td></tr>`).join('') ||
         '<tr><td colspan="6" class="g-vacio">Sin movimientos.</td></tr>'}</tbody>
     </table></div>
