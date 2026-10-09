@@ -48,7 +48,7 @@ window.onload = () => SwaggerUIBundle({ url: '/api/v1/openapi.json', dom_id: '#s
 
 const securityHeaders = (req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self)');
   res.setHeader(
@@ -61,7 +61,7 @@ const securityHeaders = (req, res, next) => {
       "connect-src 'self' ws: wss: https:; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +
-      "frame-ancestors 'none'; " +
+      "frame-ancestors 'self'; " +
       "form-action 'self'"
   );
   if (req.secure) {
