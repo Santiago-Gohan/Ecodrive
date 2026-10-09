@@ -11,7 +11,8 @@ module.exports = function adminAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, config.jwtSecret);
-    // Permite admin o usuarios con permiso opiniones:aprobar
+    // req.usuario = { sub, role, uid, sede, ... } — el control fino de
+    // permisos por rol/sede lo aplica el middleware permAuth por ruta.
     req.usuario = payload;
     next();
   } catch {

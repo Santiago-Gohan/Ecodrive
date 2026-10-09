@@ -1,10 +1,11 @@
 const router = require('express').Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
+const requierePermiso = require('../middleware/permAuth');
 
 router.use(adminAuth);
 
-router.get('/telemetria', async (req, res, next) => {
+router.get('/telemetria', requierePermiso('reportes:ver'), async (req, res, next) => {
   try {
     const vehiculoId = req.query.vehiculo_id || null;
     const limite = Math.min(parseInt(req.query.limite || '50', 10), 200);
@@ -24,7 +25,7 @@ router.get('/telemetria', async (req, res, next) => {
   }
 });
 
-router.get('/alertas', async (req, res, next) => {
+router.get('/alertas', requierePermiso('dashboard:ver'), async (req, res, next) => {
   try {
     const vehiculoId = req.query.vehiculo_id || null;
     const estado = req.query.estado || null;
@@ -46,7 +47,7 @@ router.get('/alertas', async (req, res, next) => {
   }
 });
 
-router.post('/alertas/:id/atender', async (req, res, next) => {
+router.post('/alertas/:id/atender', requierePermiso('mantenimientos:crear'), async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `UPDATE alerta_mantenimiento SET estado = 'ATENDIDA'

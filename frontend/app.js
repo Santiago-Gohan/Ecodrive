@@ -7,6 +7,7 @@ const $dash = document.getElementById('vista-dashboard');
 const $flota = document.getElementById('vista-flota');
 const $historial = document.getElementById('vista-historial');
 const $opiniones = document.getElementById('vista-opiniones');
+const $gestion = document.getElementById('vista-gestion');
 const $header = document.getElementById('header');
 const $banner = document.getElementById('banner-alerta');
 const $bannerTexto = document.getElementById('banner-texto');
@@ -14,7 +15,7 @@ const $tabla = document.getElementById('cuerpo-flota');
 const $conexion = document.getElementById('conexion');
 const $errorLogin = document.getElementById('error-login');
 
-const VISTAS = { dashboard: $dash, flota: $flota, historial: $historial, opiniones: $opiniones };
+const VISTAS = { dashboard: $dash, flota: $flota, historial: $historial, opiniones: $opiniones, gestion: $gestion };
 
 function conectarSocket() {
   socket = io();
@@ -118,6 +119,13 @@ function cambiarVista(nombre) {
   if (nombre === 'flota') cargarVehiculos();
   if (nombre === 'historial') cargarHistorial();
   if (nombre === 'opiniones') cargarOpiniones();
+  if (nombre === 'gestion' && window.gestionCargado !== true) {
+    window.gestionCargado = true;
+    const frame = document.getElementById('frame-gestion');
+    if (frame && !frame.getAttribute('src')) {
+      frame.setAttribute('src', frame.dataset.src);
+    }
+  }
   if (nombre === 'dashboard' && mapaEco) {
     setTimeout(() => mapaEco.invalidateSize(), 60);
     cargarFlota();

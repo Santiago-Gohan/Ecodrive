@@ -1,5 +1,6 @@
 const pool = require('../db');
 const config = require('../config');
+const { despacharEvento } = require('./notificaciones');
 
 async function registraLectura({ vehiculo, ect, rpm, nivelCombustible, lat, lng, timestamp }) {
   const latOk = Number.isFinite(Number(lat)) && Number(lat) >= -90 && Number(lat) <= 90;
@@ -33,6 +34,16 @@ async function registraLectura({ vehiculo, ect, rpm, nivelCombustible, lat, lng,
      RETURNING *`,
     [vehiculo.id, config.severidadAlerta]
   );
+
+  despacharEvento('ALERTA_TERMICA', {
+    vehiculoId: vehiculo.id,
+    placa: vehiculo.placa,
+    ect: Number(ect),
+    umbral: config.umbralEct,
+    severidad: config.severidadAlerta,
+    alertaId: alerta.rows[0].id,
+    fecha: alerta.rows[0].fecha_generacion,
+  }).catch(() => {});
 
   return { lectura: lectura.rows[0], alerta: alerta.rows[0], excede };
 }

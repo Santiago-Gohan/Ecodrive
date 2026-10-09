@@ -1871,3 +1871,18 @@ td.celda-alerta {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ---------- Vista Gestión (consola embebida) ---------- */
+#vista-gestion {
+  max-width: 1400px;
+  padding-top: 18px;
+}
+
+#frame-gestion {
+  width: 100%;
+  min-height: 78vh;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: #0e1726;
+  display: block;
+}

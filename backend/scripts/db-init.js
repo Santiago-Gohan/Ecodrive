@@ -38,7 +38,12 @@ async function main() {
 
   const schema = fs.readFileSync(path.join(__dirname, '../sql/schema.sql'), 'utf8');
   await db.query(schema);
-  console.log('Esquema aplicado correctamente');
+  console.log('Esquema base aplicado correctamente');
+
+  // Aplica las migraciones para que una instalación nueva quede con todas
+  // las tablas de las fases (usuarios extendidos, taller, webhooks, etc.).
+  const { aplicarMigraciones } = require('./migrate');
+  await aplicarMigraciones(db);
   await db.end();
 }
 

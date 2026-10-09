@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoDrive - Consola de gestión</title>
+  <link rel="stylesheet" href="gestion.css" />
+</head>
+<body>
+  <header class="g-header">
+    <div class="g-marca">
+      <h1>⚙️ Consola de gestión</h1>
+      <span>Usuarios · Taller · Inventario · Integraciones · Privacidad</span>
+    </div>
+    <nav class="g-tabs" id="g-tabs">
+      <button class="g-tab activo" data-panel="usuarios">👥 Usuarios</button>
+      <button class="g-tab" data-panel="roles">🔐 Roles</button>
+      <button class="g-tab" data-panel="ordenes">🧾 Órdenes</button>
+      <button class="g-tab" data-panel="inventario">📦 Inventario</button>
+      <button class="g-tab" data-panel="notificaciones">🔔 Alertas</button>
+      <button class="g-tab" data-panel="integraciones">🔌 Integraciones</button>
+      <button class="g-tab" data-panel="dispositivos">📡 Dispositivos</button>
+      <button class="g-tab" data-panel="privacidad">🛡️ Privacidad</button>
+      <button class="g-tab" data-panel="auditoria">🕵️ Auditoría</button>
+    </nav>
+    <div class="g-derecha">
+      <a class="g-btn sec a-panel" href="/panel/">← Panel</a>
+      <button class="g-btn sec" id="g-salir">Salir</button>
+    </div>
+  </header>
+
+  <main class="g-main">
+    <!-- ============ USUARIOS ============ -->
+    <section class="g-panel activo" data-panel="usuarios">
+      <div class="g-card">
+        <h2>Nuevo usuario</h2>
+        <p class="g-sub">Los usuarios inician con contraseña temporal; deberán cambiarla al primer ingreso.</p>
+        <form class="g-form" id="f-usuario">
+          <input id="u-username" placeholder="Usuario" required />
+          <input id="u-password" type="password" placeholder="Contraseña (mín. 6)" required />
+          <input id="u-nombre" placeholder="Nombre completo" />
+          <input id="u-email" type="email" placeholder="Correo" />
+          <input id="u-telefono" placeholder="Teléfono" />
+          <input id="u-sede" placeholder="Sede" />
+          <select id="u-rol"></select>
+          <button class="g-btn" type="submit">Crear usuario</button>
+        </form>
+      </div>
+      <div class="g-card">
+        <h2>Usuarios</h2>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Sede</th><th>Estado</th><th>Último acceso</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-usuarios"><tr><td colspan="7" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ ROLES ============ -->
+    <section class="g-panel" data-panel="roles">
+      <div class="g-card">
+        <h2>Roles y permisos</h2>
+        <p class="g-sub">Define qué puede hacer cada rol. El rol <b>admin</b> siempre tiene acceso total.</p>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Rol</th><th>Descripción</th><th>Permisos</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-roles"><tr><td colspan="4" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ ORDENES ============ -->
+    <section class="g-panel" data-panel="ordenes">
+      <div class="g-card">
+        <h2>Nueva orden de trabajo</h2>
+        <form class="g-form" id="f-orden">
+          <select id="o-vehiculo" required></select>
+          <select id="o-tipo">
+            <option value="PREVENTIVO">Preventivo</option>
+            <option value="CORRECTIVO">Correctivo</option>
+            <option value="PREDICTIVO">Predictivo</option>
+          </select>
+          <select id="o-prioridad">
+            <option value="BAJA">Baja</option>
+            <option value="MEDIA" selected>Media</option>
+            <option value="ALTA">Alta</option>
+            <option value="URGENTE">Urgente</option>
+          </select>
+          <input id="o-mecanico" placeholder="Mecánico" />
+          <input id="o-sede" placeholder="Sede" />
+          <input id="o-odometro" type="number" placeholder="Odómetro km" min="0" />
+          <input id="o-mano" type="number" placeholder="Mano de obra $" min="0" />
+          <input id="o-desc" placeholder="Descripción" />
+          <button class="g-btn" type="submit">Crear orden</button>
+        </form>
+      </div>
+      <div class="g-card">
+        <h2>Órdenes de trabajo</h2>
+        <div class="g-form" style="margin-bottom:6px">
+          <select id="o-filtro-estado">
+            <option value="">Todos los estados</option>
+            <option value="ABIERTA">Abierta</option>
+            <option value="EN_PROCESO">En proceso</option>
+            <option value="CERRADA">Cerrada</option>
+          </select>
+          <button class="g-btn sec" id="o-filtrar">Filtrar</button>
+        </div>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Código</th><th>Placa</th><th>Tipo</th><th>Estado</th><th>Prioridad</th><th>Mecánico</th><th>Ítems</th><th>Total</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-ordenes"><tr><td colspan="9" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ INVENTARIO ============ -->
+    <section class="g-panel" data-panel="inventario">
+      <div class="g-card">
+        <h2>Nuevo repuesto</h2>
+        <form class="g-form" id="f-repuesto">
+          <input id="r-codigo" placeholder="Código" required />
+          <input id="r-nombre" placeholder="Nombre" required />
+          <input id="r-categoria" placeholder="Categoría" />
+          <input id="r-unidad" placeholder="Unidad (UND)" />
+          <input id="r-stock" type="number" placeholder="Stock" min="0" />
+          <input id="r-min" type="number" placeholder="Stock mín." min="0" />
+          <input id="r-costo" type="number" placeholder="Costo unitario" min="0" />
+          <input id="r-ubicacion" placeholder="Ubicación" />
+          <button class="g-btn" type="submit">Crear repuesto</button>
+        </form>
+      </div>
+      <div class="g-card">
+        <h2>Inventario</h2>
+        <div class="g-form" style="margin-bottom:6px">
+          <label class="g-check"><input type="checkbox" id="r-bajo" /> Solo bajo stock</label>
+          <button class="g-btn sec" id="r-refrescar">Refrescar</button>
+        </div>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Código</th><th>Nombre</th><th>Stock</th><th>Mín.</th><th>Costo</th><th>Ubicación</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-repuestos"><tr><td colspan="8" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ NOTIFICACIONES ============ -->
+    <section class="g-panel" data-panel="notificaciones">
+      <div class="g-card">
+        <h2>Configurar alerta externa</h2>
+        <p class="g-sub">Canales: WHATSAPP (CallMeBot / Meta / webhook), EMAIL (SMTP / API), SMS (Twilio), WEBHOOK genérico.</p>
+        <form class="g-form" id="f-noti">
+          <select id="n-canal">
+            <option value="WHATSAPP">WhatsApp</option>
+            <option value="EMAIL">Correo</option>
+            <option value="SMS">SMS</option>
+            <option value="WEBHOOK">Webhook</option>
+          </select>
+          <select id="n-evento">
+            <option value="ALERTA_TERMICA">Alerta térmica</option>
+            <option value="ALERTA_MANTENIMIENTO">Mantenimiento próximo</option>
+            <option value="EVENTO_VIAL">Evento vial</option>
+            <option value="OPINION">Nueva opinión</option>
+          </select>
+          <input id="n-destinatarios" placeholder="Destinatarios (coma)" />
+          <textarea id="n-params" placeholder='Parámetros JSON. Ej: {"webhook_url":"https://..."}  //  {"callmebot_apikey":"123"}  //  {"smtp_host":"smtp.gmail.com","smtp_user":"...","smtp_pass":"..."}'></textarea>
+          <button class="g-btn" type="submit">Guardar</button>
+        </form>
+      </div>
+      <div class="g-card">
+        <h2>Configuraciones</h2>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Canal</th><th>Evento</th><th>Destinatarios</th><th>Activo</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-noti"><tr><td colspan="5" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="g-card">
+        <h2>Registro de envíos</h2>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Fecha</th><th>Canal</th><th>Evento</th><th>Destino</th><th>Estado</th><th>Error</th></tr></thead>
+          <tbody id="tb-noti-log"><tr><td colspan="6" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ INTEGRACIONES ============ -->
+    <section class="g-panel" data-panel="integraciones">
+      <div class="g-card">
+        <h2>Nuevo webhook saliente</h2>
+        <p class="g-sub">EcoDrive enviará eventos (alerta.térmica, ot.cerrada…) firmados con HMAC-SHA256 al endpoint configurado.</p>
+        <form class="g-form" id="f-webhook">
+          <input id="w-nombre" placeholder="Nombre (ej. ERP Siigo)" required />
+          <input id="w-url" placeholder="https://..." required style="min-width:280px" />
+          <input id="w-eventos" placeholder="eventos: alerta.termica,ot.cerrada" />
+          <input id="w-secreto" placeholder="Secreto HMAC (opcional)" />
+          <button class="g-btn" type="submit">Crear webhook</button>
+        </form>
+      </div>
+      <div class="g-card">
+        <h2>Webhooks</h2>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Nombre</th><th>URL</th><th>Eventos</th><th>Activo</th><th>Fallidas</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-webhooks"><tr><td colspan="6" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="g-card">
+        <h2>Tokens de API (OpenAPI)</h2>
+        <p class="g-sub">Usa <code class="g-codigo">Authorization: Bearer &lt;token&gt;</code> para consumir la API. Documentación en <a class="g-link" href="/api-docs" target="_blank">/api-docs</a>.</p>
+        <form class="g-form" id="f-token">
+          <input id="t-nombre" placeholder="Nombre del token" required />
+          <button class="g-btn" type="submit">Generar token</button>
+        </form>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Nombre</th><th>Token</th><th>Último uso</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-tokens"><tr><td colspan="4" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ DISPOSITIVOS ============ -->
+    <section class="g-panel" data-panel="dispositivos">
+      <div class="g-card">
+        <h2>Registrar dispositivo / GPS</h2>
+        <form class="g-form" id="f-dispositivo">
+          <select id="d-vehiculo" required></select>
+          <select id="d-tipo">
+            <option value="GPS_FIJO">GPS fijo (hardwired)</option>
+            <option value="OBD_TELEFONO">Teléfono OBD</option>
+            <option value="OBU">OBU</option>
+          </select>
+          <input id="d-imei" placeholder="IMEI" />
+          <input id="d-modelo" placeholder="Modelo" />
+          <input id="d-fabricante" placeholder="Fabricante" />
+          <input id="d-protocolo" placeholder="Protocolo (TELTONIKA/HTTP_GENERICO)" />
+          <input id="d-sim" placeholder="SIM (MSISDN)" />
+          <button class="g-btn" type="submit">Registrar</button>
+        </form>
+      </div>
+      <div class="g-card">
+        <h2>Dispositivos</h2>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Placa</th><th>Tipo</th><th>IMEI</th><th>Modelo</th><th>Protocolo</th><th>Último ping</th><th>Activo</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-dispositivos"><tr><td colspan="8" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ PRIVACIDAD ============ -->
+    <section class="g-panel" data-panel="privacidad">
+      <div class="g-card">
+        <h2>Solicitudes de datos (ARCO)</h2>
+        <p class="g-sub">Acceso, rectificación, cancelación y oposición recibidas desde el sitio web.</p>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Identificador</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-solicitudes"><tr><td colspan="6" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="g-card">
+        <h2>Consentimientos registrados</h2>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Versión</th><th>Identificador</th><th>Aceptado</th></tr></thead>
+          <tbody id="tb-consentimientos"><tr><td colspan="5" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ AUDITORIA ============ -->
+    <section class="g-panel" data-panel="auditoria">
+      <div class="g-card">
+        <h2>Bitácora de auditoría</h2>
+        <div class="g-form" style="margin-bottom:6px">
+          <button class="g-btn sec" id="a-refrescar">Refrescar</button>
+        </div>
+        <div class="g-tabla-wrap"><table class="g-tabla">
+          <thead><tr><th>Fecha</th><th>Usuario</th><th>IP</th><th>Recurso</th><th>Acción</th><th>Detalles</th></tr></thead>
+          <tbody id="tb-auditoria"><tr><td colspan="6" class="g-vacio">Cargando…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="g-modal" class="g-modal oculto"><div class="g-modal-caja" id="g-modal-caja"></div></div>
+  <div id="g-toasts" class="g-toasts"></div>
+
+  <script src="gestion.js"></script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="EcoDrive - Política de tratamiento de datos personales y protección de la privacidad. Ley 1581 de 2012." />
+  <title>EcoDrive · Privacidad y tratamiento de datos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .priv-wrap { max-width: 900px; margin: 0 auto; padding: 40px 22px 70px; }
+    .priv-wrap h1 { font-size: 34px; margin: 0 0 6px; }
+    .priv-wrap h2 { font-size: 21px; margin: 32px 0 10px; }
+    .priv-wrap p, .priv-wrap li { line-height: 1.7; color: #33415c; }
+    .priv-card { background: #fff; border: 1px solid #e6ebf5; border-radius: 16px; padding: 22px; margin-top: 18px; box-shadow: 0 8px 28px rgba(20,40,80,.06); }
+    .priv-card h3 { margin: 0 0 4px; font-size: 17px; }
+    .priv-card small { color: #7a8699; }
+    .priv-form { display: grid; gap: 12px; margin-top: 14px; }
+    .priv-form label { font-size: 13px; font-weight: 600; color: #33415c; display: grid; gap: 5px; }
+    .priv-form input, .priv-form select, .priv-form textarea {
+      font: inherit; padding: 11px 12px; border: 1px solid #cfd8e6; border-radius: 10px; background: #f8fafd;
+    }
+    .priv-form textarea { min-height: 84px; resize: vertical; }
+    .priv-check { display: flex; align-items: flex-start; gap: 9px; font-weight: 400; }
+    .priv-btn { border: none; border-radius: 10px; padding: 12px 18px; background: #0e9f8f; color: #fff; font-weight: 700; cursor: pointer; font-size: 14px; }
+    .priv-btn:hover { filter: brightness(1.06); }
+    .priv-btn.alt { background: #1b2742; }
+    .priv-msg { margin-top: 12px; font-weight: 600; font-size: 14px; }
+    .priv-msg.ok { color: #0e9f8f; }
+    .priv-msg.err { color: #c0392b; }
+    .priv-top { background: #0e1726; color: #fff; padding: 14px 22px; }
+    .priv-top a { color: #7fe8da; text-decoration: none; font-weight: 600; }
+    .priv-fecha { color: #7a8699; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="priv-top">
+    <a href="/">← Volver a EcoDrive</a>
+  </div>
+
+  <div class="priv-wrap">
+    <h1>Privacidad y tratamiento de datos</h1>
+    <p class="priv-fecha">Política de Tratamiento de Datos Personales · Versión 1.0 · Vigente para Colombia (Ley 1581 de 2012 y Decreto 1377 de 2013).</p>
+
+    <h2>1. Responsable del tratamiento</h2>
+    <p>EcoDrive es una plataforma de monitoreo y mantenimiento predictivo de flotas vehiculares (proyecto SENA ADSO). El responsable del tratamiento es el equipo EcoDrive. Canal de atención: <a href="mailto:hola@ecodrive.app">hola@ecodrive.app</a>.</p>
+
+    <h2>2. Datos que tratamos</h2>
+    <ul>
+      <li><b>Datos de vehículo:</b> placa, tipo, telemetría (temperatura del motor, RPM, combustible, odómetro) y posición GPS.</li>
+      <li><b>Datos de conductores y usuarios:</b> nombre, correo, teléfono y credenciales de acceso.</li>
+      <li><b>Datos de contacto comercial:</b> nombre y datos de contacto entregados al solicitar el servicio o dejar una opinión.</li>
+    </ul>
+
+    <h2>3. Finalidad</h2>
+    <p>Los datos se usan para operar la telemetría, generar alertas de sobrecalentamiento y mantenimiento predictivo, atender solicitudes, prestar soporte y cumplir obligaciones legales. No vendemos datos personales a terceros.</p>
+
+    <h2>4. Sus derechos (ARCO)</h2>
+    <p>Como titular puedes <b>conocer, actualizar, rectificar</b> y <b>solicitar la supresión</b> de tus datos, así como <b>revocar la autorización</b> otorgada. Puedes radicar tu solicitud usando el formulario disponible más abajo.</p>
+
+    <h2>5. Conservación y seguridad</h2>
+    <p>Aplicamos medidas técnicas y administrativas (cifrado en tránsito, control de acceso por roles, registro de auditoría). Las lecturas de telemetría se conservan por un periodo definido y luego se agregan o eliminan.</p>
+
+    <!-- Consentimiento -->
+    <div class="priv-card">
+      <h3>Autorización de tratamiento de datos</h3>
+      <small>Otorga o revoca tu consentimiento para el tratamiento de tus datos.</small>
+      <form class="priv-form" id="form-consentimiento">
+        <label>Correo o teléfono de contacto
+          <input id="c-identificador" placeholder="ej. tu@correo.com o (+57) 300 000 0000" required />
+        </label>
+        <label>Finalidad
+          <select id="c-tipo">
+            <option value="PRIVACIDAD">Tratamiento de datos (operación del servicio)</option>
+            <option value="MARKETING">Comunicaciones comerciales</option>
+            <option value="TERMINOS">Aceptación de términos y condiciones</option>
+          </select>
+        </label>
+        <label class="priv-check">
+          <input type="checkbox" id="c-aceptado" checked />
+          <span>Autorizo a EcoDrive el tratamiento de mis datos conforme a esta política.</span>
+        </label>
+        <button class="priv-btn" type="submit">Guardar autorización</button>
+      </form>
+      <p class="priv-msg" id="c-msg"></p>
+    </div>
+
+    <!-- ARCO -->
+    <div class="priv-card">
+      <h3>Solicitud de datos (ARCO)</h3>
+      <small>Acceso, rectificación, eliminación u oposición.</small>
+      <form class="priv-form" id="form-arco">
+        <label>Tipo de solicitud
+          <select id="a-tipo">
+            <option value="ACCESO">Acceso a mis datos</option>
+            <option value="RECTIFICACION">Rectificación / actualización</option>
+            <option value="ELIMINACION">Eliminación / supresión</option>
+            <option value="OPOSICION">Oposición / revocatoria</option>
+          </select>
+        </label>
+        <label>Correo, teléfono o placa
+          <input id="a-identificador" placeholder="ej. ABC-123 o tu@correo.com" required />
+        </label>
+        <label>Descripción (opcional)
+          <textarea id="a-descripcion" placeholder="Describe tu solicitud."></textarea>
+        </label>
+        <button class="priv-btn alt" type="submit">Radicar solicitud</button>
+      </form>
+      <p class="priv-msg" id="a-msg"></p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <strong>EcoDrive</strong>
+        <p>Plataforma de monitoreo y mantenimiento predictivo para flotas. Proyecto de emprendimiento SENA ADSO.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/privacidad.html">Política de datos</a>
+        <a href="mailto:hola@ecodrive.app">Contacto</a>
+      </div>
+    </div>
+    <p class="footer-final">© 2026 EcoDrive · SENA ADSO</p>
+  </footer>
+
+  <script>
+    const API = '/api/v1';
+    function msg(id, texto, ok) {
+      const el = document.getElementById(id);
+      el.textContent = texto;
+      el.className = 'priv-msg ' + (ok ? 'ok' : 'err');
+    }
+    document.getElementById('form-consentimiento').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const r = await fetch(API + '/privacidad/consentimiento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identificador: document.getElementById('c-identificador').value,
+            tipo: document.getElementById('c-tipo').value,
+            aceptado: document.getElementById('c-aceptado').checked,
+          }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Error');
+        msg('c-msg', 'Autorización registrada. ¡Gracias!', true);
+        e.target.reset();
+      } catch (err) {
+        msg('c-msg', 'No se pudo registrar: ' + err.message, false);
+      }
+    });
+    document.getElementById('form-arco').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const r = await fetch(API + '/privacidad/solicitud', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipo: document.getElementById('a-tipo').value,
+            identificador: document.getElementById('a-identificador').value,
+            descripcion: document.getElementById('a-descripcion').value,
+          }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Error');
+        msg('a-msg', 'Solicitud radicada con radicado ' + (d.id || '').slice(0, 8) + '. Te contactaremos pronto.', true);
+        e.target.reset();
+      } catch (err) {
+        msg('a-msg', 'No se pudo radicar: ' + err.message, false);
+      }
+    });
+  </script>
+</body>
+</html>

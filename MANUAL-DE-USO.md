@@ -104,6 +104,27 @@ curl https://<URL>/api/v1/health
 Las alertas llegan **en tiempo real** por WebSocket: aparece un banner en pantalla sin recargar
 (la página ya está suscrita al socket al abrirse).
 
+### Consola de gestión (módulos avanzados)
+
+Desde la barra superior del panel entra a **⚙️ Gestión** (`/panel/gestion.html`). Reúne las
+funciones para llevar la operación completa de una flota:
+
+| Pestaña | Para qué sirve |
+|---|---|
+| **Usuarios** | Crear, editar, activar/desactivar y eliminar usuarios; asignarles rol y sede |
+| **Roles** | Definir permisos por rol (recurso:acción). El rol `admin` siempre tiene acceso total |
+| **Órdenes** | Órdenes de trabajo del taller: repuestos, mano de obra, cierre e historial de mantenimiento |
+| **Inventario** | Repuestos, stock mínimo, entradas/salidas/ajustes y alerta de bajo stock |
+| **Alertas** | Notificaciones externas por WhatsApp, correo, SMS o webhook, y su registro de envíos |
+| **Integraciones** | Webhooks salientes (firma HMAC) y tokens de API para ERP/contabilidad |
+| **Dispositivos** | Registrar GPS fijo/OBD, IMEI, protocolo y regenerar su API Key |
+| **Privacidad** | Consentimientos y solicitudes ARCO (acceso, rectificación, eliminación, oposición) |
+| **Auditoría** | Bitácora de acciones de los usuarios (quién, cuándo, IP, recurso) |
+
+Documentación relacionada: [Integraciones y API](docs/INTEGRACIONES.md),
+[Privacidad](docs/PRIVACIDAD.md) y [Roadmap de hardware](docs/ROADMAP-HARDWARE.md).
+
+
 ---
 
 ## 5. Conectar un vehículo (flujo completo)

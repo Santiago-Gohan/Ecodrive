@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
+const requierePermiso = require('../middleware/permAuth');
 const { consumirPorIp } = require('../middleware/rateLimiter');
+const { despacharEvento } = require('../services/notificaciones');
 const config = require('../config');
 
 const ESTADOS = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
@@ -42,6 +44,7 @@ router.post('/', async (req, res, next) => {
        RETURNING id, creado_en`,
       [rol, temas, comentario, nombre, contacto]
     );
+    despacharEvento('OPINION', { nombre, contacto, comentario, rol, temas }).catch(() => {});
     res.status(201).json({ ok: true, id: rows[0].id, creado_en: rows[0].creado_en });
   } catch (err) {
     next(err);
@@ -67,7 +70,7 @@ router.get('/publicas', async (req, res, next) => {
 /* ---------- A partir de aquí solo administradores ---------- */
 router.use(adminAuth);
 
-router.get('/', async (req, res, next) => {
+router.get('/', requierePermiso('opiniones:ver'), async (req, res, next) => {
   try {
     const estado = limpiar(req.query.estado, 20);
     const filtro = estado && ESTADOS.includes(estado.toUpperCase()) ? estado.toUpperCase() : null;
@@ -85,7 +88,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', requierePermiso('opiniones:aprobar'), async (req, res, next) => {
   try {
     const estado = limpiar(req.body && req.body.estado, 20);
     if (!estado || !ESTADOS.includes(estado.toUpperCase())) {
@@ -104,7 +107,7 @@ router.patch('/:id', async (req, res, next) => {
   }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requierePermiso('opiniones:aprobar'), async (req, res, next) => {
   try {
     const { rows } = await pool.query('DELETE FROM opiniones WHERE id = $1 RETURNING id', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Opinión no encontrada' });

@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
+const requierePermiso = require('../middleware/permAuth');
 const { consumirPorIp } = require('../middleware/rateLimiter');
+const { despacharEvento } = require('../services/notificaciones');
 const config = require('../config');
 
 const TIPOS = ['POLICIA', 'ACCIDENTE', 'RETEN', 'OBRA', 'OTRO'];
@@ -61,6 +63,10 @@ router.post('/', async (req, res, next) => {
     const io = req.app.get('io');
     if (io) io.emit('evento:nuevo', evento);
 
+    despacharEvento('EVENTO_VIAL', {
+      tipo, lat, lng, descripcion, placa, vehiculoId: vehiculoId || undefined,
+    }).catch(() => {});
+
     res.status(201).json({ ok: true, ...evento });
   } catch (err) {
     next(err);
@@ -92,7 +98,7 @@ router.get('/', async (req, res, next) => {
 /* ---------- A partir de aquí solo administradores ---------- */
 router.use(adminAuth);
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requierePermiso('eventos:ver'), async (req, res, next) => {
   try {
     const { rows } = await pool.query('DELETE FROM eventos_viales WHERE id = $1 RETURNING id', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Evento no encontrado' });

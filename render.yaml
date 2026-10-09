@@ -2,14 +2,17 @@
 # La base de datos va en Neon (gratis): https://neon.tech
 # 1) Crea el proyecto Neon, copia la DATABASE_URL
 # 2) En Render: New + -> Blueprint -> conecta este repo
-# 3) Pon las variables de entorno que pide abajo y despliega
+# 3) Pon las variables de entorno que pide abajo y despliega.
+#    La primera vez, antes del deploy, apunta el servicio a la BD vacia de
+#    Neon; las migraciones se aplican solas en preDeployCommand.
 services:
   - type: web
     name: ecodrive-backend
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && npm install --omit=dev
+    preDeployCommand: cd backend && npm run migrate
     startCommand: cd backend && npm start
     healthCheckPath: /api/v1/health
     envVars:

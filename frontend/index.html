@@ -34,6 +34,7 @@
       <button data-vista="historial" class="nav-btn">📜 Historial</button>
       <button data-vista="opiniones" class="nav-btn">💬 Opiniones</button>
       <button id="btn-tour" class="nav-btn">🎬 Tour guiado</button>
+      <button data-vista="gestion" class="nav-btn">⚙️ Gestión</button>
       <a href="/dispositivo/" target="_blank" class="nav-btn link">📱 Dispositivo</a>
       <a href="/" class="nav-btn link">🌐 Sitio web</a>
     </nav>
@@ -258,6 +259,10 @@
         <p class="vacio">Cargando opiniones...</p>
       </div>
     </section>
+  </main>
+
+  <main id="vista-gestion" class="vista oculto">
+    <iframe id="frame-gestion" data-src="/panel/gestion.html?embed=1" title="Consola de gestión"></iframe>
   </main>
 
   <div id="modal-mant" class="modal oculto">

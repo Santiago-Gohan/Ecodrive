@@ -1,12 +1,13 @@
 const router = require('express').Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
+const requierePermiso = require('../middleware/permAuth');
 const { generarApiKey, generarCodigoVinculo } = require('../utils/apiKey');
 const QRCode = require('qrcode');
 
 router.use(adminAuth);
 
-router.get('/', async (req, res, next) => {
+router.get('/', requierePermiso('flota:ver'), async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT
@@ -29,7 +30,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', requierePermiso('flota:crear'), async (req, res, next) => {
   try {
     const { placa, nombre, tipo, combustible, anio } = req.body || {};
     if (!placa || !String(placa).trim()) {
@@ -64,7 +65,7 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', requierePermiso('flota:editar'), async (req, res, next) => {
   try {
     const b = req.body || {};
     const campos = [];
@@ -123,7 +124,7 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requierePermiso('flota:editar'), async (req, res, next) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -147,7 +148,7 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
-router.get('/:id/apikey', async (req, res, next) => {
+router.get('/:id/apikey', requierePermiso('flota:ver'), async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       'SELECT id, placa, api_key, codigo_vinculo, vinculo_por_placa FROM vehiculos WHERE id = $1',
@@ -160,7 +161,7 @@ router.get('/:id/apikey', async (req, res, next) => {
   }
 });
 
-router.post('/:id/codigo/regenerar', async (req, res, next) => {
+router.post('/:id/codigo/regenerar', requierePermiso('flota:editar'), async (req, res, next) => {
   try {
     const codigo = generarCodigoVinculo();
     const { rows } = await pool.query(
@@ -178,7 +179,7 @@ router.post('/:id/codigo/regenerar', async (req, res, next) => {
   }
 });
 
-router.post('/:id/apikey/regenerar', async (req, res, next) => {
+router.post('/:id/apikey/regenerar', requierePermiso('flota:editar'), async (req, res, next) => {
   try {
     const apiKey = generarApiKey();
     const { rows } = await pool.query(
@@ -192,7 +193,7 @@ router.post('/:id/apikey/regenerar', async (req, res, next) => {
   }
 });
 
-router.get('/:id/qr', async (req, res, next) => {
+router.get('/:id/qr', requierePermiso('flota:ver'), async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       'SELECT id, placa, api_key, codigo_vinculo FROM vehiculos WHERE id = $1',
@@ -218,7 +219,7 @@ router.get('/:id/qr', async (req, res, next) => {
 
 /* ---------- Historial de mantenimientos ---------- */
 
-router.get('/:id/mantenimientos', async (req, res, next) => {
+router.get('/:id/mantenimientos', requierePermiso('mantenimientos:ver'), async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, fecha, descripcion, costo, odometro, created_at
@@ -233,7 +234,7 @@ router.get('/:id/mantenimientos', async (req, res, next) => {
   }
 });
 
-router.post('/:id/mantenimientos', async (req, res, next) => {
+router.post('/:id/mantenimientos', requierePermiso('mantenimientos:crear'), async (req, res, next) => {
   try {
     const { fecha, descripcion, costo, odometro, intervalo_mantenimiento, proximo_mantenimiento } = req.body || {};
     const f = String(fecha || '').trim();
@@ -284,7 +285,7 @@ router.post('/:id/mantenimientos', async (req, res, next) => {
   }
 });
 
-router.delete('/:id/mantenimientos/:mnt', async (req, res, next) => {
+router.delete('/:id/mantenimientos/:mnt', requierePermiso('mantenimientos:crear'), async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       'DELETE FROM mantenimientos WHERE id = $1 AND vehiculo_id = $2 RETURNING id',

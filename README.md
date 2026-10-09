@@ -21,6 +21,10 @@
 - 🔔 **Alertas en tiempo real** — ECT > 105 °C dispara alerta por WebSocket al panel, sin recargar.
 - 🔑 **Doble autenticación** — JWT para el admin, API Key (`X-API-Key`) por vehículo para los
   dispositivos.
+- ⚙️ **Consola de gestión** (`/panel/gestion.html`) — usuarios y roles (RBAC), taller con órdenes
+  de trabajo, inventario de repuestos, alertas externas (WhatsApp/Email/SMS/webhook),
+  integraciones (OpenAPI, webhooks firmados, tokens de API), dispositivos GPS, privacidad
+  (consentimientos y solicitudes ARCO) y auditoría.
 - 🤖 **App Android** (`/android/`, Kotlin) — cliente Bluetooth nativo (en reparación, ver
   limitaciones).
 
@@ -40,10 +44,11 @@
 Ecodrive/
 ├── backend/            # API REST + WebSocket + sirve los frontends
 │   ├── src/server.js   # punto de entrada (node src/server.js)
-│   ├── src/routes/     # auth, vehiculos, telemetry, historial, registration
-│   ├── scripts/        # db-init, simulator y utilidades
-│   └── sql/schema.sql  # esquema + datos semilla
-├── frontend/           # panel admin (servido en /)
+│   ├── src/routes/     # auth, vehiculos, telemetry, historial, registration,
+│   │                   # usuarios, taller, notificaciones, webhooks, dispositivos, privacidad
+│   ├── scripts/        # db-init, migrate, simulator y utilidades
+│   └── sql/            # schema.sql + migrations/ (historial de cambios)
+├── frontend/           # panel admin (servido en /panel/) + consola de gestión
 ├── dispositivo/        # app del conductor (servida en /dispositivo/)
 ├── android/            # app Android (Kotlin)
 ├── docs/               # documentación del proyecto
@@ -64,13 +69,17 @@ npm install
 # 2) Configurar variables (copia el ejemplo y edítalo)
 cp .env.example .env
 
-# 3) Crear las tablas
-psql -U postgres -d ecodrive -f sql/schema.sql
-# (o: npm run db:init — ⚠️ BORRA las tablas, solo en BD vacía)
+# 3) Crear las tablas (aplica esquema base + migraciones de todas las fases)
+npm run db:init
+# En una BD que ya tiene datos, aplica solo migraciones pendientes:
+npm run migrate
 
 # 4) Arrancar
 npm start
 ```
+
+> `npm run db:init` **borra** las tablas (solo para BD vacía). Para bases con datos usa
+> siempre `npm run migrate` (idempotente).
 
 Abre http://localhost:3000 (panel) y http://localhost:3000/dispositivo/ (app conductor).
 
@@ -105,8 +114,15 @@ este repo → pegar la `DATABASE_URL` de Neon → Deploy. La URL queda fija
 | POST | `/telemetry` | API Key | Enviar lectura (ECT + RPM) |
 | GET | `/telemetry/resumen` | — | Estado actual de la flota |
 | GET/POST | `/registration` | — | Compatibilidad OBD y auto-registro |
+| GET/POST | `/usuarios` | admin | Usuarios, `/usuarios/roles`, `/usuarios/permisos`, `/usuarios/auditoria` |
+| GET/POST | `/taller/ordenes`, `/taller/repuestos` | admin | Taller: órdenes de trabajo e inventario |
+| GET/POST | `/notificaciones` | admin | Alertas externas (WhatsApp/Email/SMS/Webhook) |
+| GET/POST | `/webhooks` | admin | Webhooks salientes firmados + tokens de API |
+| GET/POST | `/dispositivos` | admin | Dispositivos GPS/OBD por vehículo |
+| POST | `/privacidad/consentimiento`, `/privacidad/solicitud` | — | Consentimiento y ARCO (público) |
 
-Referencia completa con flujos de uso en el [manual](./MANUAL-DE-USO.md).
+Documentación interactiva en **`/api-docs`** (OpenAPI/Swagger). Referencia completa con flujos
+de uso en el [manual](./MANUAL-DE-USO.md) y [integraciones](./docs/INTEGRACIONES.md).
 
 ## ⚠️ Limitaciones conocidas
 
