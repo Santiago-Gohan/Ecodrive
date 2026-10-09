@@ -12,8 +12,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: cd backend && npm install --omit=dev
-    preDeployCommand: cd backend && npm run migrate
-    startCommand: cd backend && npm start
+    startCommand: cd backend && npm run migrate && npm start
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_VERSION
