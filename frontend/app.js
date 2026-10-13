@@ -1500,3 +1500,178 @@ conectarSocket();
 if (token) {
   mostrarDashboard();
 }
+/* ---------- Reportes: Costos y consumo ---------- */
+let repDatos = null;
+
+function formatearDinero2(n) {
+  const v = Number(n || 0);
+  return '$ ' + v.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function formatearDecimal(n, dec=2) {
+  const v = (n === null || n === undefined || isNaN(n)) ? 0 : Number(n);
+  return v.toLocaleString('es-CO', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+async function cargarSelectVehiculosRep() {
+  try {
+    const resp = await fetchApi(`${API}/vehiculos`);
+    const filas = await resp.json();
+    const sel = document.getElementById('rep-vehiculo');
+    const selAb = document.getElementById('ab-vehiculo');
+    if (!sel || !selAb) return;
+    sel.innerHTML = '<option value="">Todos los vehículos</option>';
+    selAb.innerHTML = '<option value="">Seleccione vehículo</option>';
+    filas.forEach(v => {
+      const opt = document.createElement('option'); opt.value = v.id; opt.textContent = `${v.placa} - ${v.nombre || ''}`;
+      sel.appendChild(opt.cloneNode(true));
+      selAb.appendChild(opt);
+    });
+  } catch (e) { console.error(e); }
+}
+
+async function generarReporte() {
+  const desde = document.getElementById('rep-desde').value;
+  const hasta = document.getElementById('rep-hasta').value;
+  const v = document.getElementById('rep-vehiculo').value;
+  const msg = document.getElementById('rep-msg');
+  if (!desde || !hasta) { msg.textContent = 'Seleccione rango de fechas'; msg.classList.remove('oculto'); return; }
+  msg.classList.add('oculto');
+  try {
+    const q = `?desde=${desde}&hasta=${hasta}${v ? '&vehiculo_id='+v : ''}`;
+    const resp = await fetchApi(`${API}/reportes/costos${q}`);
+    const data = await resp.json();
+    repDatos = data;
+
+    const tbodyR = document.getElementById('cuerpo-rep-resumen');
+    tbodyR.innerHTML = data.resumen.map(r => `
+      <tr>
+        <td><b>${r.placa}</b></td>
+        <td>${r.nombre || ''}</td>
+        <td>${formatearDinero2(r.costo_reparaciones)}</td>
+        <td>${formatearDinero2(r.costo_combustible)}</td>
+        <td>${formatearDecimal(r.litros,3)}</td>
+        <td>${formatearDecimal(r.km_recorridos,3)}</td>
+        <td>${r.rendimiento_km_l === null ? '--' : formatearDecimal(r.rendimiento_km_l,2)}</td>
+        <td>${r.costo_total_por_km === null ? '--' : formatearDecimal(r.costo_total_por_km,2)}</td>
+        <td>${r.intervenciones}</td>
+      </tr>`).join('') || '<tr><td colspan="9" class="vacio">Sin datos</td></tr>';
+
+    const tbodyH = document.getElementById('cuerpo-rep-hist');
+    tbodyH.innerHTML = data.historial.map(h => `
+      <tr>
+        <td>${h.placa}</td>
+        <td>${h.tipo}</td>
+        <td>${new Date(h.fecha).toLocaleDateString('es-CO')}</td>
+        <td>${escaparHTML(String(h.concepto||''))}</td>
+        <td>${formatearDinero2(h.costo)}</td>
+        <td>${h.odometro||'--'}</td>
+      </tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin datos</td></tr>';
+
+    toast('Reporte generado', 'ok');
+  } catch (e) { console.error(e); msg.textContent = 'Error al generar reporte'; msg.classList.remove('oculto'); }
+}
+
+function exportarRepCSV() {
+  if (!repDatos) { toast('Genere el reporte primero', 'info'); return; }
+  const cols = ['Placa','Vehiculo','Reparaciones($)','Combustible($)','Litros','Km_recorridos','Rendimiento_km_l','$/km_total','Intervenciones'];
+  const filas = repDatos.resumen.map(r => [r.placa,r.nombre||'',r.costo_reparaciones,r.costo_combustible,r.litros,r.km_recorridos,r.rendimiento_km_l??'',r.costo_total_por_km??'',r.intervenciones]);
+  descargarCSV(`reporte_costos_${new Date().toISOString().slice(0,10)}.csv`, cols, filas);
+}
+
+function exportarRepExcel() {
+  if (!repDatos) { toast('Genere el reporte primero', 'info'); return; }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(repDatos.resumen.map(r => ({
+    Placa: r.placa, Vehiculo: r.nombre||'', 'Reparaciones($)': r.costo_reparaciones, 'Combustible($)': r.costo_combustible,
+    Litros: r.litros, Km_recorridos: r.km_recorridos, Rendimiento_km_l: r.rendimiento_km_l, '$/km_total': r.costo_total_por_km, Intervenciones: r.intervenciones
+  })));
+  XLSX.utils.book_append_sheet(wb, ws, 'Resumen');
+  const ws2 = XLSX.utils.json_to_sheet(repDatos.historial.map(h => ({
+    Placa: h.placa, Tipo: h.tipo, Fecha: h.fecha, Concepto: h.concepto||'', Costo: h.costo, Odometro: h.odometro||''
+  })));
+  XLSX.utils.book_append_sheet(wb, ws2, 'Reparaciones');
+  XLSX.writeFile(wb, `reporte_costos_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function exportarRepPDF() {
+  if (!repDatos || !window.jspdf) { toast('Librerías PDF no cargadas', 'info'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape' });
+  doc.setFontSize(14);
+  doc.text('EcoDrive - Reporte de costos y consumo de combustible', 14, 14);
+  doc.setFontSize(9);
+  doc.text(`Periodo: ${repDatos.desde} a ${repDatos.hasta}`, 14, 20);
+  const body1 = repDatos.resumen.map(r => [r.placa,r.nombre||'',r.costo_reparaciones,r.costo_combustible,r.litros.toFixed(3),r.km_recorridos.toFixed(3), r.rendimiento_km_l?.toFixed(2)||'', r.costo_total_por_km?.toFixed(2)||'', r.intervenciones]);
+  doc.autoTable({ head: [['Placa','Vehículo','Rep($)','Comb($)','Litros','Km','km/l','$/km','Int']], body: body1, startY: 24 });
+  const y = doc.lastAutoTable.finalY + 6;
+  doc.text('Historial de reparaciones por unidad', 14, y);
+  const body2 = repDatos.historial.map(h => [h.placa,h.tipo,new Date(h.fecha).toLocaleDateString('es-CO'),h.concepto||'',h.costo,h.odometro||'']);
+  doc.autoTable({ head: [['Placa','Tipo','Fecha','Concepto','Costo($)','Odómetro']], body: body2, startY: y+4, styles: { fontSize: 7 }, columnStyles: {3:{cellWidth:70}} });
+  doc.save(`reporte_costos_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+async function cargarAbastecimientos() {
+  const sel = document.getElementById('ab-vehiculo');
+  const v = sel.value;
+  const qs = v ? `?vehiculo_id=${v}&limite=100` : '?limite=100';
+  try {
+    const resp = await fetchApi(`${API}/reportes/abastecimientos${qs}`);
+    const filas = await resp.json();
+    const tbody = document.getElementById('cuerpo-ab');
+    tbody.innerHTML = filas.map(a => `
+      <tr>
+        <td>${a.placa}</td>
+        <td>${new Date(a.fecha).toLocaleDateString('es-CO')}</td>
+        <td>${a.odometro_km||'--'}</td>
+        <td>${Number(a.litros).toLocaleString('es-CO',{minimumFractionDigits:3,maximumFractionDigits:3})}</td>
+        <td>${Number(a.precio_litro).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td>${Number(a.valor_total).toLocaleString('es-CO',{minimumFractionDigits:0,maximumFractionDigits:0})}</td>
+        <td>${a.estacion||''}</td>
+        <td>${a.observacion||''}</td>
+      </tr>`).join('') || '<tr><td colspan="8" class="vacio">Sin datos</td></tr>';
+  } catch (e) { console.error(e); }
+}
+
+async function guardarAbastecimiento() {
+  const vehiculo_id = document.getElementById('ab-vehiculo').value;
+  const fecha = document.getElementById('ab-fecha').value;
+  const odometro_km = document.getElementById('ab-odometro').value || null;
+  const litros = document.getElementById('ab-litros').value;
+  const precio_litro = document.getElementById('ab-precio').value || 0;
+  const estacion = document.getElementById('ab-estacion').value || '';
+  const observacion = document.getElementById('ab-obs').value || '';
+  if (!vehiculo_id || !fecha || !litros || Number(litros) <= 0) { toast('Complete vehículo, fecha y litros', 'info'); return; }
+  try {
+    await fetchApi(`${API}/reportes/abastecimientos`, {
+      method: 'POST',
+      body: JSON.stringify({ vehiculo_id, fecha, odometro_km: odometro_km?Number(odometro_km):null, litros: Number(litros), precio_litro: Number(precio_litro), estacion, observacion })
+    });
+    toast('Abastecimiento guardado', 'ok');
+    document.getElementById('ab-odometro').value=''; document.getElementById('ab-litros').value=''; document.getElementById('ab-precio').value=''; document.getElementById('ab-estacion').value=''; document.getElementById('ab-obs').value='';
+    cargarAbastecimientos();
+  } catch (e) { console.error(e); toast('Error al guardar', 'err'); }
+}
+
+document.getElementById('btn-rep-generar')?.addEventListener('click', generarReporte);
+document.getElementById('btn-rep-export-csv')?.addEventListener('click', exportarRepCSV);
+document.getElementById('btn-rep-export-xlsx')?.addEventListener('click', exportarRepExcel);
+document.getElementById('btn-rep-export-pdf')?.addEventListener('click', exportarRepPDF);
+document.getElementById('ab-vehiculo')?.addEventListener('change', cargarAbastecimientos);
+document.getElementById('btn-ab-guardar')?.addEventListener('click', guardarAbastecimiento);
+
+// Cargar datos al cambiar a vista reportes
+const navBtns = document.querySelectorAll('.nav-btn');
+const origClick = Array.from(navBtns).find(b => b.dataset.vista === 'reportes')?.onclick;
+if (document.querySelector('[data-vista="reportes"]')) {
+  const btnRep = document.querySelector('[data-vista="reportes"]');
+  btnRep.addEventListener('click', () => {
+    setTimeout(() => {
+      const hoy = new Date();
+      const d30 = new Date(hoy); d30.setDate(hoy.getDate()-30);
+      document.getElementById('rep-hasta').value = hoy.toISOString().slice(0,10);
+      document.getElementById('rep-desde').value = d30.toISOString().slice(0,10);
+      cargarSelectVehiculosRep().then(cargarAbastecimientos);
+    }, 50);
+  });
+}
