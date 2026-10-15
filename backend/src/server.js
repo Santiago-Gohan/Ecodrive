@@ -1,4 +1,4 @@
-﻿const path = require('path');
+const path = require('path');
 const http = require('http');
 const express = require('express');
 const { Server } = require('socket.io');
