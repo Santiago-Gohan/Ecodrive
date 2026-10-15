@@ -1,4 +1,4 @@
-﻿-- Reportes de costos y consumo de combustible
+-- Reportes de costos y consumo de combustible
 CREATE TABLE IF NOT EXISTS abastecimientos (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vehiculo_id    UUID NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
