@@ -136,10 +136,10 @@ router.delete('/:id', requierePermiso('flota:editar'), async (req, res, next) =>
     );
     if (!rows.length) {
       await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Veh��culo no encontrado' });
+      return res.status(404).json({ error: 'Vehículo no encontrado' });
     }
     await client.query('COMMIT');
-    res.json({ message: `Veh��culo ${rows[0].placa} eliminado` });
+    res.json({ message: `Vehículo ${rows[0].placa} eliminado` });
   } catch (err) {
     await client.query('ROLLBACK');
     next(err);

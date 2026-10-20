@@ -30,14 +30,14 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 const EPSILON_PROD = process.env.NODE_ENV === 'production';
 
-// DetrÃ¡s de proxy (Render/Cloudflare): confÃ­a en X-Forwarded-* para req.secure.
+// Detrás de proxy (Render/Cloudflare): confía en X-Forwarded-* para req.secure.
 app.set('trust proxy', 1);
 
 // Swagger UI (carga desde CDN permitido en la CSP).
 const SWAGGER_HTML = `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>EcoDrive API - DocumentaciÃ³n</title>
+<title>EcoDrive API - Documentación</title>
 <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"/>
 </head><body style="margin:0">
 <div id="swagger-ui"></div>
@@ -78,7 +78,7 @@ app.use(securityHeaders);
 app.use(express.json({ limit: '1mb' }));
 app.set('io', io);
 
-// Fase 5: forzar HTTPS en producciÃ³n (excepto el health check interno del proveedor).
+// Fase 5: forzar HTTPS en producción (excepto el health check interno del proveedor).
 if (EPSILON_PROD) {
   app.use((req, res, next) => {
     if (req.path.startsWith('/api/v1/health')) return next();
@@ -142,7 +142,7 @@ app.use('/apk', express.static(path.join(__dirname, '../public')));
 app.use((err, req, res, next) => {
   console.error('Error no controlado:', err.message);
   if (err.type === 'entity.parse.failed' || err instanceof SyntaxError) {
-    return res.status(400).json({ error: 'JSON invÃ¡lido en el cuerpo de la peticiÃ³n' });
+    return res.status(400).json({ error: 'JSON inválido en el cuerpo de la petición' });
   }
   if (EPSILON_PROD) {
     return res.status(500).json({ error: 'Error interno del servidor' });
@@ -155,7 +155,7 @@ io.on('connection', (socket) => {
 
   socket.on('suscribir:vehiculo', (vehiculoId) => {
     socket.join(`vehiculo:${vehiculoId}`);
-    console.log(`Socket ${socket.id} suscrito al vehÃ­culo ${vehiculoId}`);
+    console.log(`Socket ${socket.id} suscrito al vehículo ${vehiculoId}`);
   });
 
   socket.on('disconnect', () => {
@@ -168,8 +168,8 @@ async function start() {
   await asegurarAdminInicial();
   server.listen(config.port, () => {
     console.log(`EcoDrive backend en http://localhost:${config.port}`);
-    console.log(`Endpoint telemÃ©trica: POST /api/v1/telemetry`);
-    console.log(`DocumentaciÃ³n API: http://localhost:${config.port}/api-docs`);
+    console.log(`Endpoint telemétrica: POST /api/v1/telemetry`);
+    console.log(`Documentación API: http://localhost:${config.port}/api-docs`);
     iniciarRetencion();
     // Reintento de webhooks fallidos cada 10 minutos.
     setInterval(() => reintentarPendientes(), 10 * 60 * 1000).unref();

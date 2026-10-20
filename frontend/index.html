@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -26,17 +26,17 @@
     </div>
     <div class="marca">
       <h1>EcoDrive</h1>
-      <span>TelemetrÃ­a inteligente y mantenimiento predictivo</span>
+      <span>Telemetría inteligente y mantenimiento predictivo</span>
     </div>
     <nav id="nav-admin" class="nav-admin">
-      <button data-vista="dashboard" class="nav-btn activo">ðŸ“Š Dashboard</button>
-      <button data-vista="flota" class="nav-btn">ðŸš› Flota</button>
-      <button data-vista="historial" class="nav-btn">ðŸ“œ Historial</button>
-      <button data-vista="opiniones" class="nav-btn">ðŸ’¬ Opiniones</button>
-      <button id="btn-tour" class="nav-btn">ðŸŽ¬ Tour guiado</button>
-      <button data-vista="gestion" class="nav-btn">âš™ï¸ GestiÃ³n</button>
-      <a href="/dispositivo/" target="_blank" class="nav-btn link">ðŸ“± Dispositivo</a>
-      <a href="/" class="nav-btn link">ðŸŒ Sitio web</a>
+      <button data-vista="dashboard" class="nav-btn activo">📊 Dashboard</button>
+      <button data-vista="flota" class="nav-btn">🚛 Flota</button>
+      <button data-vista="historial" class="nav-btn">📜 Historial</button>
+      <button data-vista="opiniones" class="nav-btn">💬 Opiniones</button>
+      <button id="btn-tour" class="nav-btn">🎬 Tour guiado</button>
+      <button data-vista="gestion" class="nav-btn">⚙️ Gestión</button>
+      <a href="/dispositivo/" target="_blank" class="nav-btn link">📱 Dispositivo</a>
+      <a href="/" class="nav-btn link">🌐 Sitio web</a>
     </nav>
     <button id="btn-salir" class="btn-secundario">Salir</button>
   </header>
@@ -51,15 +51,15 @@
         </svg>
       </div>
       <h2>EcoDrive</h2>
-      <p>TelemetrÃ­a vehicular en tiempo real.<br />Inicia sesiÃ³n para monitorear tu flota.</p>
+      <p>Telemetría vehicular en tiempo real.<br />Inicia sesión para monitorear tu flota.</p>
       <form id="form-login">
         <input type="text" id="usuario" placeholder="Usuario (admin)" autocomplete="username" />
-        <input type="password" id="password" placeholder="ContraseÃ±a (admin123)" autocomplete="current-password" />
+        <input type="password" id="password" placeholder="Contraseña (admin123)" autocomplete="current-password" />
         <button type="submit" class="btn-primario">Ingresar</button>
       </form>
-      <p id="error-login" class="error oculto">Credenciales invÃ¡lidas</p>
+      <p id="error-login" class="error oculto">Credenciales inválidas</p>
       <div class="login-extra">
-        <span>ðŸ”’ Acceso restringido Â· SENA ADSO</span>
+        <span>🔒 Acceso restringido · SENA ADSO</span>
       </div>
     </section>
   </main>
@@ -67,35 +67,35 @@
   <main id="vista-dashboard" class="vista oculto">
     <section class="kpis">
       <div class="kpi">
-        <span class="kpi-ico ic">ðŸš›</span>
-        <div><strong id="kpi-flota">--</strong><small>VehÃ­culos</small></div>
+        <span class="kpi-ico ic">🚛</span>
+        <div><strong id="kpi-flota">--</strong><small>Vehículos</small></div>
       </div>
       <div class="kpi ok">
-        <span class="kpi-ico ic">ðŸŸ¢</span>
-        <div><strong id="kpi-linea">--</strong><small>En lÃ­nea</small></div>
+        <span class="kpi-ico ic">🟢</span>
+        <div><strong id="kpi-linea">--</strong><small>En línea</small></div>
       </div>
       <div class="kpi alerta">
-        <span class="kpi-ico ic">âš ï¸</span>
+        <span class="kpi-ico ic">⚠️</span>
         <div><strong id="kpi-alertas">--</strong><small>Alertas activas</small></div>
       </div>
       <div class="kpi">
-        <span class="kpi-ico ic">ðŸŒ¡ï¸</span>
-        <div><strong id="kpi-ect">--</strong><small>ECT mÃ¡x. flota</small></div>
+        <span class="kpi-ico ic">🌡️</span>
+        <div><strong id="kpi-ect">--</strong><small>ECT máx. flota</small></div>
       </div>
     </section>
 
     <section class="tarjeta mapa">
       <div class="tarjeta-cabecera">
-        <h2>ðŸ—ºï¸ Flota en tiempo real</h2>
-        <span class="pista-grafica">PosiciÃ³n GPS desde el celular del dispositivo Â· se actualiza cada 5 s</span>
+        <h2>🗺️ Flota en tiempo real</h2>
+        <span class="pista-grafica">Posición GPS desde el celular del dispositivo · se actualiza cada 5 s</span>
       </div>
       <div class="leyenda-eventos">
-        <span class="leyenda-titulo">ðŸš¨ Eventos en la vÃ­a:</span>
-        <span>ðŸš“ PolicÃ­a</span>
-        <span>ðŸ’¥ Accidente</span>
-        <span>â›” RetÃ©n</span>
-        <span>ðŸš§ Obra</span>
-        <span>âš ï¸ Otro</span>
+        <span class="leyenda-titulo">🚨 Eventos en la vía:</span>
+        <span>🚓 Policía</span>
+        <span>💥 Accidente</span>
+        <span>⛔ Retén</span>
+        <span>🚧 Obra</span>
+        <span>⚠️ Otro</span>
         <span class="leyenda-conteo" id="eventos-conteo"></span>
       </div>
       <div id="mapa-eco"></div>
@@ -103,27 +103,27 @@
 
     <section class="tarjeta grafica">
       <div class="tarjeta-cabecera">
-        <h2>ðŸŒ¡ï¸ Temperatura de flota (ECT) â€” tendencia en vivo</h2>
-        <span class="pista-grafica">Se actualiza cada 5 s Â· el lÃ­mite crÃ­tico es 105 Â°C</span>
+        <h2>🌡️ Temperatura de flota (ECT) — tendencia en vivo</h2>
+        <span class="pista-grafica">Se actualiza cada 5 s · el límite crítico es 105 °C</span>
       </div>
       <canvas id="grafica-ect" width="960" height="220"></canvas>
     </section>
 
     <section class="tarjeta" id="tarjeta-mantenimientos">
       <div class="tarjeta-cabecera">
-        <h2>ðŸ› ï¸ PrÃ³ximos mantenimientos</h2>
-        <span class="pista-grafica">Vencidos y siguientes 15 dÃ­as</span>
+        <h2>🛠️ Próximos mantenimientos</h2>
+        <span class="pista-grafica">Vencidos y siguientes 15 días</span>
       </div>
-      <div id="lista-mantenimientos" class="mants"><p class="vacio-ligero">Cargandoâ€¦</p></div>
+      <div id="lista-mantenimientos" class="mants"><p class="vacio-ligero">Cargando…</p></div>
     </section>
 
     <section class="tarjeta" id="tarjeta-flota">
       <div class="tarjeta-cabecera">
         <h2>Flota vehicular - estado en tiempo real</h2>
         <div class="cabecera-derecha">
-          <button id="btn-demo" class="btn-simular">â–¶ï¸ Demo en vivo</button>
-          <button id="btn-informe" class="btn-simular">ðŸ“„ Informe de flota</button>
-          <button id="btn-simular" class="btn-simular">Simular alerta (ECT 109Â°C)</button>
+          <button id="btn-demo" class="btn-simular">▶️ Demo en vivo</button>
+          <button id="btn-informe" class="btn-simular">📄 Informe de flota</button>
+          <button id="btn-simular" class="btn-simular">Simular alerta (ECT 109°C)</button>
           <div class="conexion" id="conexion">
             <span class="punto"></span> Conectando...
           </div>
@@ -132,12 +132,12 @@
       <table id="tabla-flota">
         <thead>
           <tr>
-            <th>VehÃ­culo</th>
+            <th>Vehículo</th>
             <th>Placa</th>
-            <th>ECT (Â°C)</th>
+            <th>ECT (°C)</th>
             <th>Combustible</th>
             <th>RPM</th>
-            <th>Ãšltima lectura</th>
+            <th>Última lectura</th>
             <th>Salud</th>
             <th>Alertas</th>
           </tr>
@@ -152,23 +152,23 @@
   <main id="vista-flota" class="vista oculto">
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
-        <h2>GestiÃ³n de flota</h2>
+        <h2>Gestión de flota</h2>
       </div>
       <div class="form-alta">
         <input type="text" id="nueva-placa" placeholder="Placa (ej: DEF-456)" />
-        <input type="text" id="nuevo-nombre" placeholder="Nombre del vehÃ­culo" />
+        <input type="text" id="nuevo-nombre" placeholder="Nombre del vehículo" />
         <select id="nuevo-tipo">
           <option value="CARRO">Carro / camioneta</option>
           <option value="BUS">Bus</option>
-          <option value="CAMION">CamiÃ³n</option>
+          <option value="CAMION">Camión</option>
         </select>
         <select id="nuevo-combustible">
           <option value="">Combustible</option>
           <option value="gasolina">Gasolina</option>
-          <option value="diesel">DiÃ©sel</option>
+          <option value="diesel">Diésel</option>
         </select>
-        <input type="number" id="nuevo-anio" placeholder="AÃ±o" min="1950" max="2030" />
-        <button id="btn-crear" class="btn-primario">Registrar vehÃ­culo</button>
+        <input type="number" id="nuevo-anio" placeholder="Año" min="1950" max="2030" />
+        <button id="btn-crear" class="btn-primario">Registrar vehículo</button>
       </div>
       <p id="msg-flota" class="error oculto"></p>
       <p class="vaciar-ligero" id="msg-flota-vacio"></p>
@@ -177,8 +177,8 @@
       </div>
     </section>
     <section class="tarjeta nota">
-      <p><strong>CÃ³mo conectar el dispositivo real:</strong> la API Key de cada vehÃ­culo se usa en la app de
-      "Toma de telemetrÃ­a" para autenticar los datos del sensor OBD-II. Si se filtra, regenÃ©rala.</p>
+      <p><strong>Cómo conectar el dispositivo real:</strong> la API Key de cada vehículo se usa en la app de
+      "Toma de telemetría" para autenticar los datos del sensor OBD-II. Si se filtra, regenérala.</p>
     </section>
   </main>
 
@@ -186,7 +186,7 @@
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
         <h2>Historial de alertas</h2>
-        <button id="btn-exportar-alertas" class="btn-secundario">â¬‡ï¸ Exportar CSV</button>
+        <button id="btn-exportar-alertas" class="btn-secundario">⬇️ Exportar CSV</button>
       </div>
       <div class="filtros">
         <select id="filtro-alerta-estado">
@@ -218,15 +218,15 @@
 
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
-        <h2>Historial de telemetrÃ­a</h2>
-        <button id="btn-exportar-telemetria" class="btn-secundario">â¬‡ï¸ Exportar CSV</button>
+        <h2>Historial de telemetría</h2>
+        <button id="btn-exportar-telemetria" class="btn-secundario">⬇️ Exportar CSV</button>
       </div>
       <div class="tabla-scroll">
         <table id="tabla-telemetria">
           <thead>
             <tr>
               <th>Placa</th>
-              <th>ECT (Â°C)</th>
+              <th>ECT (°C)</th>
               <th>RPM</th>
               <th>Combustible</th>
               <th>Fecha</th>
@@ -243,8 +243,8 @@
   <main id="vista-opiniones" class="vista oculto">
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
-        <h2>ðŸ’¬ Opiniones de usuarios</h2>
-        <span class="pista-grafica">Aprueba una opiniÃ³n para publicarla en el sitio web</span>
+        <h2>💬 Opiniones de usuarios</h2>
+        <span class="pista-grafica">Aprueba una opinión para publicarla en el sitio web</span>
       </div>
       <div class="filtros">
         <select id="filtro-opinion-estado">
@@ -262,7 +262,7 @@
   </main>
 
   <main id="vista-gestion" class="vista oculto">
-    <iframe id="frame-gestion" data-src="/panel/gestion.html?embed=1" title="Consola de gestiÃ³n"></iframe>
+    <iframe id="frame-gestion" data-src="/panel/gestion.html?embed=1" title="Consola de gestión"></iframe>
   </main>
   <main id="vista-reportes" class="vista oculto">
     <section class="tarjeta">
@@ -330,26 +330,26 @@
 
       <div class="mant-veh">
         <div class="mant-veh-izq">
-          <span class="mant-veh-placa" id="mant-placa">â€”</span>
+          <span class="mant-veh-placa" id="mant-placa">—</span>
           <span class="mant-veh-nombre" id="mant-nombre"></span>
           <div class="mant-veh-pills">
             <span class="pill cyan" id="mant-tipo">CARRO</span>
             <span class="pill verde" id="mant-estado">Activo</span>
           </div>
         </div>
-        <span class="pill mant-veh-salud" id="mant-salud">â€”</span>
+        <span class="pill mant-veh-salud" id="mant-salud">—</span>
       </div>
 
       <div class="mant-kpis">
         <div class="mant-kpi">
-          <span class="mant-kpi-label">PrÃ³ximo servicio</span>
-          <span class="mant-kpi-valor" id="kpi-proximo">â€”</span>
+          <span class="mant-kpi-label">Próximo servicio</span>
+          <span class="mant-kpi-valor" id="kpi-proximo">—</span>
           <span class="mant-kpi-sub" id="kpi-proximo-sub"></span>
           <div class="mant-barra"><div class="mant-barra-relleno" id="barra-proximo" style="width:0%"></div></div>
         </div>
         <div class="mant-kpi">
-          <span class="mant-kpi-label">Ãšltimo servicio</span>
-          <span class="mant-kpi-valor" id="kpi-ultimo">â€”</span>
+          <span class="mant-kpi-label">Último servicio</span>
+          <span class="mant-kpi-valor" id="kpi-ultimo">—</span>
           <span class="mant-kpi-sub" id="kpi-ultimo-sub"></span>
         </div>
         <div class="mant-kpi">
@@ -364,24 +364,24 @@
         </div>
       </div>
 
-      <h4 class="modal-sec">ProgramaciÃ³n</h4>
+      <h4 class="modal-sec">Programación</h4>
       <div class="mant-card">
         <div class="modal-grid2">
           <div>
-            <label class="modal-label">PrÃ³ximo mantenimiento</label>
+            <label class="modal-label">Próximo mantenimiento</label>
             <input type="date" id="mant-proximo" />
           </div>
           <div>
-            <label class="modal-label">Intervalo de servicio (dÃ­as)</label>
+            <label class="modal-label">Intervalo de servicio (días)</label>
             <input type="number" id="mant-intervalo" min="7" max="3650" placeholder="180" />
           </div>
         </div>
         <div>
           <label class="modal-label">Plan de mantenimiento</label>
-          <textarea id="mant-plan" rows="2" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. RevisiÃ³n de frenos y refrigerante..."></textarea>
+          <textarea id="mant-plan" rows="2" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. Revisión de frenos y refrigerante..."></textarea>
         </div>
         <div class="modal-acciones">
-          <button id="mant-guardar" class="btn-primario">Guardar programaciÃ³n</button>
+          <button id="mant-guardar" class="btn-primario">Guardar programación</button>
           <button id="mant-cancelar" class="btn-secundario">Cerrar</button>
         </div>
       </div>
@@ -390,9 +390,9 @@
       <div class="mant-card mnt-reg">
         <div class="modal-grid2">
           <input type="date" id="mnt-fecha" class="mnt-inp" />
-          <input type="number" id="mnt-odometro" class="mnt-inp" min="0" placeholder="OdÃ³metro (km)" />
+          <input type="number" id="mnt-odometro" class="mnt-inp" min="0" placeholder="Odómetro (km)" />
         </div>
-        <input type="text" id="mnt-desc" class="mnt-inp" placeholder="DescripciÃ³n del servicio (ej. cambio de aceite y filtros)" />
+        <input type="text" id="mnt-desc" class="mnt-inp" placeholder="Descripción del servicio (ej. cambio de aceite y filtros)" />
         <div class="mnt-fila-reg">
           <input type="number" id="mnt-costo" class="mnt-inp" min="0" step="0.01" placeholder="Costo del servicio ($)" />
           <button id="mnt-registrar" class="btn-primario mnt-reg-boton">Registrar servicio</button>
@@ -403,12 +403,12 @@
       </div>
 
       <h4 class="modal-sec">Historial de servicios <span class="mant-total" id="mant-total"></span></h4>
-      <div id="hist-mantenimientos" class="mant-hist"><p class="vacio-ligero">Cargandoâ€¦</p></div>
+      <div id="hist-mantenimientos" class="mant-hist"><p class="vacio-ligero">Cargando…</p></div>
     </div>
   </div>
 
   <section id="zona-impresion" class="informe-print">
-    <h1>EcoDrive Â· Informe de flota</h1>
+    <h1>EcoDrive · Informe de flota</h1>
     <p id="info-fecha" class="informe-fecha"></p>
     <div id="info-kpis" class="informe-kpis"></div>
     <p id="info-salud" class="informe-salud"></p>
@@ -423,10 +423,10 @@
       </div>
       <p class="modal-sub" id="key-titulo"></p>
       <div class="codigo-vinculo">
-        <span class="codigo-rotulo">CÃ³digo para el conductor</span>
-        <code id="key-codigo">â€”</code>
-        <button id="key-copiar-codigo" class="btn-secundario btn-chico">Copiar cÃ³digo</button>
-        <p class="modal-hint">El conductor escribe este cÃ³digo de 6 caracteres en la app (o escanea el QR) y el vehÃ­culo queda vinculado. No necesita copiar la API Key.</p>
+        <span class="codigo-rotulo">Código para el conductor</span>
+        <code id="key-codigo">—</code>
+        <button id="key-copiar-codigo" class="btn-secundario btn-chico">Copiar código</button>
+        <p class="modal-hint">El conductor escribe este código de 6 caracteres en la app (o escanea el QR) y el vehículo queda vinculado. No necesita copiar la API Key.</p>
         <label class="check-placa">
           <input type="checkbox" id="key-placa" />
           Permitir vincular escribiendo solo la placa
@@ -434,10 +434,10 @@
       </div>
       <code class="modal-key-caja" id="key-valor"></code>
       <div class="qr-key-bloque">
-        <div class="qr-key-marco"><img id="qr-key" class="qr-key oculto" alt="QR de vinculaciÃ³n" /></div>
-        <p class="modal-hint">El conductor escanea este cÃ³digo desde la app del dispositivo y queda vinculado automÃ¡ticamente.</p>
+        <div class="qr-key-marco"><img id="qr-key" class="qr-key oculto" alt="QR de vinculación" /></div>
+        <p class="modal-hint">El conductor escanea este código desde la app del dispositivo y queda vinculado automáticamente.</p>
       </div>
-      <p class="modal-hint">Se usa en la app del dispositivo como <code>x-api-key</code>. Si la regeneras, el vehÃ­culo vinculado dejarÃ¡ de reportar.</p>
+      <p class="modal-hint">Se usa en la app del dispositivo como <code>x-api-key</code>. Si la regeneras, el vehículo vinculado dejará de reportar.</p>
       <div class="modal-acciones">
         <button id="key-copiar" class="btn-primario">Copiar</button>
         <button id="key-regenerar" class="btn-peligro">Regenerar</button>
@@ -447,7 +447,7 @@
   </div>
 
   <div id="toasts" class="toasts"></div>
-  <footer id="pie">EcoDrive Â· Mantenimiento predictivo para tu flota Â· SENA ADSO</footer>
+  <footer id="pie">EcoDrive · Mantenimiento predictivo para tu flota · SENA ADSO</footer>
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
   <script src="tour.js"></script>
@@ -465,14 +465,14 @@
           document.querySelectorAll('.modal').forEach(function (m) { m.classList.add('oculto'); });
         },
         pasos: [
-          { sel: '.kpis', etiqueta: 'Dashboard', titulo: 'Tus indicadores clave', texto: 'De un vistazo ves cuÃ¡ntos vehÃ­culos tienes, cuÃ¡ntos estÃ¡n en lÃ­nea, las alertas activas y la temperatura mÃ¡xima de la flota.' },
-          { sel: '.tarjeta.mapa', etiqueta: 'UbicaciÃ³n', titulo: 'Flota y eventos en la vÃ­a', texto: 'Cada vehÃ­culo aparece en el mapa con su GPS. Abajo estÃ¡ la leyenda de eventos: los conductores reportan policÃ­a, accidentes, retenes u obras y los ves aquÃ­ en tiempo real.' },
-          { sel: '.tarjeta.grafica', etiqueta: 'TelemetrÃ­a', titulo: 'Temperatura del motor (ECT)', texto: 'La tendencia en vivo del refrigerante. Si supera 105 Â°C, el vehÃ­culo se marca en rojo y se dispara la alerta.' },
-          { sel: '#tarjeta-mantenimientos', etiqueta: 'Mantenimiento', titulo: 'Mantenimiento predictivo', texto: 'AquÃ­ ves los servicios vencidos y los que vencen en los prÃ³ximos 15 dÃ­as, para que no se te pase ninguno.' },
-          { sel: '#tarjeta-flota', etiqueta: 'Flota', titulo: 'Estado de cada vehÃ­culo', texto: 'La tabla con ECT, combustible, RPM, Ãºltima lectura y salud de cada unidad.' },
-          { sel: '[data-vista="historial"]', etiqueta: 'Historial', titulo: 'Historial de lecturas', texto: 'Consulta la telemetrÃ­a pasada por vehÃ­culo y rango de fechas para revisar quÃ© pasÃ³ en la ruta.' },
-          { sel: '[data-vista="opiniones"]', etiqueta: 'Opiniones', titulo: 'Opiniones de los usuarios', texto: 'AquÃ­ llegan los comentarios de conductores y empresas. Aprueba los mejores y se publican solos en la pÃ¡gina web.' },
-          { sel: '#btn-demo', etiqueta: 'Demo', titulo: 'PruÃ©balo sin hardware', texto: 'Con "Demo en vivo" generamos datos simulados para que veas todo funcionando al instante.' },
+          { sel: '.kpis', etiqueta: 'Dashboard', titulo: 'Tus indicadores clave', texto: 'De un vistazo ves cuántos vehículos tienes, cuántos están en línea, las alertas activas y la temperatura máxima de la flota.' },
+          { sel: '.tarjeta.mapa', etiqueta: 'Ubicación', titulo: 'Flota y eventos en la vía', texto: 'Cada vehículo aparece en el mapa con su GPS. Abajo está la leyenda de eventos: los conductores reportan policía, accidentes, retenes u obras y los ves aquí en tiempo real.' },
+          { sel: '.tarjeta.grafica', etiqueta: 'Telemetría', titulo: 'Temperatura del motor (ECT)', texto: 'La tendencia en vivo del refrigerante. Si supera 105 °C, el vehículo se marca en rojo y se dispara la alerta.' },
+          { sel: '#tarjeta-mantenimientos', etiqueta: 'Mantenimiento', titulo: 'Mantenimiento predictivo', texto: 'Aquí ves los servicios vencidos y los que vencen en los próximos 15 días, para que no se te pase ninguno.' },
+          { sel: '#tarjeta-flota', etiqueta: 'Flota', titulo: 'Estado de cada vehículo', texto: 'La tabla con ECT, combustible, RPM, última lectura y salud de cada unidad.' },
+          { sel: '[data-vista="historial"]', etiqueta: 'Historial', titulo: 'Historial de lecturas', texto: 'Consulta la telemetría pasada por vehículo y rango de fechas para revisar qué pasó en la ruta.' },
+          { sel: '[data-vista="opiniones"]', etiqueta: 'Opiniones', titulo: 'Opiniones de los usuarios', texto: 'Aquí llegan los comentarios de conductores y empresas. Aprueba los mejores y se publican solos en la página web.' },
+          { sel: '#btn-demo', etiqueta: 'Demo', titulo: 'Pruébalo sin hardware', texto: 'Con "Demo en vivo" generamos datos simulados para que veas todo funcionando al instante.' },
           { sel: '#btn-informe', etiqueta: 'Reportes', titulo: 'Informe para tu cliente o jefe', texto: 'Genera un informe de flota listo para imprimir o guardar en PDF.' }
         ]
       });
