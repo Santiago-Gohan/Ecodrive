@@ -169,32 +169,32 @@ header {
 }
 .tour-lanzador:hover { border-color: var(--acento); }
 
-/* ---------- Ficha del vehículo y KPIs (mismo estilo del modal de mantenimiento) ---------- */
+/* ---------- Ficha del vehículo y KPIs (idénticas al modal de mantenimiento) ---------- */
 .ficha-veh {
-  max-width: 720px;
+  max-width: 680px;
   margin: 0 auto;
   width: 100%;
-  padding: 14px 24px 0;
+  padding: 10px 16px 0;
 }
 
 .panel-caja-veh {
   width: 100%;
   background: linear-gradient(180deg, var(--tarjeta2), var(--tarjeta));
   border: 1px solid var(--borde);
-  border-radius: var(--radio);
+  border-radius: var(--radio2);
   box-shadow: var(--sombra);
-  padding: 18px 18px 16px;
+  padding: 16px 16px 14px;
 }
 
 .panel-cabecera {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .panel-cabecera h3 {
-  font-size: 1.05rem;
+  font-size: 1rem;
   background: var(--degradado);
   -webkit-background-clip: text;
   background-clip: text;
@@ -207,11 +207,11 @@ header {
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 .conexion .punto {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #64748b;
 }
@@ -229,9 +229,9 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 14px;
-  padding: 14px 14px 13px;
-  margin: 4px 0 12px;
+  gap: 12px;
+  padding: 12px 12px 11px;
+  margin: 2px 0 10px;
   background: linear-gradient(160deg, rgba(34, 211, 238, 0.09), rgba(52, 211, 153, 0.05)), var(--tarjeta);
   border: 1px solid var(--borde);
   border-left: 3px solid var(--acento);
@@ -241,14 +241,14 @@ header {
 .mant-veh-izq {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
 .mant-veh-placa {
-  font-size: 1.4rem;
+  font-size: 1.32rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   background: var(--degradado);
   -webkit-background-clip: text;
   background-clip: text;
@@ -257,21 +257,79 @@ header {
 
 .mant-veh-nombre {
   color: var(--texto);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
 .mant-veh-pills {
   display: flex;
   gap: 6px;
-  margin-top: 2px;
+  margin-top: 1px;
   flex-wrap: wrap;
 }
 
 .mant-veh-salud,
 #ficha-salud {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   white-space: nowrap;
 }
+
+/* ---------- Tarjetas KPI (idénticas al modal de mantenimiento) ---------- */
+.mant-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.mant-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio2);
+  padding: 10px 10px 9px;
+  min-width: 0;
+}
+
+.mant-kpi-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mant-kpi-valor {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--texto);
+}
+
+.mant-kpi-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.mant-barra {
+  height: 5px;
+  margin-top: 5px;
+  background: #1b2740;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mant-barra-relleno {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--degradado);
+  transition: width 0.5s ease;
+}
+.mant-barra-relleno.verde { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.mant-barra-relleno.ambar { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.mant-barra-relleno.rojo { background: linear-gradient(90deg, #b91c1c, #ef4444); }
 
 .mant-kpis {
   display: grid;
@@ -865,7 +923,7 @@ header {
 @media (min-width: 900px) {
   header,
   .ficha-veh {
-    max-width: 720px;
+    max-width: 680px;
   }
   main {
     max-width: 1180px;
