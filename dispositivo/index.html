@@ -17,10 +17,14 @@
   <div id="alerta-aviso" class="alerta-aviso oculto"></div>
 
   <header>
-    <h1>EcoDrive <span>Dispositivo OBD-II</span></h1>
-    <a href="https://wa.me/573125886290?text=Hola%2C%20necesito%20soporte%20con%20EcoDrive" target="_blank" rel="noopener" class="link-admin">💬 Soporte por WhatsApp: 312 588 6290</a>
-    <a href="/apk/EcoDrive-v1.0.apk" class="link-admin">Descargar app para Android ↓</a>
-    <button id="btn-tour" class="tour-lanzador">🎬 Ver tour guiado</button>
+    <div class="cab-top">
+      <h1>EcoDrive <span>Panel del conductor</span></h1>
+      <button id="btn-tour" class="tour-lanzador">🎬 Tour</button>
+    </div>
+    <div class="cab-acciones">
+      <a href="https://wa.me/573125886290?text=Hola%2C%20necesito%20soporte%20con%20EcoDrive" target="_blank" rel="noopener" class="link-admin">💬 Soporte 312 588 6290</a>
+      <a href="/apk/EcoDrive-v1.0.apk" class="link-admin">⬇ App Android</a>
+    </div>
   </header>
 
   <nav id="toolbar" class="toolbar">
@@ -34,9 +38,46 @@
     <button class="tb-btn" id="tb-resumen" title="Ver resumen de jornada">📋<span>Jornada</span></button>
   </nav>
 
+  <section class="ficha-veh" id="ficha-vehiculo">
+    <div class="mant-veh">
+      <div class="mant-veh-izq">
+        <span class="mant-veh-placa" id="ficha-placa">SIN VINCULAR</span>
+        <span class="mant-veh-nombre" id="ficha-nombre">Vincula tu vehículo para empezar</span>
+        <div class="mant-veh-pills">
+          <span class="pill cyan" id="ficha-tipo">—</span>
+          <span class="pill" id="ficha-estado">Desconectado</span>
+        </div>
+      </div>
+      <span class="pill" id="ficha-salud">Sin lecturas</span>
+    </div>
+
+    <div class="mant-kpis">
+      <div class="mant-kpi">
+        <span class="mant-kpi-label">Temperatura ECT</span>
+        <span class="mant-kpi-valor" id="ficha-ect">--</span>
+        <div class="mant-barra"><div class="mant-barra-relleno" id="ficha-ect-barra" style="width:0%"></div></div>
+      </div>
+      <div class="mant-kpi">
+        <span class="mant-kpi-label">RPM</span>
+        <span class="mant-kpi-valor" id="ficha-rpm">--</span>
+        <div class="mant-barra"><div class="mant-barra-relleno ambar" id="ficha-rpm-barra" style="width:0%"></div></div>
+      </div>
+      <div class="mant-kpi">
+        <span class="mant-kpi-label">Combustible</span>
+        <span class="mant-kpi-valor" id="ficha-comb">--</span>
+        <div class="mant-barra"><div class="mant-barra-relleno verde" id="ficha-comb-barra" style="width:0%"></div></div>
+      </div>
+      <div class="mant-kpi">
+        <span class="mant-kpi-label">Recorrido jornada</span>
+        <span class="mant-kpi-valor" id="ficha-dist">0.0 km</span>
+        <span class="mant-kpi-sub" id="ficha-lecturas">0 lecturas</span>
+      </div>
+    </div>
+  </section>
+
   <main>
     <section class="tarjeta config" id="conf-vincular">
-      <h2>1 · Configurar vehículo</h2>
+      <h2 class="mant-sec">1 · Configurar vehículo</h2>
       <label>Vehículo (placa)</label>
       <select id="select-vehiculo"></select>
       <label>Código, placa o API Key del vehículo</label>
@@ -75,7 +116,7 @@
     </section>
 
     <section class="tarjeta config" id="conf-conectar">
-      <h2>2 · Conectar adaptador OBD-II</h2>
+      <h2 class="mant-sec">2 · Conectar adaptador OBD-II</h2>
       <ol class="pasos">
         <li>Enciende el vehículo y conecta el adaptador ELM327 al puerto OBD-II.</li>
         <li>Activa el Bluetooth del dispositivo.</li>
@@ -100,7 +141,7 @@
     </section>
 
     <section class="tarjeta config" id="conf-monitoreo">
-      <h2>3 · Monitoreo en vivo</h2>
+      <h2 class="mant-sec">3 · Monitoreo en vivo</h2>
       <div class="lecturas">
         <div class="lectura medidor">
           <svg class="gauge" viewBox="0 0 130 100">
@@ -153,7 +194,7 @@
     </section>
 
     <section class="tarjeta config" id="reportar-evento">
-      <h2>🚨 Reportar en la vía</h2>
+      <h2 class="mant-sec">🚨 Reportar en la vía</h2>
       <p class="pista">¿Viste policía, un accidente o un cierre? Avísale a tu flota. Se usa tu ubicación GPS actual.</p>
       <div class="chips" id="ev-chips-tipo">
         <button type="button" class="chip" data-tipo="POLICIA">🚓 Policía</button>
@@ -168,7 +209,7 @@
     </section>
 
     <section class="tarjeta" id="opiniones">
-      <h2>💬 Déjanos tu opinión</h2>
+      <h2 class="mant-sec">💬 Déjanos tu opinión</h2>
       <p class="pista">¿Cómo te va con EcoDrive? Cuéntanos qué mejorarías. Tu comentario nos ayuda a hacer una mejor app para conductores y empresas.</p>
       <label>¿Quién eres?</label>
       <div class="chips" id="op-chips-rol">
@@ -187,7 +228,7 @@
 
   <div id="resumen-jornada" class="overlay oculto">
     <div class="tarjeta resumen">
-      <h2>📋 Resumen de jornada</h2>
+      <h2 class="mant-sec">📋 Resumen de jornada</h2>
       <div id="resumen-grid" class="resumen-grid"></div>
       <div class="resumen-grafica">
         <div class="resumen-grafica-cab">

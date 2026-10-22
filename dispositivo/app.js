@@ -188,6 +188,36 @@ $selectVehiculo.addEventListener('change', definirVehiculo);
 
 function vehSeleccionado(id, placa) {
   vehiculoActual = { id, placa };
+  actualizarFichaVehiculo();
+}
+
+/* Refleja el vehículo vinculado y el estado de conexión en la ficha superior. */
+function actualizarFichaVehiculo() {
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const placa = vehiculoActual && vehiculoActual.placa;
+  if (placa) {
+    set('ficha-placa', placa);
+    const opt = $selectVehiculo && $selectVehiculo.selectedOptions[0];
+    const nombre = opt ? (opt.textContent || '').split(' - ').slice(1).join(' - ') : '';
+    set('ficha-nombre', nombre && nombre !== 'Vehiculo' ? nombre : 'Vehículo vinculado');
+  } else {
+    set('ficha-placa', 'SIN VINCULAR');
+    set('ficha-nombre', 'Vincula tu vehículo para empezar');
+  }
+
+  const conectado = !!(caracteristicaEscritura || modoVirtual);
+  const estado = document.getElementById('ficha-estado');
+  if (estado) {
+    estado.textContent = conectado ? 'Conectado' : 'Desconectado';
+    estado.className = 'pill ' + (conectado ? 'verde' : '');
+  }
+  const enMarcha = typeof monitoreoActivo !== 'undefined' && monitoreoActivo;
+  const salud = document.getElementById('ficha-salud');
+  if (salud) {
+    if (enMarcha) { salud.textContent = '🟢 Enviando'; salud.className = 'pill verde'; }
+    else if (conectado) { salud.textContent = 'Listo'; salud.className = 'pill cyan'; }
+    else { salud.textContent = 'Sin lecturas'; salud.className = 'pill'; }
+  }
 }
 
 /* ---------- Vinculación: código corto, placa, API Key, QR o VIN ---------- */
@@ -209,6 +239,7 @@ function guardarVinculo(vehiculoId, placa, apiKey) {
     JSON.stringify({ vehiculoId, placa, apiKey })
   );
   seleccionarEnLista(placa);
+  actualizarFichaVehiculo();
 }
 
 // Consulta el backend para resolver código / placa / VIN en la API Key del vehículo.
@@ -399,11 +430,13 @@ function log(texto) {
 function statusOk(textoTexto = 'Adaptador conectado') {
   $punto.style.background = '#22c55e';
   $textoEstado.textContent = textoTexto;
+  actualizarFichaVehiculo();
 }
 
 function statusOff() {
   $punto.style.background = '#64748b';
   $textoEstado.textContent = 'Sin conexión';
+  actualizarFichaVehiculo();
 }
 
 /* ---------- Alertas térmicas (vibración + sonido + banner) ---------- */
@@ -548,6 +581,10 @@ function actualizarChipsJornada() {
   if (!el || !jornada) return;
   const durMin = Math.round((Date.now() - jornada.inicio) / 60000);
   el.textContent = `Jornada: ${durMin} min · 🔥 ${jornada.ectMax ?? '--'}°C máx · 📍 ${(jornada.distanciaM / 1000).toFixed(1)} km · # ${jornada.lecturas} lecturas`;
+  const dist = document.getElementById('ficha-dist');
+  if (dist) dist.textContent = (jornada.distanciaM / 1000).toFixed(1) + ' km';
+  const lect = document.getElementById('ficha-lecturas');
+  if (lect) lect.textContent = jornada.lecturas + ' lecturas';
 }
 
 function reiniciarChipsJornada() {
@@ -899,6 +936,29 @@ function actualizarMedidores(ect, rpm, nivel) {
     const val = document.getElementById('val-combustible');
     if (val) val.textContent = nivel + '%';
   }
+  actualizarFicha(ect, rpm, nivel);
+}
+
+function actualizarFicha(ect, rpm, nivel) {
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const barra = (id, frac, clase) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.width = (Math.max(0, Math.min(1, frac || 0)) * 100).toFixed(0) + '%';
+    if (clase !== undefined) el.className = 'mant-barra-relleno' + (clase ? ' ' + clase : '');
+  };
+  if (ect !== null && ect !== undefined) {
+    set('ficha-ect', ect + ' °C');
+    barra('ficha-ect-barra', (ect - 20) / 100, ect > 105 ? 'rojo' : ect >= 95 ? 'ambar' : '');
+  }
+  if (rpm !== null && rpm !== undefined) {
+    set('ficha-rpm', String(rpm));
+    barra('ficha-rpm-barra', rpm / 9000, 'ambar');
+  }
+  if (nivel !== null && nivel !== undefined) {
+    set('ficha-comb', nivel + '%');
+    barra('ficha-comb-barra', nivel / 100, nivel <= 15 ? 'rojo' : 'verde');
+  }
 }
 
 async function postLectura(payload, apiKey) {
@@ -1032,6 +1092,7 @@ function iniciar() {
     : `Monitoreo iniciado cada ${Math.round(periodo / 1000)} segundos.`);
   ciclodeLectura();
   intervalo = setInterval(ciclodeLectura, periodo);
+  actualizarFichaVehiculo();
 }
 
 let modoVirtual = null;
@@ -1125,6 +1186,7 @@ function detener() {
   if (jornada && jornada.lecturas > 0) mostrarResumenJornada(jornada);
   jornada = null;
   log('Envío detenido.');
+  actualizarFichaVehiculo();
 }
 
 function sleep(ms) {
