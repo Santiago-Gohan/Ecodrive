@@ -23,6 +23,17 @@
     <button id="btn-tour" class="tour-lanzador">🎬 Ver tour guiado</button>
   </header>
 
+  <nav id="toolbar" class="toolbar">
+    <button class="tb-btn" data-tb="vincular" title="Configurar vehículo">🔗<span>Vincular</span></button>
+    <button class="tb-btn" id="tb-conectar" title="Conectar adaptador OBD-II">🔌<span>Conectar</span></button>
+    <button class="tb-btn" id="tb-iniciar" disabled title="Iniciar envío">▶️<span>Iniciar</span></button>
+    <button class="tb-btn" id="tb-detener" disabled title="Detener envío">⏹<span>Detener</span></button>
+    <button class="tb-btn on" id="tb-sonido" title="Sonido y vibración">🔊<span>Sonido</span></button>
+    <button class="tb-btn" data-tb="monitoreo" title="Monitoreo en vivo">📊<span>En vivo</span></button>
+    <button class="tb-btn" data-tb="reportar-eventos" title="Reportar en la vía">🚨<span>Reportar</span></button>
+    <button class="tb-btn" id="tb-resumen" title="Ver resumen de jornada">📋<span>Jornada</span></button>
+  </nav>
+
   <main>
     <section class="tarjeta config" id="conf-vincular">
       <h2>1 · Configurar vehículo</h2>
@@ -178,6 +189,13 @@
     <div class="tarjeta resumen">
       <h2>📋 Resumen de jornada</h2>
       <div id="resumen-grid" class="resumen-grid"></div>
+      <div class="resumen-grafica">
+        <div class="resumen-grafica-cab">
+          <span>Temperatura del motor (ECT) durante la jornada</span>
+          <span class="pista" id="resumen-grafica-note"></span>
+        </div>
+        <canvas id="resumen-canvas" height="150"></canvas>
+      </div>
       <button id="btn-cerrar-resumen" class="btn-primario full">Cerrar</button>
     </div>
   </div>

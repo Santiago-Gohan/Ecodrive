@@ -157,6 +157,252 @@ body {
   padding-top: 4px;
 }
 
+/* ---------- Controles en vivo en tarjeta de vehículo ---------- */
+.veh-vivo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: rgba(11, 18, 32, 0.5);
+  border: 1px solid rgba(42, 58, 88, 0.55);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.veh-vivo.off { opacity: 0.55; }
+
+.veh-vivo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.veh-vivo-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.veh-vivo-num.verde { color: var(--verde); }
+.veh-vivo-num.ambar { color: #fbbf24; }
+.veh-vivo-num.rojo { color: var(--rojo); }
+.veh-vivo-num.gris { color: var(--muted); }
+
+.veh-vivo-lab {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.veh-vivo-barra {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(138, 160, 184, 0.15);
+  overflow: hidden;
+}
+
+.veh-vivo-barra > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cyan, #22d3ee);
+  transition: width 0.4s ease;
+}
+
+.veh-vivo-barra > i.verde { background: linear-gradient(90deg, #22c55e, #15803d); }
+.veh-vivo-barra > i.ambar { background: linear-gradient(90deg, #fbbf24, #d97706); }
+.veh-vivo-barra > i.rojo  { background: linear-gradient(90deg, #f43f5e, #b91c1c); }
+.veh-vivo-barra > i.cyan  { background: linear-gradient(90deg, #22d3ee, #0891b2); }
+.veh-vivo-barra > i.gris  { background: #475569; }
+
+.veh-mnt-fila {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.btn-mnt.vivo-btn {
+  background: rgba(34, 211, 238, 0.12);
+  border-color: rgba(34, 211, 238, 0.4);
+  color: #67e8f9;
+}
+
+.btn-mnt.vivo-btn:hover {
+  background: rgba(34, 211, 238, 0.22);
+  border-color: rgba(34, 211, 238, 0.7);
+}
+
+/* ---------- Modal dashboard en vivo ---------- */
+.modal-vivo-caja {
+  max-width: 900px;
+  width: min(94vw, 900px);
+}
+
+.vivo-cab-der {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vivo-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--verde);
+}
+
+.vivo-estado .punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 8px var(--verde);
+  animation: pulso 1.6s infinite;
+}
+
+.vivo-estado .punto.off {
+  background: var(--muted);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.vivo-toolbar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.vivo-metrica {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(11, 18, 32, 0.5);
+  border: 1px solid rgba(42, 58, 88, 0.55);
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.vivo-metrica-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.vivo-metrica-valor {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.vivo-metrica-valor.verde { color: var(--verde); }
+.vivo-metrica-valor.ambar { color: #fbbf24; }
+.vivo-metrica-valor.rojo { color: var(--rojo); }
+
+.vivo-metrica-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vivo-barra {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(138, 160, 184, 0.15);
+  overflow: hidden;
+}
+
+.vivo-barra-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22d3ee, #0891b2);
+  transition: width 0.4s ease;
+}
+
+.vivo-barra-fill.verde { background: linear-gradient(90deg, #22c55e, #15803d); }
+.vivo-barra-fill.ambar { background: linear-gradient(90deg, #fbbf24, #d97706); }
+.vivo-barra-fill.rojo  { background: linear-gradient(90deg, #f43f5e, #b91c1c); }
+.vivo-barra-fill.rpm   { background: linear-gradient(90deg, #22d3ee, #0891b2); }
+.vivo-barra-fill.comb  { background: linear-gradient(90deg, #22c55e, #15803d); }
+
+.vivo-grafica-bloque {
+  margin: 10px 0 14px;
+  background: rgba(11, 18, 32, 0.35);
+  border: 1px solid rgba(42, 58, 88, 0.55);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.vivo-grafica-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+#vivo-canvas {
+  width: 100%;
+  display: block;
+}
+
+.vivo-tabla-wrap,
+.mant-hist-tabla {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.vivo-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.vivo-tabla th,
+.vivo-tabla td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(42, 58, 88, 0.45);
+}
+
+.vivo-tabla th {
+  position: sticky;
+  top: 0;
+  background: var(--tarjeta);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .vivo-toolbar { grid-template-columns: repeat(2, 1fr); }
+  .veh-vivo { grid-template-columns: repeat(4, 1fr); }
+}
+
 .oculto {
   display: none !important;
 }

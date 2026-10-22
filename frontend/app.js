@@ -5,7 +5,6 @@ let socket = null;
 const $login = document.getElementById('vista-login');
 const $dash = document.getElementById('vista-dashboard');
 const $flota = document.getElementById('vista-flota');
-const $historial = document.getElementById('vista-historial');
 const $opiniones = document.getElementById('vista-opiniones');
 const $gestion = document.getElementById('vista-gestion');
 const $header = document.getElementById('header');
@@ -15,7 +14,7 @@ const $tabla = document.getElementById('cuerpo-flota');
 const $conexion = document.getElementById('conexion');
 const $errorLogin = document.getElementById('error-login');
 
-const VISTAS = { dashboard: $dash, flota: $flota, historial: $historial, opiniones: $opiniones, gestion: $gestion };
+const VISTAS = { dashboard: $dash, flota: $flota, opiniones: $opiniones, gestion: $gestion };
 
 function conectarSocket() {
   socket = io();
@@ -117,7 +116,6 @@ function cambiarVista(nombre) {
     b.classList.toggle('activo', b.dataset.vista === nombre);
   });
   if (nombre === 'flota') cargarVehiculos();
-  if (nombre === 'historial') cargarHistorial();
   if (nombre === 'opiniones') cargarOpiniones();
   if (nombre === 'gestion' && window.gestionCargado !== true) {
     window.gestionCargado = true;
@@ -557,6 +555,201 @@ function iniciarPollingGrafica() {
   }, 5000);
 }
 
+/* ================================================================
+ *  Dashboard en vivo por dispositivo (cliente ve solo el suyo;
+ *  el admin puede abrir cualquiera). Datos desde /telemetry/resumen
+ *  y /historial/telemetria?vehiculo_id=
+ * ================================================================ */
+let vivoActivo = null;        // id del vehículo abierto
+let vivoPoll = null;          // intervalo de refresco
+let vivoSerie = [];           // [{t, ect}] para la mini-gráfica
+
+function cerrarDashboardVivo() {
+  document.getElementById('modal-vivo').classList.add('oculto');
+  if (vivoPoll) { clearInterval(vivoPoll); vivoPoll = null; }
+  vivoActivo = null;
+  vivoSerie = [];
+  window.removeEventListener('resize', dibujarVivoCanvas);
+}
+
+async function abrirDashboardVivo(id, placa, nombre) {
+  vivoActivo = id;
+  vivoSerie = [];
+  document.getElementById('vivo-placa').textContent = placa || '—';
+  document.getElementById('vivo-nombre').textContent = nombre || 'Dispositivo';
+  document.getElementById('modal-vivo').classList.remove('oculto');
+  await refrescarDashboardVivo(true);
+  if (vivoPoll) clearInterval(vivoPoll);
+  vivoPoll = setInterval(() => refrescarDashboardVivo(false), 4000);
+  window.addEventListener('resize', dibujarVivoCanvas);
+}
+
+async function refrescarDashboardVivo(inicial) {
+  if (!vivoActivo) return;
+  try {
+    const rv = await fetchApi(`${API}/telemetry/resumen`);
+    const filas = await rv.json();
+    const v = filas.find((x) => x.id === vivoActivo);
+    if (!v) return;
+    renderVivo(v);
+    if (inicial) await cargarHistorialVivo(vivoActivo);
+  } catch (err) {
+    console.error('Error dashboard en vivo:', err);
+  }
+}
+
+function renderVivo(v) {
+  const ect = v.ect === null || v.ect === undefined ? null : Number(v.ect);
+  const rpm = v.rpm === null || v.rpm === undefined ? null : Number(v.rpm);
+  const comb = v.nivel_combustible === null || v.nivel_combustible === undefined ? null : Number(v.nivel_combustible);
+  const alertas = Number(v.alertas_activas || 0);
+  const online = vehiculoEnLinea(v);
+
+  const est = document.getElementById('vivo-estado');
+  est.innerHTML = `<span class="punto ${online ? '' : 'off'}"></span> ${online ? 'En línea' : 'Sin señal'}`;
+
+  const ectEl = document.getElementById('vivo-ect');
+  ectEl.textContent = ect === null ? '--' : ect + ' °C';
+  ectEl.className = 'vivo-metrica-valor ' + (ect === null ? '' : ect > 105 ? 'rojo' : ect >= 95 ? 'ambar' : 'verde');
+  document.getElementById('vivo-ect-barra').style.width =
+    ect === null ? '0%' : Math.min(100, Math.max(0, ((ect + 30) / 145) * 100)) + '%';
+  document.getElementById('vivo-ect-barra').className =
+    'vivo-barra-fill ' + (ect === null ? '' : ect > 105 ? 'rojo' : ect >= 95 ? 'ambar' : 'verde');
+
+  document.getElementById('vivo-rpm').textContent = rpm === null ? '--' : Math.round(rpm).toLocaleString('es-CO');
+  document.getElementById('vivo-rpm-barra').style.width =
+    rpm === null ? '0%' : Math.min(100, Math.max(0, (rpm / 6000) * 100)) + '%';
+
+  document.getElementById('vivo-comb').textContent = comb === null ? '--' : Math.round(comb) + ' %';
+  document.getElementById('vivo-comb-barra').style.width = comb === null ? '0%' : Math.min(100, Math.max(0, comb)) + '%';
+
+  document.getElementById('vivo-alertas').textContent = alertas;
+  document.getElementById('vivo-alertas').className = 'vivo-metrica-valor ' + (alertas ? 'rojo' : '');
+  document.getElementById('vivo-ultima').textContent = v.ultima_lectura
+    ? new Date(v.ultima_lectura).toLocaleTimeString('es-CO')
+    : 'Sin lecturas';
+
+  const salud = saludVehiculo(v);
+  const saludEl = document.getElementById('vivo-salud');
+  saludEl.textContent = salud.texto;
+  saludEl.className = 'pill ' + salud.clase;
+  document.getElementById('vivo-gps').textContent =
+    v.lat !== null && v.lng !== null && v.lat !== undefined && v.lng !== undefined
+      ? `GPS ${Number(v.lat).toFixed(4)}, ${Number(v.lng).toFixed(4)}`
+      : 'GPS —';
+
+  if (ect !== null && v.ultima_lectura) {
+    const t = new Date(v.ultima_lectura).getTime();
+    if (!vivoSerie.length || vivoSerie[vivoSerie.length - 1].t !== t) {
+      vivoSerie.push({ t, ect });
+      vivoSerie = vivoSerie.slice(-60);
+    }
+  }
+  dibujarVivoCanvas();
+}
+
+function dibujarVivoCanvas() {
+  const canvas = document.getElementById('vivo-canvas');
+  if (!canvas || !canvas.getContext) return;
+  if (document.getElementById('modal-vivo').classList.contains('oculto')) return;
+  const ctx = canvas.getContext('2d');
+  const cssW = canvas.clientWidth || 700;
+  const H = 160;
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== H * dpr) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = H * dpr;
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = cssW;
+  const padL = 38, padR = 12, padT = 14, padB = 22;
+  ctx.clearRect(0, 0, W, H);
+  const yMin = 50, yMax = 115;
+  const Y = (e) => padT + ((yMax - e) / (yMax - yMin)) * (H - padT - padB);
+
+  for (let val = yMin; val <= yMax; val += 10) {
+    const y = Y(val);
+    ctx.strokeStyle = 'rgba(148,163,184,0.14)';
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillStyle = '#8fa0b8';
+    ctx.font = '10px Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(val + '°', padL - 6, y + 3);
+  }
+  const y105 = Y(105);
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+  ctx.beginPath(); ctx.moveTo(padL, y105); ctx.lineTo(W - padR, y105); ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (vivoSerie.length < 2) {
+    ctx.fillStyle = '#64748b';
+    ctx.font = '13px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Esperando lecturas…', W / 2, H / 2);
+    return;
+  }
+  const n = vivoSerie.length;
+  const areaW = W - padL - padR;
+  const baseY = H - padB;
+  const slot = areaW / n;
+  const barW = Math.max(3, Math.min(slot * 0.7, 18));
+
+  vivoSerie.forEach((p, i) => {
+    const cx = padL + slot * i + slot / 2;
+    const y = Y(p.ect);
+    const h = Math.max(1, baseY - y);
+    const grad = ctx.createLinearGradient(0, y, 0, baseY);
+    if (p.ect > 105) { grad.addColorStop(0, '#f43f5e'); grad.addColorStop(1, '#b91c1c'); }
+    else if (p.ect >= 95) { grad.addColorStop(0, '#fbbf24'); grad.addColorStop(1, '#d97706'); }
+    else { grad.addColorStop(0, '#22d3ee'); grad.addColorStop(1, '#0891b2'); }
+    ctx.fillStyle = grad;
+    const x = cx - barW / 2;
+    const r = Math.min(3, barW / 2);
+    ctx.beginPath();
+    ctx.moveTo(x, baseY);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.lineTo(x + barW - r, y);
+    ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
+    ctx.lineTo(x + barW, baseY);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  const ult = vivoSerie[n - 1];
+  ctx.fillStyle = '#8fa0b8';
+  ctx.font = '10px Segoe UI, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(new Date(vivoSerie[0].t).toLocaleTimeString('es-CO'), padL, H - 6);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = ult.ect > 105 ? '#ef4444' : ult.ect >= 95 ? '#fbbf24' : '#22d3ee';
+  ctx.font = 'bold 11px Segoe UI, sans-serif';
+  ctx.fillText(`${ult.ect} °C · ${new Date(ult.t).toLocaleTimeString('es-CO')}`, W - padR, H - 6);
+}
+
+async function cargarHistorialVivo(vehiculoId) {
+  const cuerpo = document.getElementById('vivo-historial');
+  try {
+    const resp = await fetchApi(`${API}/historial/telemetria?vehiculo_id=${vehiculoId}&limite=15`);
+    const filas = await resp.json();
+    if (!filas.length) {
+      cuerpo.innerHTML = '<tr><td colspan="4" class="vacio">Sin lecturas</td></tr>';
+      return;
+    }
+    cuerpo.innerHTML = filas
+      .map((t) => `<tr>
+        <td>${new Date(t.fecha_registro).toLocaleString('es-CO')}</td>
+        <td class="${Number(t.ect_temperatura) > 105 ? 'caliente' : ''}">${t.ect_temperatura} °C</td>
+        <td>${t.rpm}</td>
+        <td>${t.nivel_combustible === null || t.nivel_combustible === undefined ? '--' : Math.round(Number(t.nivel_combustible)) + '%'}</td>
+      </tr>`)
+      .join('');
+  } catch (err) {
+    cuerpo.innerHTML = '<tr><td colspan="4" class="vacio">No se pudo cargar el historial</td></tr>';
+  }
+}
+
 window.addEventListener('resize', () => {
   clearTimeout(graficaRedibuja);
   graficaRedibuja = setTimeout(dibujarGrafica, 150);
@@ -580,6 +773,46 @@ async function cargarVehiculos() {
   } catch (err) {
     console.error('Error al cargar vehículos:', err);
   }
+}
+
+function vehiculoEnLinea(v) {
+  if (!v.ultima_lectura) return false;
+  const ms = Date.now() - new Date(v.ultima_lectura).getTime();
+  return ms <= 10 * 60 * 1000;
+}
+
+function controlesVivo(v) {
+  const ect = v.ect === null || v.ect === undefined ? null : Number(v.ect);
+  const rpm = v.rpm === null || v.rpm === undefined ? null : Number(v.rpm);
+  const comb = v.nivel_combustible === null || v.nivel_combustible === undefined ? null : Number(v.nivel_combustible);
+  const alertas = Number(v.alertas_activas || 0);
+  const online = vehiculoEnLinea(v);
+  const ectClase = ect === null ? 'gris' : ect > 105 ? 'rojo' : ect >= 95 ? 'ambar' : 'verde';
+  const ectPct = ect === null ? 0 : Math.min(100, Math.max(0, ((ect + 30) / 145) * 100));
+  const rpmPct = rpm === null ? 0 : Math.min(100, Math.max(0, (rpm / 6000) * 100));
+  const combPct = comb === null ? 0 : Math.min(100, Math.max(0, comb));
+  return `<div class="veh-vivo ${online ? '' : 'off'}">
+    <div class="veh-vivo-item" title="Temperatura del motor (ECT)">
+      <span class="veh-vivo-num ${ectClase}">${ect === null ? '--' : ect + '°'}</span>
+      <span class="veh-vivo-lab">ECT</span>
+      <div class="veh-vivo-barra"><i class="${ectClase}" style="width:${ectPct}%"></i></div>
+    </div>
+    <div class="veh-vivo-item" title="Revoluciones por minuto">
+      <span class="veh-vivo-num">${rpm === null ? '--' : Math.round(rpm)}</span>
+      <span class="veh-vivo-lab">RPM</span>
+      <div class="veh-vivo-barra"><i class="cyan" style="width:${rpmPct}%"></i></div>
+    </div>
+    <div class="veh-vivo-item" title="Nivel de combustible">
+      <span class="veh-vivo-num">${comb === null ? '--' : Math.round(comb) + '%'}</span>
+      <span class="veh-vivo-lab">Comb.</span>
+      <div class="veh-vivo-barra"><i class="${comb !== null && comb <= 15 ? 'rojo' : 'verde'}" style="width:${combPct}%"></i></div>
+    </div>
+    <div class="veh-vivo-item" title="Alertas activas">
+      <span class="veh-vivo-num ${alertas ? 'rojo' : ''}">${alertas}</span>
+      <span class="veh-vivo-lab">Alertas</span>
+      <div class="veh-vivo-barra"><i class="${alertas ? 'rojo' : 'gris'}" style="width:${alertas ? 100 : 0}%"></i></div>
+    </div>
+  </div>`;
 }
 
 function renderVehiculos(filas) {
@@ -616,11 +849,18 @@ function renderVehiculos(filas) {
           <span class="chip">${v.total_lecturas} lecturas</span>
           <span class="chip ${Number(v.alertas_activas) ? 'chip-alerta' : ''}">${v.alertas_activas} alerta${v.alertas_activas === 1 ? '' : 's'}</span>
         </div>
+        ${controlesVivo(v)}
         <div class="veh-mnt">
-          <button class="btn-mnt ${mnt.clase}" data-mant="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}"
-            title="${mnt.title}">
-            🛠️ Mantenimiento${v.total_mnt ? `<span class="btn-mnt-badge">${v.total_mnt}</span>` : ''}
-          </button>
+          <div class="veh-mnt-fila">
+            <button class="btn-mnt ${mnt.clase}" data-mant="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}"
+              title="${mnt.title}">
+              🛠️ Mantenimiento${v.total_mnt ? `<span class="btn-mnt-badge">${v.total_mnt}</span>` : ''}
+            </button>
+            <button class="btn-mnt vivo-btn" data-vivo="${v.id}" data-placa="${v.placa}" data-nombre="${v.nombre || ''}"
+              title="Ver dashboard en vivo de este dispositivo">
+              📡 Ver en vivo
+            </button>
+          </div>
           <div class="celda-mnt-sub">
             <span class="pill ${mnt.clase}">${mnt.etiqueta}</span>
             <span class="celda-mnt-cuando">${mnt.fecha}</span>
@@ -645,6 +885,9 @@ function renderVehiculos(filas) {
   );
   grid.querySelectorAll('[data-mant]').forEach((btn) =>
     btn.addEventListener('click', () => abrirModalMant(btn.dataset.mant, btn.dataset.placa, btn.dataset.nombre))
+  );
+  grid.querySelectorAll('[data-vivo]').forEach((btn) =>
+    btn.addEventListener('click', () => abrirDashboardVivo(btn.dataset.vivo, btn.dataset.placa, btn.dataset.nombre))
   );
   grid.querySelectorAll('[data-toggle]').forEach((btn) =>
     btn.addEventListener('click', () => alternarActivo(btn.dataset.toggle, btn.dataset.activo === 'true'))
@@ -762,7 +1005,61 @@ async function abrirModalMant(id, placa, nombre) {
   document.getElementById('mnt-costo').value = '';
   renderResumenMnt(v, hist);
   renderHistorialMant(hist);
+  cargarTelemetriaMant(id);
+  cargarAlertasMant(id);
   document.getElementById('modal-mant').classList.remove('oculto');
+}
+
+async function cargarTelemetriaMant(vehiculoId) {
+  const cuerpo = document.getElementById('mant-telemetria');
+  if (!cuerpo) return;
+  try {
+    const resp = await fetchApi(`${API}/historial/telemetria?vehiculo_id=${vehiculoId}&limite=12`);
+    const filas = await resp.json();
+    if (!filas.length) {
+      cuerpo.innerHTML = '<tr><td colspan="4" class="vacio-ligero">Sin lecturas</td></tr>';
+      return;
+    }
+    cuerpo.innerHTML = filas
+      .map((t) => `<tr>
+        <td>${new Date(t.fecha_registro).toLocaleString('es-CO')}</td>
+        <td class="${Number(t.ect_temperatura) > 105 ? 'caliente' : ''}">${t.ect_temperatura} °C</td>
+        <td>${t.rpm}</td>
+        <td>${t.nivel_combustible === null || t.nivel_combustible === undefined ? '--' : Math.round(Number(t.nivel_combustible)) + '%'}</td>
+      </tr>`)
+      .join('');
+  } catch (err) {
+    cuerpo.innerHTML = '<tr><td colspan="4" class="vacio-ligero">No se pudo cargar</td></tr>';
+  }
+}
+
+async function cargarAlertasMant(vehiculoId) {
+  const cuerpo = document.getElementById('mant-alertas');
+  if (!cuerpo) return;
+  try {
+    const resp = await fetchApi(`${API}/historial/alertas?vehiculo_id=${vehiculoId}&limite=12`);
+    const filas = await resp.json();
+    if (!filas.length) {
+      cuerpo.innerHTML = '<tr><td colspan="5" class="vacio-ligero">Sin alertas</td></tr>';
+      return;
+    }
+    const pillSev = (s) => (s === 'ALTA' ? 'rojo' : s === 'MEDIA' ? 'ambar' : 'gris');
+    const pillEst = (e) => (e === 'ATENDIDA' ? 'verde' : e === 'ACTIVA' ? 'ambar' : 'gris');
+    cuerpo.innerHTML = filas
+      .map((a) => `<tr>
+        <td>${a.tipo_alerta}</td>
+        <td><span class="pill ${pillSev(a.severidad)}">${a.severidad}</span></td>
+        <td><span class="pill ${pillEst(a.estado)}">${a.estado}</span></td>
+        <td>${new Date(a.fecha_generacion).toLocaleString('es-CO')}</td>
+        <td>${a.estado !== 'ATENDIDA' ? `<button class="btn-mini" data-mant-atender="${a.id}">Atender</button>` : '--'}</td>
+      </tr>`)
+      .join('');
+    cuerpo.querySelectorAll('[data-mant-atender]').forEach((btn) =>
+      btn.addEventListener('click', () => atenderAlerta(btn.dataset.mantAtender))
+    );
+  } catch (err) {
+    cuerpo.innerHTML = '<tr><td colspan="5" class="vacio-ligero">No se pudo cargar</td></tr>';
+  }
 }
 
 function cerrarModalMant() {
@@ -1086,87 +1383,16 @@ async function eliminarVehiculo(id, placa) {
   }
 }
 
-async function cargarHistorial() {
-  cargarAlertas();
-  cargarTelemetria();
-}
-
-async function cargarAlertas() {
-  const estado = document.getElementById('filtro-alerta-estado').value || null;
-  const params = estado ? `?estado=${estado}` : '';
-  try {
-    const resp = await fetchApi(`${API}/historial/alertas${params}`);
-    const filas = await resp.json();
-    renderAlertas(filas);
-  } catch (err) {
-    console.error('Error al cargar alertas:', err);
-  }
-}
-
-function renderAlertas(filas) {
-  const cuerpo = document.getElementById('cuerpo-alertas');
-  if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="6" class="vacio">Sin alertas registradas</td></tr>';
-    return;
-  }
-  const pillSev = (s) => (s === 'ALTA' ? 'rojo' : s === 'MEDIA' ? 'ambar' : 'gris');
-  const pillEst = (e) => (e === 'ATENDIDA' ? 'verde' : e === 'ACTIVA' ? 'ambar' : 'gris');
-  cuerpo.innerHTML = filas
-    .map((a) => `<tr>
-      <td><strong>${a.placa}</strong></td>
-      <td>${a.tipo_alerta}</td>
-      <td><span class="pill ${pillSev(a.severidad)}">${a.severidad}</span></td>
-      <td><span class="pill ${pillEst(a.estado)}">${a.estado}</span></td>
-      <td>${new Date(a.fecha_generacion).toLocaleString('es-CO')}</td>
-      <td class="acciones">
-        ${a.estado !== 'ATENDIDA'
-          ? `<button class="btn-mini" data-atender="${a.id}">Atender</button>`
-          : '--'}
-      </td>
-    </tr>`)
-    .join('');
-  cuerpo.querySelectorAll('[data-atender]').forEach((btn) =>
-    btn.addEventListener('click', () => atenderAlerta(btn.dataset.atender))
-  );
-}
-
 async function atenderAlerta(id) {
   try {
     const resp = await fetchApi(`${API}/historial/alertas/${id}/atender`, { method: 'POST' });
     if (!resp.ok) return toast('Error al atender la alerta', 'err');
     toast('Alerta atendida', 'ok');
-    cargarAlertas();
+    if (mantActivo) cargarAlertasMant(mantActivo);
     cargarFlota();
   } catch (err) {
     console.error(err);
   }
-}
-
-async function cargarTelemetria() {
-  try {
-    const resp = await fetchApi(`${API}/historial/telemetria?limite=20`);
-    const filas = await resp.json();
-    renderTelemetria(filas);
-  } catch (err) {
-    console.error('Error al cargar telemetría:', err);
-  }
-}
-
-function renderTelemetria(filas) {
-  const cuerpo = document.getElementById('cuerpo-telemetria');
-  if (!filas.length) {
-    cuerpo.innerHTML = '<tr><td colspan="5" class="vacio">Sin lecturas</td></tr>';
-    return;
-  }
-  cuerpo.innerHTML = filas
-    .map((t) => `<tr>
-      <td><strong>${t.placa}</strong></td>
-      <td class="${Number(t.ect_temperatura) > 105 ? 'caliente' : ''}">${t.ect_temperatura} °C</td>
-      <td>${t.rpm}</td>
-      <td>${t.nivel_combustible === null || t.nivel_combustible === undefined ? '--' : Math.round(Number(t.nivel_combustible)) + '%'}</td>
-      <td>${new Date(t.fecha_registro).toLocaleString('es-CO')}</td>
-    </tr>`)
-    .join('');
 }
 
 /* ---------- Opiniones (moderación) ---------- */
@@ -1271,7 +1497,6 @@ function salir() {
   $login.classList.remove('oculto');
   VISTAS.dashboard.classList.add('oculto');
   VISTAS.flota.classList.add('oculto');
-  VISTAS.historial.classList.add('oculto');
   VISTAS.opiniones.classList.add('oculto');
 }
 
@@ -1376,34 +1601,6 @@ function descargarCSV(nombre, columnas, filas) {
   URL.revokeObjectURL(a.href);
 }
 
-async function exportarCSVAlertas() {
-  try {
-    const estado = document.getElementById('filtro-alerta-estado').value || null;
-    const params = estado ? `?estado=${estado}` : '';
-    const resp = await fetchApi(`${API}/historial/alertas${params}`);
-    const filas = await resp.json();
-    descargarCSV(`alertas_${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Placa', 'Tipo', 'Severidad', 'Estado', 'Fecha'],
-      filas.map((a) => [a.placa, a.tipo_alerta, a.severidad, a.estado, new Date(a.fecha_generacion).toLocaleString('es-CO')]));
-    toast('Alertas exportadas', 'ok');
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-async function exportarCSVTelemetria() {
-  try {
-    const resp = await fetchApi(`${API}/historial/telemetria?limite=20`);
-    const filas = await resp.json();
-    descargarCSV(`telemetria_${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Placa', 'ECT (°C)', 'RPM', 'Combustible (%)', 'Fecha'],
-      filas.map((t) => [t.placa, t.ect_temperatura, t.rpm, t.nivel_combustible == null ? '--' : Math.round(Number(t.nivel_combustible)), new Date(t.fecha_registro).toLocaleString('es-CO')]));
-    toast('Telemetría exportada', 'ok');
-  } catch (err) {
-    console.error(err);
-  }
-}
-
 /* ---------- Informe de flota (imprimir / PDF) ---------- */
 async function abrirInforme() {
   try {
@@ -1457,10 +1654,7 @@ document.getElementById('banner-cerrar').addEventListener('click', ocultarAlerta
 document.getElementById('btn-simular').addEventListener('click', simularAlerta);
 document.getElementById('btn-demo').addEventListener('click', () => (demoIntervalo ? pararDemo() : iniciarDemo()));
 document.getElementById('btn-informe').addEventListener('click', abrirInforme);
-document.getElementById('btn-exportar-alertas').addEventListener('click', exportarCSVAlertas);
-document.getElementById('btn-exportar-telemetria').addEventListener('click', exportarCSVTelemetria);
 document.getElementById('btn-crear').addEventListener('click', crearVehiculo);
-document.getElementById('btn-cargar-alertas').addEventListener('click', cargarAlertas);
 document.getElementById('mant-guardar').addEventListener('click', guardarModalMant);
 document.getElementById('mnt-registrar').addEventListener('click', registrarMantenimiento);
 document.getElementById('mant-crear-ot').addEventListener('click', crearOTDesdeMant);
@@ -1494,6 +1688,10 @@ document.querySelectorAll('.nav-btn').forEach((btn) => {
 });
 
 document.getElementById('btn-cargar-opiniones')?.addEventListener('click', cargarOpiniones);
+document.getElementById('vivo-cerrar')?.addEventListener('click', cerrarDashboardVivo);
+document.getElementById('modal-vivo')?.addEventListener('click', (e) => {
+  if (e.target.id === 'modal-vivo') cerrarDashboardVivo();
+});
 
 conectarSocket();
 

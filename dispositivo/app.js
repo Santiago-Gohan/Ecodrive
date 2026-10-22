@@ -511,6 +511,7 @@ function asegurarJornada() {
       lng: null,
       distanciaM: 0,
       alertas: 0,
+      serie: [],
     };
   }
   return jornada;
@@ -523,6 +524,8 @@ function registrarJornada(payload, online) {
   if (j.ectMin === null || payload.ect < j.ectMin) j.ectMin = payload.ect;
   if (payload.ect > j.ectMax) j.ectMax = payload.ect;
   j.ectSum += payload.ect;
+  j.serie.push(payload.ect);
+  if (j.serie.length > 240) j.serie.shift();
   if (payload.rpm > j.rpmMax) j.rpmMax = payload.rpm;
   j.rpmSum += payload.rpm;
   if (payload.nivel_combustible !== null && payload.nivel_combustible !== undefined) {
@@ -575,6 +578,70 @@ function mostrarResumenJornada(j) {
   }
   const overlay = document.getElementById('resumen-jornada');
   if (overlay) overlay.classList.remove('oculto');
+  dibujarResumenJornada(j);
+}
+
+function dibujarResumenJornada(j) {
+  const canvas = document.getElementById('resumen-canvas');
+  if (!canvas || !canvas.getContext) return;
+  const serie = (j.serie || []).slice(-120);
+  const nota = document.getElementById('resumen-grafica-note');
+  if (nota) nota.textContent = serie.length ? `${serie.length} muestras · máx ${j.ectMax ?? '--'} °C` : 'Sin datos';
+  if (!serie.length) return;
+
+  const ctx = canvas.getContext('2d');
+  const cssW = canvas.clientWidth || 320;
+  const H = 150;
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== H * dpr) {
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = H * dpr;
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = cssW;
+  const padL = 34, padR = 10, padT = 12, padB = 18;
+  ctx.clearRect(0, 0, W, H);
+
+  const yMin = 50, yMax = 115;
+  const Y = (e) => padT + ((yMax - e) / (yMax - yMin)) * (H - padT - padB);
+
+  for (let val = yMin; val <= yMax; val += 10) {
+    const y = Y(val);
+    ctx.strokeStyle = 'rgba(148,163,184,0.14)';
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillStyle = '#8fa0b8';
+    ctx.font = '9px Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(val + '°', padL - 5, y + 3);
+  }
+  const y105 = Y(105);
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+  ctx.beginPath(); ctx.moveTo(padL, y105); ctx.lineTo(W - padR, y105); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const areaW = W - padL - padR;
+  const baseY = H - padB;
+  const slot = areaW / serie.length;
+  const barW = Math.max(2, Math.min(slot * 0.72, 14));
+  serie.forEach((ect, i) => {
+    const cx = padL + slot * i + slot / 2;
+    const y = Y(ect);
+    const h = Math.max(1, baseY - y);
+    const grad = ctx.createLinearGradient(0, y, 0, baseY);
+    if (ect > 105) { grad.addColorStop(0, '#f43f5e'); grad.addColorStop(1, '#b91c1c'); }
+    else if (ect >= 95) { grad.addColorStop(0, '#fbbf24'); grad.addColorStop(1, '#d97706'); }
+    else { grad.addColorStop(0, '#22d3ee'); grad.addColorStop(1, '#0891b2'); }
+    ctx.fillStyle = grad;
+    ctx.fillRect(cx - barW / 2, y, barW, h);
+  });
+
+  ctx.fillStyle = '#8fa0b8';
+  ctx.font = '9px Segoe UI, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('inicio', padL, H - 5);
+  ctx.textAlign = 'right';
+  ctx.fillText('ahora', W - padR, H - 5);
 }
 
 function cerrarResumen() {
@@ -1151,3 +1218,61 @@ cargarVehiculos();
 actualizarCola();
 iniciarChipsEvento();
 iniciarGps();
+
+/* ---------- Toolbar superior horizontal ---------- */
+function sincronizarToolbar() {
+  const tbConectar = document.getElementById('tb-conectar');
+  const tbIniciar = document.getElementById('tb-iniciar');
+  const tbDetener = document.getElementById('tb-detener');
+  const tbSonido = document.getElementById('tb-sonido');
+  if (tbConectar) {
+    const conectado = !!(caracteristicaEscritura || modoVirtual);
+    tbConectar.classList.toggle('on', conectado);
+    tbConectar.querySelector('span').textContent = conectado ? 'Conectado' : 'Conectar';
+  }
+  if (tbIniciar) tbIniciar.disabled = $btnIniciar.disabled;
+  if (tbDetener) tbDetener.disabled = $btnDetener.disabled;
+  if (tbSonido) {
+    const on = sonidoActivado();
+    tbSonido.classList.toggle('on', on);
+    tbSonido.querySelector('span').textContent = on ? 'Sonido' : 'Mudo';
+  }
+}
+
+document.querySelectorAll('#toolbar [data-tb]').forEach((b) => {
+  b.addEventListener('click', () => {
+    const destino = {
+      vincular: 'conf-vincular',
+      monitoreo: 'conf-monitoreo',
+      'reportar-eventos': 'reportar-evento',
+    }[b.dataset.tb];
+    const el = destino && document.getElementById(destino);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('tb-flash');
+    setTimeout(() => el.classList.remove('tb-flash'), 900);
+    document.querySelectorAll('#toolbar [data-tb]').forEach((x) => x.classList.remove('activo'));
+    b.classList.add('activo');
+  });
+});
+
+const tbConectar = document.getElementById('tb-conectar');
+if (tbConectar) tbConectar.addEventListener('click', () => $btnConectar.click());
+const tbIniciar = document.getElementById('tb-iniciar');
+if (tbIniciar) tbIniciar.addEventListener('click', () => { if (!$btnIniciar.disabled) $btnIniciar.click(); });
+const tbDetener = document.getElementById('tb-detener');
+if (tbDetener) tbDetener.addEventListener('click', () => { if (!$btnDetener.disabled) $btnDetener.click(); });
+const tbResumen = document.getElementById('tb-resumen');
+if (tbResumen) tbResumen.addEventListener('click', () => {
+  if (jornada && jornada.lecturas > 0) mostrarResumenJornada(jornada);
+  else mostrarMsjEvento('Aún no hay datos de jornada. Inicia el envío.', true);
+});
+const tbSonido = document.getElementById('tb-sonido');
+if (tbSonido) tbSonido.addEventListener('click', () => {
+  const chk = document.getElementById('chk-sonido');
+  if (chk) { chk.checked = !chk.checked; chk.dispatchEvent(new Event('change')); }
+  sincronizarToolbar();
+});
+
+setInterval(sincronizarToolbar, 800);
+sincronizarToolbar();

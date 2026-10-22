@@ -31,7 +31,6 @@
     <nav id="nav-admin" class="nav-admin">
       <button data-vista="dashboard" class="nav-btn activo">📊 Dashboard</button>
       <button data-vista="flota" class="nav-btn">🚛 Flota</button>
-      <button data-vista="historial" class="nav-btn">📜 Historial</button>
       <button data-vista="opiniones" class="nav-btn">💬 Opiniones</button>
       <button id="btn-tour" class="nav-btn">🎬 Tour guiado</button>
       <button data-vista="gestion" class="nav-btn">⚙️ Gestión</button>
@@ -179,64 +178,6 @@
     <section class="tarjeta nota">
       <p><strong>Cómo conectar el dispositivo real:</strong> la API Key de cada vehículo se usa en la app de
       "Toma de telemetría" para autenticar los datos del sensor OBD-II. Si se filtra, regenérala.</p>
-    </section>
-  </main>
-
-  <main id="vista-historial" class="vista oculto">
-    <section class="tarjeta">
-      <div class="tarjeta-cabecera">
-        <h2>Historial de alertas</h2>
-        <button id="btn-exportar-alertas" class="btn-secundario">⬇️ Exportar CSV</button>
-      </div>
-      <div class="filtros">
-        <select id="filtro-alerta-estado">
-          <option value="">Todos los estados</option>
-          <option value="PENDIENTE">PENDIENTE</option>
-          <option value="ACTIVA">ACTIVA</option>
-          <option value="ATENDIDA">ATENDIDA</option>
-        </select>
-        <button id="btn-cargar-alertas" class="btn-secundario">Filtrar</button>
-      </div>
-      <div class="tabla-scroll">
-        <table id="tabla-alertas">
-          <thead>
-            <tr>
-              <th>Placa</th>
-              <th>Tipo</th>
-              <th>Severidad</th>
-              <th>Estado</th>
-              <th>Fecha</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpo-alertas">
-            <tr><td colspan="6" class="vacio">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="tarjeta">
-      <div class="tarjeta-cabecera">
-        <h2>Historial de telemetría</h2>
-        <button id="btn-exportar-telemetria" class="btn-secundario">⬇️ Exportar CSV</button>
-      </div>
-      <div class="tabla-scroll">
-        <table id="tabla-telemetria">
-          <thead>
-            <tr>
-              <th>Placa</th>
-              <th>ECT (°C)</th>
-              <th>RPM</th>
-              <th>Combustible</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpo-telemetria">
-            <tr><td colspan="5" class="vacio">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
     </section>
   </main>
 
@@ -404,6 +345,81 @@
 
       <h4 class="modal-sec">Historial de servicios <span class="mant-total" id="mant-total"></span></h4>
       <div id="hist-mantenimientos" class="mant-hist"><p class="vacio-ligero">Cargando…</p></div>
+
+      <h4 class="modal-sec">Últimas lecturas de telemetría</h4>
+      <div class="tabla-scroll mant-hist-tabla">
+        <table class="vivo-tabla">
+          <thead><tr><th>Fecha</th><th>ECT (°C)</th><th>RPM</th><th>Combustible</th></tr></thead>
+          <tbody id="mant-telemetria"><tr><td colspan="4" class="vacio-ligero">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+
+      <h4 class="modal-sec">Alertas del vehículo</h4>
+      <div class="tabla-scroll mant-hist-tabla">
+        <table class="vivo-tabla">
+          <thead><tr><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+          <tbody id="mant-alertas"><tr><td colspan="5" class="vacio-ligero">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-vivo" class="modal oculto">
+    <div class="modal-caja modal-vivo-caja">
+      <div class="modal-cabecera">
+        <h3>Dashboard en vivo · <span id="vivo-placa">—</span></h3>
+        <div class="vivo-cab-der">
+          <span class="vivo-estado" id="vivo-estado"><span class="punto"></span> Conectando…</span>
+          <button id="vivo-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
+        </div>
+      </div>
+      <p class="modal-sub" id="vivo-nombre"></p>
+
+      <div class="vivo-toolbar">
+        <div class="vivo-metrica">
+          <span class="vivo-metrica-label">ECT</span>
+          <span class="vivo-metrica-valor" id="vivo-ect">—</span>
+          <div class="vivo-barra"><div class="vivo-barra-fill" id="vivo-ect-barra" style="width:0%"></div></div>
+        </div>
+        <div class="vivo-metrica">
+          <span class="vivo-metrica-label">RPM</span>
+          <span class="vivo-metrica-valor" id="vivo-rpm">—</span>
+          <div class="vivo-barra"><div class="vivo-barra-fill rpm" id="vivo-rpm-barra" style="width:0%"></div></div>
+        </div>
+        <div class="vivo-metrica">
+          <span class="vivo-metrica-label">Combustible</span>
+          <span class="vivo-metrica-valor" id="vivo-comb">—</span>
+          <div class="vivo-barra"><div class="vivo-barra-fill comb" id="vivo-comb-barra" style="width:0%"></div></div>
+        </div>
+        <div class="vivo-metrica">
+          <span class="vivo-metrica-label">Alertas</span>
+          <span class="vivo-metrica-valor" id="vivo-alertas">—</span>
+          <span class="vivo-metrica-sub" id="vivo-ultima">Sin lecturas</span>
+        </div>
+        <div class="vivo-metrica">
+          <span class="vivo-metrica-label">Salud</span>
+          <span class="pill" id="vivo-salud">—</span>
+          <span class="vivo-metrica-sub" id="vivo-gps">GPS —</span>
+        </div>
+      </div>
+
+      <div class="vivo-grafica-bloque">
+        <div class="vivo-grafica-cab">
+          <span>Temperatura del motor (ECT) en vivo</span>
+          <span class="pista-grafica">Límite crítico 105 °C</span>
+        </div>
+        <canvas id="vivo-canvas" height="160"></canvas>
+      </div>
+
+      <div class="vivo-hist-bloque">
+        <h4 class="modal-sec">Últimas lecturas</h4>
+        <div class="tabla-scroll vivo-tabla-wrap">
+          <table class="vivo-tabla">
+            <thead><tr><th>Fecha</th><th>ECT (°C)</th><th>RPM</th><th>Combustible</th></tr></thead>
+            <tbody id="vivo-historial"><tr><td colspan="4" class="vacio">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -470,7 +486,6 @@
           { sel: '.tarjeta.grafica', etiqueta: 'Telemetría', titulo: 'Temperatura del motor (ECT)', texto: 'La tendencia en vivo del refrigerante. Si supera 105 °C, el vehículo se marca en rojo y se dispara la alerta.' },
           { sel: '#tarjeta-mantenimientos', etiqueta: 'Mantenimiento', titulo: 'Mantenimiento predictivo', texto: 'Aquí ves los servicios vencidos y los que vencen en los próximos 15 días, para que no se te pase ninguno.' },
           { sel: '#tarjeta-flota', etiqueta: 'Flota', titulo: 'Estado de cada vehículo', texto: 'La tabla con ECT, combustible, RPM, última lectura y salud de cada unidad.' },
-          { sel: '[data-vista="historial"]', etiqueta: 'Historial', titulo: 'Historial de lecturas', texto: 'Consulta la telemetría pasada por vehículo y rango de fechas para revisar qué pasó en la ruta.' },
           { sel: '[data-vista="opiniones"]', etiqueta: 'Opiniones', titulo: 'Opiniones de los usuarios', texto: 'Aquí llegan los comentarios de conductores y empresas. Aprueba los mejores y se publican solos en la página web.' },
           { sel: '#btn-demo', etiqueta: 'Demo', titulo: 'Pruébalo sin hardware', texto: 'Con "Demo en vivo" generamos datos simulados para que veas todo funcionando al instante.' },
           { sel: '#btn-informe', etiqueta: 'Reportes', titulo: 'Informe para tu cliente o jefe', texto: 'Genera un informe de flota listo para imprimir o guardar en PDF.' }

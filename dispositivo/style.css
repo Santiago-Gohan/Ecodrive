@@ -537,3 +537,105 @@ header {
   text-align: center;
   text-decoration: none;
 }
+
+/* ---------- Toolbar superior horizontal ---------- */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  background: rgba(11, 18, 32, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--borde);
+  scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar { display: none; }
+
+.tb-btn {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 62px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+  background: linear-gradient(180deg, #1e293b, #16213b);
+  color: var(--texto);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+}
+
+.tb-btn span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tb-btn:hover { transform: translateY(-1px); border-color: rgba(34, 211, 238, 0.5); }
+.tb-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.tb-btn.activo,
+.tb-btn.on {
+  border-color: rgba(34, 211, 238, 0.7);
+  background: rgba(34, 211, 238, 0.14);
+}
+.tb-btn.on span { color: var(--acento); }
+
+.tb-flash {
+  animation: tbFlash 0.9s ease;
+}
+@keyframes tbFlash {
+  0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.55); }
+  100% { box-shadow: 0 0 0 14px rgba(34, 211, 238, 0); }
+}
+
+/* Resumen de jornada: gráfica */
+.resumen-grafica {
+  margin: 8px 0 16px;
+  padding: 10px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: rgba(11, 18, 32, 0.4);
+}
+
+.resumen-grafica-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.resumen-grafica-cab .pista { margin: 0; font-weight: 400; }
+
+#resumen-canvas { width: 100%; display: block; }
+
+/* Escritorio: tarjetas compactas en rejilla horizontal, sin desperdiciar espacio */
+@media (min-width: 900px) {
+  main {
+    max-width: 1180px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+    gap: 16px;
+  }
+  #conf-vincular { grid-column: 1 / -1; }
+  #conf-monitoreo { grid-column: 1 / -1; }
+  .tarjeta { padding: 18px; }
+}
+
+@media (min-width: 1300px) {
+  main { grid-template-columns: repeat(3, 1fr); }
+  #conf-vincular { grid-column: span 2; }
+  #conf-monitoreo { grid-column: span 1; }
+}
