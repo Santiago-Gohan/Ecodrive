@@ -3,252 +3,361 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EcoDrive - Toma de Telemetría OBD-II</title>
+  <title>EcoDrive - Panel del Conductor</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="tour.css" />
 </head>
 <body>
-  <div id="barra-estado">
-    <span class="punto" id="punto-estado"></span>
-    <span id="texto-estado">Sin conexión</span>
+  <div class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark">ED</div>
+        <div>
+          <div class="brand-name">EcoDrive</div>
+          <div class="brand-sub">Panel del Conductor</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-pill" id="header-status">
+          <span class="status-dot"></span>
+          <span id="texto-estado">Sin conexión</span>
+        </div>
+        <button id="btn-tour" class="header-btn">Tour guiado</button>
+        <a href="/apk/EcoDrive-v1.0.apk" class="header-btn">Descargar APK</a>
+        <a href="https://wa.me/573125886290?text=Hola%2C%20necesito%20soporte%20con%20EcoDrive" target="_blank" rel="noopener" class="header-btn">Soporte</a>
+      </div>
+    </div>
   </div>
 
-  <div id="alerta-aviso" class="alerta-aviso oculto"></div>
-
-  <header>
-    <div class="cab-top">
-      <h1>EcoDrive <span>Panel del conductor</span></h1>
-      <button id="btn-tour" class="tour-lanzador">🎬 Tour</button>
-    </div>
-    <div class="cab-acciones">
-      <a href="https://wa.me/573125886290?text=Hola%2C%20necesito%20soporte%20con%20EcoDrive" target="_blank" rel="noopener" class="link-admin">💬 Soporte 312 588 6290</a>
-      <a href="/apk/EcoDrive-v1.0.apk" class="link-admin">⬇ App Android</a>
-    </div>
-  </header>
-
-  <nav id="toolbar" class="toolbar">
-    <button class="tb-btn" data-tb="vincular" title="Configurar vehículo">🔗<span>Vincular</span></button>
-    <button class="tb-btn" id="tb-conectar" title="Conectar adaptador OBD-II">🔌<span>Conectar</span></button>
-    <button class="tb-btn" id="tb-iniciar" disabled title="Iniciar envío">▶️<span>Iniciar</span></button>
-    <button class="tb-btn" id="tb-detener" disabled title="Detener envío">⏹<span>Detener</span></button>
-    <button class="tb-btn on" id="tb-sonido" title="Sonido y vibración">🔊<span>Sonido</span></button>
-    <button class="tb-btn" data-tb="monitoreo" title="Monitoreo en vivo">📊<span>En vivo</span></button>
-    <button class="tb-btn" data-tb="reportar-eventos" title="Reportar en la vía">🚨<span>Reportar</span></button>
-    <button class="tb-btn" id="tb-resumen" title="Ver resumen de jornada">📋<span>Jornada</span></button>
+  <nav class="top-nav">
+    <button class="nav-item active" data-tb="overview"><span>Inicio</span></button>
+    <button class="nav-item" data-tb="vincular"><span>Vinculación</span></button>
+    <button class="nav-item" data-tb="conectar"><span>Conexión OBD</span></button>
+    <button class="nav-item" data-tb="monitoreo"><span>Monitoreo</span></button>
+    <button class="nav-item" data-tb="reportar"><span>Reportar</span></button>
+    <button class="nav-item" data-tb="opiniones"><span>Opiniones</span></button>
   </nav>
 
-  <section class="ficha-veh" id="ficha-vehiculo">
-    <div class="modal-mant-caja ficha-caja">
-      <div class="modal-cabecera">
-        <h3>Ficha del vehículo</h3>
-        <div class="conexion" id="conexion-ficha"><span class="punto"></span> Conectando...</div>
-      </div>
-
-      <div class="mant-veh">
-        <div class="mant-veh-izq">
-          <span class="mant-veh-placa" id="ficha-placa">SIN VINCULAR</span>
-          <span class="mant-veh-nombre" id="ficha-nombre">Vincula tu vehículo para empezar</span>
-          <div class="mant-veh-pills">
-            <span class="pill cyan" id="ficha-tipo">—</span>
-            <span class="pill" id="ficha-estado">Desconectado</span>
+  <main class="dashboard">
+    <!-- Vehicle Overview -->
+    <section class="card vehicle-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Información del Vehículo</h2>
+          <p class="card-subtitle">Estado actual en tiempo real</p>
+        </div>
+        <div class="card-actions">
+          <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>En línea</span>
           </div>
         </div>
-        <span class="pill" id="ficha-salud">Sin lecturas</span>
       </div>
+      <div class="vehicle-grid">
+        <div class="vehicle-info">
+          <div class="vehicle-plate" id="ficha-placa">SIN VINCULAR</div>
+          <div class="vehicle-name" id="ficha-nombre">Vincula tu vehículo para iniciar</div>
+          <div class="vehicle-tags">
+            <span class="tag tag-blue" id="ficha-tipo">—</span>
+            <span class="tag" id="ficha-estado">Desconectado</span>
+            <span class="tag tag-green" id="ficha-salud">Sin lecturas</span>
+          </div>
+        </div>
+        <div class="vehicle-metrics">
+          <div class="metric">
+            <div class="metric-label">Temperatura Motor</div>
+            <div class="metric-value"><span id="ficha-ect">--</span> <span class="metric-unit">°C</span></div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="ficha-ect-barra" style="width:0%"></div></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">RPM</div>
+            <div class="metric-value"><span id="ficha-rpm">--</span></div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="ficha-rpm-barra" style="width:0%"></div></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Combustible</div>
+            <div class="metric-value"><span id="ficha-comb">--</span> <span class="metric-unit">%</span></div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="ficha-comb-barra" style="width:0%"></div></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Distancia Jornada</div>
+            <div class="metric-value"><span id="ficha-dist">0.0</span> <span class="metric-unit">km</span></div>
+            <div class="metric-sub" id="ficha-lecturas">0 lecturas</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <div class="mant-kpis">
-        <div class="mant-kpi">
-          <span class="mant-kpi-label">Temperatura ECT</span>
-          <span class="mant-kpi-valor" id="ficha-ect">--</span>
-          <span class="mant-kpi-sub">°C · límite 105</span>
-          <div class="mant-barra"><div class="mant-barra-relleno" id="ficha-ect-barra" style="width:0%"></div></div>
+    <div class="grid-two">
+      <!-- Quick Actions -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Acciones Rápidas</h2>
+            <p class="card-subtitle">Control del dispositivo</p>
+          </div>
         </div>
-        <div class="mant-kpi">
-          <span class="mant-kpi-label">RPM</span>
-          <span class="mant-kpi-valor" id="ficha-rpm">--</span>
-          <span class="mant-kpi-sub">régimen motor</span>
-          <div class="mant-barra"><div class="mant-barra-relleno ambar" id="ficha-rpm-barra" style="width:0%"></div></div>
+        <div class="action-grid">
+          <button class="action-btn" id="tb-conectar">
+            <div class="action-icon">🔌</div>
+            <div class="action-text">
+              <div class="action-title">Conectar OBD</div>
+              <div class="action-sub">Conectar adaptador</div>
+            </div>
+          </button>
+          <button class="action-btn primary" id="tb-iniciar" disabled>
+            <div class="action-icon">▶️</div>
+            <div class="action-text">
+              <div class="action-title">Iniciar Monitoreo</div>
+              <div class="action-sub">Comenzar envío</div>
+            </div>
+          </button>
+          <button class="action-btn" id="tb-detener" disabled>
+            <div class="action-icon">⏹️</div>
+            <div class="action-text">
+              <div class="action-title">Detener</div>
+              <div class="action-sub">Finalizar jornada</div>
+            </div>
+          </button>
+          <button class="action-btn" id="tb-resumen">
+            <div class="action-icon">📊</div>
+            <div class="action-text">
+              <div class="action-title">Resumen</div>
+              <div class="action-sub">Ver jornada</div>
+            </div>
+          </button>
         </div>
-        <div class="mant-kpi">
-          <span class="mant-kpi-label">Combustible</span>
-          <span class="mant-kpi-valor" id="ficha-comb">--</span>
-          <span class="mant-kpi-sub">nivel tanque</span>
-          <div class="mant-barra"><div class="mant-barra-relleno verde" id="ficha-comb-barra" style="width:0%"></div></div>
+      </section>
+
+      <!-- Connection Status -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Estado de Conexión</h2>
+            <p class="card-subtitle">Diagnóstico del sistema</p>
+          </div>
         </div>
-        <div class="mant-kpi">
-          <span class="mant-kpi-label">Recorrido jornada</span>
-          <span class="mant-kpi-valor" id="ficha-dist">0.0 km</span>
-          <span class="mant-kpi-sub" id="ficha-lecturas">0 lecturas</span>
-          <div class="mant-barra"><div class="mant-barra-relleno" id="ficha-dist-barra" style="width:0%"></div></div>
+        <div class="status-list">
+          <div class="status-item">
+            <span class="status-label">GPS</span>
+            <span class="status-badge" id="gps-estado">Esperando señal</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Sonido</span>
+            <label class="toggle">
+              <input type="checkbox" id="chk-sonido" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Frecuencia</span>
+            <select id="select-intervalo" class="select-sm">
+              <option value="2000">2 seg</option>
+              <option value="5000" selected>5 seg</option>
+              <option value="10000">10 seg</option>
+              <option value="30000">30 seg</option>
+            </select>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Cola offline</span>
+            <span class="status-badge" id="cola-offline">0 pendientes</span>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
-  </section>
 
-  <main>
-    <section class="tarjeta config" id="conf-vincular">
-      <h2 class="mant-sec">1 · Configurar vehículo</h2>
-      <label>Vehículo (placa)</label>
-      <select id="select-vehiculo"></select>
-      <label>Código, placa o API Key del vehículo</label>
-      <div class="fila-key">
-        <input type="text" id="input-apikey" placeholder="Ej.: 6E78FE o ABC-123" autocomplete="off" autocapitalize="characters" />
-        <button id="btn-guardar" class="btn-primario">Vincular</button>
+    <!-- Configuration Sections -->
+    <section class="card" id="conf-vincular">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Vincular Vehículo</h2>
+          <p class="card-subtitle">Conecta tu vehículo con el sistema</p>
+        </div>
       </div>
-      <p id="msj-vinculo" class="pista">Escribe el código de 6 caracteres del panel o tu placa: la app busca el vehículo sola.</p>
-      <div class="separador">o escanea para vincular</div>
-      <button id="btn-escanear" class="btn-primario">📷 Escanear código QR</button>
-      <div id="caja-camara" class="oculto caja-camara">
-        <video id="camara" playsinline muted></video>
-        <p id="estado-escaneo" class="pista">Enfoca el código QR del panel <em>Flota → 🔑 Key</em>. El vehículo se vincula solo.</p>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Vehículo registrado</label>
+          <select id="select-vehiculo" class="form-select"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label class="form-label">Código, Placa o API Key</label>
+            <input type="text" id="input-apikey" class="form-input" placeholder="Ej.: ABC123 o placa" autocomplete="off" />
+          </div>
+          <button id="btn-guardar" class="btn btn-primary">Vincular</button>
+        </div>
+        <p id="msj-vinculo" class="form-help">Usa el código de 6 caracteres del panel o tu placa</p>
+        <div class="divider">o</div>
+        <button id="btn-escanear" class="btn btn-secondary">📷 Escanear código QR</button>
+        <div id="caja-camara" class="camera-box oculto">
+          <video id="camara" playsinline muted></video>
+          <p class="form-help">Enfoca el código QR del panel Flota → Clave</p>
+        </div>
+        <details class="accordion">
+          <summary class="accordion-header">¿No encuentras tu vehículo? Regístralo aquí</summary>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <input type="text" id="reg-placa" class="form-input" placeholder="Placa" maxlength="12" />
+              <input type="text" id="reg-nombre" class="form-input" placeholder="Alias" maxlength="40" />
+              <select id="reg-combustible" class="form-select">
+                <option value="">Combustible</option>
+                <option value="gasolina">Gasolina</option>
+                <option value="diesel">Diésel</option>
+              </select>
+              <input type="number" id="reg-anio" class="form-input" placeholder="Año" min="1950" max="2030" />
+              <select id="reg-tipo" class="form-select">
+                <option value="CARRO">Carro</option>
+                <option value="BUS">Bus</option>
+                <option value="CAMION">Camión</option>
+              </select>
+              <button id="btn-registrar" class="btn btn-primary">Registrar</button>
+            </div>
+            <div id="msj-reg" class="form-help"></div>
+          </div>
+        </details>
       </div>
-      <p class="pista">Con adaptador ELM327 el VIN se lee solo y el vehículo se vincula automáticamente.</p>
-      <details class="reg">
-        <summary>¿No encuentras tu vehículo? Regístralo aquí</summary>
-        <div class="grid-reg">
-          <input type="text" id="reg-placa" placeholder="Placa" maxlength="12" />
-          <input type="text" id="reg-nombre" placeholder="Alias (opcional)" maxlength="40" />
-          <select id="reg-combustible">
-            <option value="">Combustible</option>
-            <option value="gasolina">Gasolina</option>
-            <option value="diesel">Diésel</option>
+    </section>
+
+    <section class="card" id="conf-conectar">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Conexión OBD-II</h2>
+          <p class="card-subtitle">Conectar adaptador Bluetooth</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li>Enciende el vehículo y conecta el adaptador ELM327</li>
+          <li>Activa Bluetooth en tu dispositivo</li>
+          <li>Selecciona tu adaptador al conectar</li>
+        </ol>
+        <button id="btn-conectar" class="btn btn-primary btn-large">Conectar Adaptador ELM327</button>
+        <div class="divider">o</div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chk-simulacion" />
+          <span>Usar modo simulador (sin adaptador)</span>
+        </label>
+        <div id="bloque-perfil" class="oculto">
+          <label class="form-label">Perfil de simulación</label>
+          <select id="select-perfil" class="form-select">
+            <option value="gasolina2013">Gasolina 2013</option>
+            <option value="bus2015">Bus Diésel 2015</option>
+            <option value="camion2018">Camión Diésel 2018</option>
+            <option value="gasolina2010">Gasolina 2010</option>
+            <option value="diesel2008">Diésel 2008 (Rechazado)</option>
+            <option value="moto">Moto (Rechazada)</option>
           </select>
-          <input type="number" id="reg-anio" placeholder="Año" min="1950" max="2030" />
-          <select id="reg-tipo">
-            <option value="CARRO">Carro / camioneta</option>
-            <option value="BUS">Bus</option>
-            <option value="CAMION">Camión</option>
-          </select>
-          <button id="btn-registrar" class="btn-primario full">Registrar y verificar</button>
         </div>
-        <div id="msj-reg" class="veredicto"></div>
-      </details>
+        <div id="log-obd" class="log-box"></div>
+      </div>
     </section>
 
-    <section class="tarjeta config" id="conf-conectar">
-      <h2 class="mant-sec">2 · Conectar adaptador OBD-II</h2>
-      <ol class="pasos">
-        <li>Enciende el vehículo y conecta el adaptador ELM327 al puerto OBD-II.</li>
-        <li>Activa el Bluetooth del dispositivo.</li>
-        <li>Presiona el botón. En el listado de Bluetooth elige tu adaptador.</li>
-      </ol>
-      <button id="btn-conectar" class="btn-primario">Conectar ELM327</button>
-      <div class="separador">o</div>
-      <label class="check-sim"><input type="checkbox" id="chk-simulacion" />
-        <span>ECU virtual (simulador sin adaptador)</span></label>
-      <div id="bloque-perfil" class="oculto">
-        <label for="select-perfil">Perfil de vehículo a simular</label>
-        <select id="select-perfil">
-          <option value="gasolina2013">Carro gasolina 2013 (compatible)</option>
-          <option value="bus2015">Bus intermunicipal diésel 2015 (compatible)</option>
-          <option value="camion2018">Camión diésel 2018 (compatible)</option>
-          <option value="gasolina2010">Carro gasolina 2010 (validado por modelo)</option>
-          <option value="diesel2008">Diésel 2008 sin OBD - sera RECHAZADO</option>
-          <option value="moto">Moto sin puerto OBD - sera RECHAZADA</option>
-        </select>
+    <section class="card" id="conf-monitoreo">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Monitoreo en Vivo</h2>
+          <p class="card-subtitle">Parámetros del motor en tiempo real</p>
+        </div>
       </div>
-      <div id="log-obd" class="log"></div>
+      <div class="card-body">
+        <div class="gauges-grid">
+          <div class="gauge-card">
+            <svg class="gauge-svg" viewBox="0 0 120 80">
+              <path class="gauge-track" d="M 20 70 A 40 40 0 0 1 100 70" />
+              <path class="gauge-progress" id="fill-ect" d="M 20 70 A 40 40 0 0 1 100 70" stroke-dasharray="100" stroke-dashoffset="100" />
+            </svg>
+            <div class="gauge-value" id="val-ect">--</div>
+            <div class="gauge-label">ECT (°C)</div>
+          </div>
+          <div class="gauge-card">
+            <svg class="gauge-svg" viewBox="0 0 120 80">
+              <path class="gauge-track" d="M 20 70 A 40 40 0 0 1 100 70" />
+              <path class="gauge-progress green" id="fill-rpm" d="M 20 70 A 40 40 0 0 1 100 70" stroke-dasharray="100" stroke-dashoffset="100" />
+            </svg>
+            <div class="gauge-value" id="val-rpm">--</div>
+            <div class="gauge-label">RPM</div>
+          </div>
+        </div>
+        <div class="fuel-card">
+          <div class="fuel-header">
+            <span>⛽ Nivel de Combustible</span>
+            <span class="fuel-value" id="val-combustible">--</span>
+          </div>
+          <div class="fuel-bar-bg">
+            <div class="fuel-bar-fill" id="barra-combustible"></div>
+          </div>
+        </div>
+        <div class="jornada-info">
+          <div class="jornada-item">
+            <span>📍 Recorrido</span>
+            <span id="stats-jornada">Jornada: 0 min · 0 lecturas</span>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="tarjeta config" id="conf-monitoreo">
-      <h2 class="mant-sec">3 · Monitoreo en vivo</h2>
-      <div class="lecturas">
-        <div class="lectura medidor">
-          <svg class="gauge" viewBox="0 0 130 100">
-            <path class="gauge-base" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"/>
-            <path class="gauge-fill" id="fill-ect" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"
-              stroke-dasharray="100" stroke-dashoffset="100"/>
-            <text class="gauge-min" x="12" y="98">0°</text>
-            <text class="gauge-max" x="112" y="98">120°</text>
-          </svg>
-          <span class="lectura-valor" id="val-ect">--</span>
-          <span class="lectura-etiqueta">ECT temperatura (°C)</span>
-        </div>
-        <div class="lectura medidor">
-          <svg class="gauge" viewBox="0 0 130 100">
-            <path class="gauge-base" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"/>
-            <path class="gauge-fill" id="fill-rpm" d="M 20 88 A 45 45 0 0 1 110 88" pathLength="100"
-              stroke-dasharray="100" stroke-dashoffset="100"/>
-            <text class="gauge-min" x="8" y="98">0</text>
-            <text class="gauge-max" x="104" y="98">9000</text>
-          </svg>
-          <span class="lectura-valor" id="val-rpm">--</span>
-          <span class="lectura-etiqueta">RPM</span>
+    <section class="card" id="reportar-evento">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Reportar en la Vía</h2>
+          <p class="card-subtitle">Alertas comunitarias</p>
         </div>
       </div>
-      <div class="combustible">
-        <div class="comb-encabezado">
-          <span>⛽ Nivel de combustible</span>
-          <strong id="val-combustible">--</strong>
+      <div class="card-body">
+        <div class="chip-group" id="ev-chips-tipo">
+          <button class="chip-btn" data-tipo="POLICIA">🚓 Policía</button>
+          <button class="chip-btn" data-tipo="ACCIDENTE">💥 Accidente</button>
+          <button class="chip-btn" data-tipo="RETEN">⛔ Retén</button>
+          <button class="chip-btn" data-tipo="OBRA">🚧 Obra</button>
+          <button class="chip-btn" data-tipo="OTRO">⚠️ Otro</button>
         </div>
-        <div class="barra-combustible-fondo">
-          <div id="barra-combustible" class="barra-combustible"></div>
-        </div>
+        <input type="text" id="ev-descripcion" class="form-input" placeholder="Descripción (opcional)" maxlength="200" />
+        <button id="btn-reportar-evento" class="btn btn-primary btn-large">📨 Reportar con mi ubicación</button>
+        <p id="msj-evento" class="form-help"></p>
       </div>
-      <div id="gps-estado" class="gps-estado">📍 GPS: esperando señal…</div>
-      <div id="stats-jornada" class="chips-jornada">Jornada: 0 min · 🔥 -- · 📍 0.0 km · # 0</div>
-      <label class="check-sim chk-sonido"><input type="checkbox" id="chk-sonido" checked />
-        <span>Sonido y vibración en alertas</span></label>
-      <label for="select-intervalo">Frecuencia de envío</label>
-      <select id="select-intervalo">
-        <option value="2000">Cada 2 segundos</option>
-        <option value="5000" selected>Cada 5 segundos (recomendado)</option>
-        <option value="10000">Cada 10 segundos</option>
-        <option value="30000">Cada 30 segundos</option>
-      </select>
-      <div class="acciones-central">
-        <button id="btn-iniciar" class="btn-primario" disabled>Iniciar envío</button>
-        <button id="btn-detener" class="btn-secundario" disabled>Detener</button>
-      </div>
-      <div id="cola-offline" class="pista"></div>
     </section>
 
-    <section class="tarjeta config" id="reportar-evento">
-      <h2 class="mant-sec">🚨 Reportar en la vía</h2>
-      <p class="pista">¿Viste policía, un accidente o un cierre? Avísale a tu flota. Se usa tu ubicación GPS actual.</p>
-      <div class="chips" id="ev-chips-tipo">
-        <button type="button" class="chip" data-tipo="POLICIA">🚓 Policía</button>
-        <button type="button" class="chip" data-tipo="ACCIDENTE">💥 Accidente</button>
-        <button type="button" class="chip" data-tipo="RETEN">⛔ Retén</button>
-        <button type="button" class="chip" data-tipo="OBRA">🚧 Obra</button>
-        <button type="button" class="chip" data-tipo="OTRO">⚠️ Otro</button>
+    <section class="card" id="opiniones">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Tu Opinión</h2>
+          <p class="card-subtitle">Ayúdanos a mejorar</p>
+        </div>
       </div>
-      <input type="text" id="ev-descripcion" placeholder="Descripción (opcional)" maxlength="200" autocomplete="off" />
-      <button id="btn-reportar-evento" class="btn-primario">📨 Reportar con mi ubicación</button>
-      <p id="msj-evento" class="pista"></p>
-    </section>
-
-    <section class="tarjeta" id="opiniones">
-      <h2 class="mant-sec">💬 Déjanos tu opinión</h2>
-      <p class="pista">¿Cómo te va con EcoDrive? Cuéntanos qué mejorarías. Tu comentario nos ayuda a hacer una mejor app para conductores y empresas.</p>
-      <label>¿Quién eres?</label>
-      <div class="chips" id="op-chips-rol">
-        <button type="button" class="chip" data-val="Conductor">Conductor</button>
-        <button type="button" class="chip" data-val="Empresa de transporte">Empresa</button>
-        <button type="button" class="chip" data-val="Taller o mecánico">Taller</button>
-      </div>
-      <label for="op-texto">Tu comentario</label>
-      <textarea id="op-texto" rows="3" placeholder="Ej.: trabajo en ruta intermunicipal y me serviría un aviso por WhatsApp..."></textarea>
-      <div class="opiniones-acciones">
-        <button id="btn-op-whatsapp" class="btn-primario">Enviar por WhatsApp</button>
-        <a href="/#opiniones" class="btn-secundario" target="_blank" rel="noopener">Ver opiniones y sectores</a>
+      <div class="card-body">
+        <label class="form-label">¿Quién eres?</label>
+        <div class="chip-group" id="op-chips-rol">
+          <button class="chip-btn" data-val="Conductor">Conductor</button>
+          <button class="chip-btn" data-val="Empresa de transporte">Empresa</button>
+          <button class="chip-btn" data-val="Taller o mecánico">Taller</button>
+        </div>
+        <label class="form-label">Comentario</label>
+        <textarea id="op-texto" class="form-textarea" rows="3" placeholder="Cuéntanos cómo podemos mejorar..."></textarea>
+        <div class="button-row">
+          <button id="btn-op-whatsapp" class="btn btn-primary">Enviar por WhatsApp</button>
+          <a href="/#opiniones" target="_blank" class="btn btn-secondary">Ver opiniones</a>
+        </div>
       </div>
     </section>
   </main>
 
-  <div id="resumen-jornada" class="overlay oculto">
-    <div class="tarjeta resumen">
-      <h2 class="mant-sec">📋 Resumen de jornada</h2>
-      <div id="resumen-grid" class="resumen-grid"></div>
-      <div class="resumen-grafica">
-        <div class="resumen-grafica-cab">
-          <span>Temperatura del motor (ECT) durante la jornada</span>
-          <span class="pista" id="resumen-grafica-note"></span>
-        </div>
-        <canvas id="resumen-canvas" height="150"></canvas>
+  <div id="resumen-jornada" class="modal-overlay oculto">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Resumen de Jornada</h3>
+        <button id="btn-cerrar-resumen" class="modal-close">×</button>
       </div>
-      <button id="btn-cerrar-resumen" class="btn-primario full">Cerrar</button>
+      <div class="modal-body">
+        <div id="resumen-grid" class="summary-grid"></div>
+        <div class="chart-container">
+          <div class="chart-header">
+            <span>Temperatura ECT</span>
+            <span class="chart-sub" id="resumen-grafica-note"></span>
+          </div>
+          <canvas id="resumen-canvas" height="150"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -261,40 +370,35 @@
         boton: '#btn-tour',
         espera: 120,
         auto: true,
-        clave: 'ecodrive_tour_device_v2',
+        clave: 'ecodrive_tour_device_v3',
         retraso: 900,
         pasos: [
-          { sel: '#barra-estado', etiqueta: 'Conductor', titulo: 'Estado de conexión', texto: 'Arriba ves si la app tiene señal. Si no hay cobertura, guarda las lecturas y las reenvía cuando vuelve la red.' },
-          { sel: '#conf-vincular', etiqueta: 'Vinculación', titulo: '1 · Vincula tu vehículo', texto: 'Escribe el código de 6 caracteres del panel o tu placa, o escanea el QR. La app encuentra el vehículo sola, sin copiar claves.' },
-          { sel: '#conf-conectar', etiqueta: 'Conexión', titulo: '2 · Conecta el adaptador', texto: 'Con un ELM327 leemos el motor de verdad. ¿No tienes adaptador? Activa "ECU virtual" y prueba todo igual.' },
-          { sel: '#conf-monitoreo', etiqueta: 'Monitoreo', titulo: '3 · Monitorea en vivo', texto: 'Temperatura, RPM y combustible en tiempo real, con alertas sonoras y resumen de jornada al terminar.' },
-          { sel: '#reportar-evento', etiqueta: 'En la vía', titulo: 'Reporta lo que ves', texto: 'Policía, accidente, retén u obra: con un toque reportas tu ubicación y el panel de tu flota lo ve en el mapa.' },
-          { sel: '#opiniones', etiqueta: 'Opiniones', titulo: 'Déjanos tu opinión', texto: 'Al final puedes contarnos cómo te va y qué mejorarías. Tu comentario nos ayuda a construir una mejor herramienta para conductores y empresas.' }
+          { sel: '.vehicle-card', etiqueta: 'Vehículo', titulo: 'Estado del vehículo', texto: 'Aquí ves tu vehículo vinculado y las lecturas en tiempo real.' },
+          { sel: '.action-grid', etiqueta: 'Acciones', titulo: 'Control rápido', texto: 'Conecta, inicia o detén el monitoreo desde aquí.' },
+          { sel: '#conf-vincular', etiqueta: 'Vinculación', titulo: 'Vincular vehículo', texto: 'Ingresa el código o placa para vincular tu vehículo.' },
+          { sel: '#conf-monitoreo', etiqueta: 'Monitoreo', titulo: 'En vivo', texto: 'Temperatura, RPM y combustible en tiempo real con alertas.' }
         ]
       });
       EcoDriveTour.iniciarSiNuevo();
     }
   </script>
-
   <script>
     (function () {
       var WA = '573125886290';
-      var chips = document.querySelectorAll('#op-chips-rol .chip');
-      chips.forEach(function (c) {
-        c.addEventListener('click', function () {
-          chips.forEach(function (x) { x.classList.remove('activo'); });
-          c.classList.add('activo');
-        });
+      document.querySelectorAll('#op-chips-rol .chip-btn').forEach(function(c){
+        c.addEventListener('click', function(){ document.querySelectorAll('#op-chips-rol .chip-btn').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); });
+      });
+      document.querySelectorAll('#ev-chips-tipo .chip-btn').forEach(function(c){
+        c.addEventListener('click', function(){ document.querySelectorAll('#ev-chips-tipo .chip-btn').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); });
       });
       var btn = document.getElementById('btn-op-whatsapp');
-      if (btn) {
-        btn.addEventListener('click', function () {
-          var activo = document.querySelector('#op-chips-rol .chip.activo');
+      if(btn){
+        btn.addEventListener('click', function(){
+          var activo = document.querySelector('#op-chips-rol .chip-btn.active');
           var rol = activo ? activo.getAttribute('data-val') : '';
-          var txt = (document.getElementById('op-texto').value || '').trim();
-          var msg = 'Hola EcoDrive 👋\n\nSoy: ' + (rol || 'no indicado') + '\n' +
-            (txt ? '\nComentario: ' + txt + '\n' : '') + '\nEnviado desde la app del conductor.';
-          window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
+          var txt = (document.getElementById('op-texto').value||'').trim();
+          var msg = 'Hola EcoDrive\n\nSoy: '+(rol||'no indicado')+'\n'+(txt?'\nComentario: '+txt:'')+'\nEnviado desde Panel del Conductor';
+          window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg),'_blank');
         });
       }
     })();
