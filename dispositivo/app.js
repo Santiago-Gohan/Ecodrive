@@ -430,12 +430,16 @@ function log(texto) {
 function statusOk(textoTexto = 'Adaptador conectado') {
   $punto.style.background = '#22c55e';
   $textoEstado.textContent = textoTexto;
+  const pf = document.getElementById('conexion-ficha');
+  if (pf) { pf.classList.add('on'); const p = pf.querySelector('.punto'); if (p) p.style.background = '#22c55e'; }
   actualizarFichaVehiculo();
 }
 
 function statusOff() {
   $punto.style.background = '#64748b';
   $textoEstado.textContent = 'Sin conexión';
+  const pf = document.getElementById('conexion-ficha');
+  if (pf) { pf.classList.remove('on'); const p = pf.querySelector('.punto'); if (p) p.style.background = '#64748b'; }
   actualizarFichaVehiculo();
 }
 

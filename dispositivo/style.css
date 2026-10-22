@@ -169,12 +169,60 @@ header {
 }
 .tour-lanzador:hover { border-color: var(--acento); }
 
-/* ---------- Ficha del vehículo y KPIs (mismo estilo del panel) ---------- */
+/* ---------- Ficha del vehículo y KPIs (mismo estilo del modal de mantenimiento) ---------- */
 .ficha-veh {
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
   padding: 14px 24px 0;
+}
+
+.panel-caja-veh {
+  width: 100%;
+  background: linear-gradient(180deg, var(--tarjeta2), var(--tarjeta));
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 18px 18px 16px;
+}
+
+.panel-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.panel-cabecera h3 {
+  font-size: 1.05rem;
+  background: var(--degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+.conexion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.conexion .punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #64748b;
+}
+.conexion.on .punto {
+  background: var(--verde);
+  box-shadow: 0 0 8px var(--verde);
+  animation: latido 1.6s infinite;
+}
+@keyframes latido {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .mant-veh {
@@ -183,7 +231,7 @@ header {
   align-items: flex-start;
   gap: 14px;
   padding: 14px 14px 13px;
-  margin: 4px 0 14px;
+  margin: 4px 0 12px;
   background: linear-gradient(160deg, rgba(34, 211, 238, 0.09), rgba(52, 211, 153, 0.05)), var(--tarjeta);
   border: 1px solid var(--borde);
   border-left: 3px solid var(--acento);
@@ -198,7 +246,7 @@ header {
 }
 
 .mant-veh-placa {
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   background: var(--degradado);
@@ -209,7 +257,7 @@ header {
 
 .mant-veh-nombre {
   color: var(--texto);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .mant-veh-pills {
@@ -817,7 +865,7 @@ header {
 @media (min-width: 900px) {
   header,
   .ficha-veh {
-    max-width: 1180px;
+    max-width: 720px;
   }
   main {
     max-width: 1180px;

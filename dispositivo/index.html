@@ -39,38 +39,49 @@
   </nav>
 
   <section class="ficha-veh" id="ficha-vehiculo">
-    <div class="mant-veh">
-      <div class="mant-veh-izq">
-        <span class="mant-veh-placa" id="ficha-placa">SIN VINCULAR</span>
-        <span class="mant-veh-nombre" id="ficha-nombre">Vincula tu vehículo para empezar</span>
-        <div class="mant-veh-pills">
-          <span class="pill cyan" id="ficha-tipo">—</span>
-          <span class="pill" id="ficha-estado">Desconectado</span>
-        </div>
+    <div class="panel-caja-veh">
+      <div class="panel-cabecera">
+        <h3>Ficha del vehículo</h3>
+        <span class="conexion" id="conexion-ficha"><span class="punto"></span> Conectando…</span>
       </div>
-      <span class="pill" id="ficha-salud">Sin lecturas</span>
-    </div>
 
-    <div class="mant-kpis">
-      <div class="mant-kpi">
-        <span class="mant-kpi-label">Temperatura ECT</span>
-        <span class="mant-kpi-valor" id="ficha-ect">--</span>
-        <div class="mant-barra"><div class="mant-barra-relleno" id="ficha-ect-barra" style="width:0%"></div></div>
+      <div class="mant-veh">
+        <div class="mant-veh-izq">
+          <span class="mant-veh-placa" id="ficha-placa">SIN VINCULAR</span>
+          <span class="mant-veh-nombre" id="ficha-nombre">Vincula tu vehículo para empezar</span>
+          <div class="mant-veh-pills">
+            <span class="pill cyan" id="ficha-tipo">—</span>
+            <span class="pill" id="ficha-estado">Desconectado</span>
+          </div>
+        </div>
+        <span class="pill" id="ficha-salud">Sin lecturas</span>
       </div>
-      <div class="mant-kpi">
-        <span class="mant-kpi-label">RPM</span>
-        <span class="mant-kpi-valor" id="ficha-rpm">--</span>
-        <div class="mant-barra"><div class="mant-barra-relleno ambar" id="ficha-rpm-barra" style="width:0%"></div></div>
-      </div>
-      <div class="mant-kpi">
-        <span class="mant-kpi-label">Combustible</span>
-        <span class="mant-kpi-valor" id="ficha-comb">--</span>
-        <div class="mant-barra"><div class="mant-barra-relleno verde" id="ficha-comb-barra" style="width:0%"></div></div>
-      </div>
-      <div class="mant-kpi">
-        <span class="mant-kpi-label">Recorrido jornada</span>
-        <span class="mant-kpi-valor" id="ficha-dist">0.0 km</span>
-        <span class="mant-kpi-sub" id="ficha-lecturas">0 lecturas</span>
+
+      <div class="mant-kpis">
+        <div class="mant-kpi">
+          <span class="mant-kpi-label">Temperatura ECT</span>
+          <span class="mant-kpi-valor" id="ficha-ect">--</span>
+          <span class="mant-kpi-sub">°C · límite 105</span>
+          <div class="mant-barra"><div class="mant-barra-relleno" id="ficha-ect-barra" style="width:0%"></div></div>
+        </div>
+        <div class="mant-kpi">
+          <span class="mant-kpi-label">RPM</span>
+          <span class="mant-kpi-valor" id="ficha-rpm">--</span>
+          <span class="mant-kpi-sub">régimen del motor</span>
+          <div class="mant-barra"><div class="mant-barra-relleno ambar" id="ficha-rpm-barra" style="width:0%"></div></div>
+        </div>
+        <div class="mant-kpi">
+          <span class="mant-kpi-label">Combustible</span>
+          <span class="mant-kpi-valor" id="ficha-comb">--</span>
+          <span class="mant-kpi-sub">nivel del tanque</span>
+          <div class="mant-barra"><div class="mant-barra-relleno verde" id="ficha-comb-barra" style="width:0%"></div></div>
+        </div>
+        <div class="mant-kpi">
+          <span class="mant-kpi-label">Recorrido jornada</span>
+          <span class="mant-kpi-valor" id="ficha-dist">0.0 km</span>
+          <span class="mant-kpi-sub" id="ficha-lecturas">0 lecturas</span>
+          <div class="mant-barra"><div class="mant-barra-relleno" id="ficha-dist-barra" style="width:0%"></div></div>
+        </div>
       </div>
     </div>
   </section>
