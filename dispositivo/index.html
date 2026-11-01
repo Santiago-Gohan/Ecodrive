@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="tour.css" />
 </head>
 <body>
+  <div id="alerta-aviso" class="alerta-aviso oculto"></div>
   <div class="app-header">
     <div class="header-inner">
       <div class="brand">
@@ -20,7 +21,7 @@
       </div>
       <div class="header-actions">
         <div class="status-pill" id="header-status">
-          <span class="status-dot"></span>
+          <span class="status-dot" id="punto-estado"></span>
           <span id="texto-estado">Sin conexión</span>
         </div>
         <button id="btn-tour" class="header-btn">Tour guiado</button>
@@ -67,7 +68,7 @@
         <div class="vehicle-metrics">
           <div class="metric">
             <div class="metric-label">Temperatura Motor</div>
-            <div class="metric-value"><span id="ficha-ect">--</span> <span class="metric-unit">°C</span></div>
+            <div class="metric-value"><span id="ficha-ect">--</span></div>
             <div class="metric-bar"><div class="metric-bar-fill" id="ficha-ect-barra" style="width:0%"></div></div>
           </div>
           <div class="metric">
@@ -77,7 +78,7 @@
           </div>
           <div class="metric">
             <div class="metric-label">Combustible</div>
-            <div class="metric-value"><span id="ficha-comb">--</span> <span class="metric-unit">%</span></div>
+            <div class="metric-value"><span id="ficha-comb">--</span></div>
             <div class="metric-bar"><div class="metric-bar-fill" id="ficha-comb-barra" style="width:0%"></div></div>
           </div>
           <div class="metric">
@@ -193,6 +194,7 @@
         <div id="caja-camara" class="camera-box oculto">
           <video id="camara" playsinline muted></video>
           <p class="form-help">Enfoca el código QR del panel Flota → Clave</p>
+          <span id="estado-escaneo" class="form-help"></span>
         </div>
         <details class="accordion">
           <summary class="accordion-header">¿No encuentras tu vehículo? Regístralo aquí</summary>

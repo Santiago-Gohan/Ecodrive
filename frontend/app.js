@@ -989,6 +989,70 @@ function renderResumenMnt(v, hist) {
   document.getElementById('kpi-servicios-sub').textContent = `Último: ${km}`;
 
   document.getElementById('mant-total').textContent = total ? `Total ${formatearDinero(total)}` : '';
+
+  /* Telemetría actual: la misma lectura que ve el conductor en su panel */
+  const num = (x) => {
+    if (x === null || x === undefined || x === '' || !Number.isFinite(Number(x))) return null;
+    return Number(x);
+  };
+  const ect = num(v.ect);
+  const rpm = num(v.rpm);
+  const comb = num(v.nivel_combustible);
+
+  const elEct = document.getElementById('mant-tel-ect');
+  if (elEct) {
+    elEct.textContent = ect === null ? '--' : `${Math.round(ect)} °C`;
+    const barraEct = document.getElementById('mant-tel-ect-barra');
+    if (barraEct) {
+      barraEct.style.width = (ect === null ? 0 : Math.max(0, Math.min(100, ect - 20))) + '%';
+      barraEct.className = 'mant-barra-relleno ' + (ect === null ? '' : ect > 105 ? 'rojo' : ect >= 95 ? 'ambar' : 'verde');
+    }
+    const subEct = document.getElementById('mant-tel-ect-sub');
+    if (subEct) subEct.textContent = ect === null
+      ? 'Sin lecturas'
+      : ect > 105 ? 'Sobrecalentamiento' : ect >= 95 ? 'Temperatura alta' : 'En rango';
+  }
+
+  const elRpm = document.getElementById('mant-tel-rpm');
+  if (elRpm) {
+    elRpm.textContent = rpm === null ? '--' : Math.round(rpm).toLocaleString('es-CO');
+    const barraRpm = document.getElementById('mant-tel-rpm-barra');
+    if (barraRpm) {
+      barraRpm.style.width = (rpm === null ? 0 : Math.max(0, Math.min(100, (rpm / 9000) * 100))) + '%';
+      barraRpm.className = 'mant-barra-relleno verde';
+    }
+    const subRpm = document.getElementById('mant-tel-rpm-sub');
+    if (subRpm) subRpm.textContent = rpm === null ? 'Sin lecturas' : 'Revoluciones por minuto';
+  }
+
+  const elComb = document.getElementById('mant-tel-comb');
+  if (elComb) {
+    elComb.textContent = comb === null ? '--' : `${Math.round(comb)}%`;
+    const barraComb = document.getElementById('mant-tel-comb-barra');
+    if (barraComb) {
+      barraComb.style.width = (comb === null ? 0 : Math.max(0, Math.min(100, comb))) + '%';
+      barraComb.className = 'mant-barra-relleno ' + (comb !== null && comb <= 15 ? 'rojo' : 'verde');
+    }
+    const subComb = document.getElementById('mant-tel-comb-sub');
+    if (subComb) subComb.textContent = comb === null ? 'Sin dato' : comb <= 15 ? 'Nivel bajo' : 'Nivel actual';
+  }
+
+  const elFecha = document.getElementById('mant-tel-fecha');
+  if (elFecha) {
+    const f = v.ultima_lectura ? new Date(v.ultima_lectura) : null;
+    if (f && !isNaN(f)) {
+      elFecha.textContent = f.toLocaleString('es-CO', {
+        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+      });
+    } else {
+      elFecha.textContent = '--';
+    }
+  }
+  const elAlertas = document.getElementById('mant-tel-alertas');
+  if (elAlertas) {
+    const n = Number(v.alertas_activas) || 0;
+    elAlertas.textContent = `${n} alerta${n === 1 ? '' : 's'} activa${n === 1 ? '' : 's'}`;
+  }
 }
 
 async function abrirModalMant(id, placa, nombre) {

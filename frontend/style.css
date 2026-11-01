@@ -2132,3 +2132,584 @@ td.celda-alerta {
   background: #0e1726;
   display: block;
 }
+
+/* ==========================================================================
+   AREA DE MANTENIMIENTO - mismo lenguaje visual que el Panel del Conductor
+   Layout a pantalla completa: ficha + KPIs + telemetria arriba y dos
+   columnas de trabajo debajo (acciones a la izquierda, registros a la derecha)
+   ========================================================================== */
+#modal-mant {
+  --m-bg: #05070a;
+  --m-panel: #0b1118;
+  --m-panel2: #0e151d;
+  --m-panel3: #121b25;
+  --m-line: #1b2733;
+  --m-line2: #141d26;
+  --m-muted: #7d8fa3;
+  --m-muted2: #55677b;
+  --m-cyan: #22d3ee;
+  --m-lime: #a3e635;
+  --m-grad: linear-gradient(120deg, #22d3ee 0%, #a3e635 100%);
+  --m-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  padding: clamp(8px, 1.6vh, 22px) clamp(8px, 2vw, 40px);
+}
+
+/* ---------- Caja: ocupa casi toda la pantalla ---------- */
+#modal-mant .modal-mant-caja {
+  width: min(1840px, 100%);
+  height: min(94vh, 1240px);
+  max-width: none;
+  max-height: none;
+  padding: 0 22px 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  column-gap: 22px;
+  row-gap: 12px;
+  background:
+    radial-gradient(1000px 420px at 6% -8%, rgba(34, 211, 238, 0.10), transparent 70%),
+    radial-gradient(800px 380px at 96% -4%, rgba(163, 230, 53, 0.05), transparent 70%),
+    linear-gradient(180deg, var(--m-panel), var(--m-bg));
+  border: 1px solid #223140;
+  border-radius: 18px;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #24323f transparent;
+}
+
+#modal-mant .modal-mant-caja::-webkit-scrollbar { width: 10px; }
+#modal-mant .modal-mant-caja::-webkit-scrollbar-thumb {
+  background: #22303d;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* ---------- Cabecera fija ---------- */
+#modal-mant .modal-cabecera {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 -22px;
+  padding: 15px 22px;
+  background: rgba(8, 12, 17, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--m-line);
+}
+
+#modal-mant .modal-cabecera::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.55), rgba(163, 230, 53, 0.3), transparent);
+}
+
+#modal-mant .modal-cabecera h3 {
+  position: relative;
+  padding-left: 12px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #e8f0f8;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: currentColor;
+}
+
+#modal-mant .modal-cabecera h3::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--m-grad);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+}
+
+#modal-mant .modal-x {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--m-line);
+  background: #0a1017;
+  color: var(--m-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+#modal-mant .modal-x:hover {
+  color: #fff;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* ---------- Ficha del vehiculo (ancho completo) ---------- */
+#modal-mant .mant-veh {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.07), rgba(163, 230, 53, 0.03));
+  border: 1px solid var(--m-line);
+  border-left: 1px solid var(--m-line);
+}
+
+#modal-mant .mant-veh-placa {
+  font-family: var(--m-mono);
+  font-size: 1.95rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.05;
+  color: #f3faff;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 0 0 26px rgba(34, 211, 238, 0.28);
+}
+
+#modal-mant .mant-veh-nombre {
+  font-size: 0.84rem;
+  color: var(--m-muted);
+}
+
+/* ---------- Pastillas tipo dashboard industrial ---------- */
+#modal-mant .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#modal-mant .pill.cyan { color: var(--m-cyan); background: rgba(34, 211, 238, 0.10); border: 1px solid rgba(34, 211, 238, 0.30); }
+#modal-mant .pill.verde { color: var(--m-lime); background: rgba(163, 230, 53, 0.10); border: 1px solid rgba(163, 230, 53, 0.30); }
+#modal-mant .pill.ambar { color: #fcd34d; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.34); }
+#modal-mant .pill.rojo { color: #fca5a5; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.34); }
+#modal-mant .pill.gris { color: var(--m-muted); background: rgba(148, 163, 184, 0.09); border: 1px solid rgba(148, 163, 184, 0.22); }
+
+/* ---------- Rejillas de tarjetas: 4 en linea a lo ancho ---------- */
+#modal-mant .mant-kpis,
+#modal-mant .mant-tel-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+#modal-mant .mant-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 13px 14px;
+  border-radius: 11px;
+  background: var(--m-panel3);
+  border: 1px solid var(--m-line2);
+  box-shadow: none;
+}
+
+#modal-mant .mant-kpi-label {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--m-muted2);
+}
+
+#modal-mant .mant-kpi-valor {
+  font-family: var(--m-mono);
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  color: #f2fbff;
+  overflow-wrap: anywhere;
+}
+
+#modal-mant .mant-kpi-sub {
+  font-size: 0.66rem;
+  color: var(--m-muted);
+  line-height: 1.4;
+}
+
+#modal-mant .mant-barra {
+  height: 4px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: #0a1017;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+#modal-mant .mant-barra-relleno {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--m-grad);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+}
+
+#modal-mant .mant-barra-relleno.verde { background: linear-gradient(90deg, #16a34a, var(--m-lime)); box-shadow: 0 0 10px rgba(163, 230, 53, 0.45); }
+#modal-mant .mant-barra-relleno.ambar { background: linear-gradient(90deg, #d97706, #fbbf24); box-shadow: 0 0 10px rgba(245, 158, 11, 0.45); }
+#modal-mant .mant-barra-relleno.rojo { background: linear-gradient(90deg, #b91c1c, #ef4444); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+
+/* ---------- Telemetria actual ---------- */
+#modal-mant .mant-tel {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(34, 211, 238, 0.06), transparent 70%),
+    var(--m-panel3);
+}
+
+#modal-mant .mant-tel .mant-kpi-valor { font-size: 1.6rem; }
+#modal-mant .mant-tel-fecha { font-size: 1.02rem !important; letter-spacing: 0; }
+
+/* ---------- Titulos de seccion ---------- */
+#modal-mant .modal-sec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--m-line2);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: #cfe0ef;
+}
+
+#modal-mant > .modal-sec { grid-column: 1 / -1; }
+
+#modal-mant .modal-sec::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 3px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--m-grad);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+}
+
+#modal-mant .modal-sec .mant-total { margin-left: auto; }
+
+#modal-mant .mant-total {
+  font-family: var(--m-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--m-lime);
+}
+
+/* ---------- Columnas de trabajo ---------- */
+#modal-mant .mant-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #24323f transparent;
+}
+
+#modal-mant .mant-col::-webkit-scrollbar { width: 8px; }
+#modal-mant .mant-col::-webkit-scrollbar-thumb {
+  background: #22303d;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+#modal-mant .mant-col-a { grid-column: 1; }
+#modal-mant .mant-col-b { grid-column: 2; }
+
+#modal-mant .mant-col-b .mant-hist { flex: 1 1 auto; min-height: 96px; }
+
+#modal-mant .mant-col > .modal-sec:first-child {
+  margin-top: 2px;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* ---------- Tarjetas de contenido ---------- */
+#modal-mant .mant-card {
+  position: relative;
+  padding: 15px;
+  margin-bottom: 0;
+  border-radius: 13px;
+  border: 1px solid var(--m-line);
+  background: linear-gradient(180deg, var(--m-panel), #080c11);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+#modal-mant .mant-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.55), rgba(163, 230, 53, 0.22), transparent);
+}
+
+#modal-mant .mant-card::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid rgba(34, 211, 238, 0.35);
+  border-right: 1px solid rgba(34, 211, 238, 0.35);
+  border-top-right-radius: 3px;
+  pointer-events: none;
+}
+
+/* ---------- Etiquetas y campos ---------- */
+#modal-mant .modal-label {
+  margin: 10px 0 6px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--m-muted2);
+}
+
+#modal-mant .modal-grid2 { gap: 10px; }
+
+#modal-mant .modal-caja input,
+#modal-mant .modal-caja textarea,
+#modal-mant .mnt-inp {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--m-line);
+  background: #070b10;
+  color: #e8f0f8;
+  font-family: inherit;
+  font-size: 0.86rem;
+  outline: none;
+  transition: border-color 0.16s, box-shadow 0.16s;
+}
+
+#modal-mant .modal-caja input:focus,
+#modal-mant .modal-caja textarea:focus,
+#modal-mant .mnt-inp:focus {
+  border-color: rgba(34, 211, 238, 0.6);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+}
+
+#modal-mant .modal-caja input::placeholder,
+#modal-mant .modal-caja textarea::placeholder { color: #4a5b6d; }
+
+#modal-mant .mnt-inp { margin-bottom: 8px; }
+#modal-mant .mnt-inp:last-child { margin-bottom: 0; }
+
+#modal-mant .mnt-fila-reg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+
+#modal-mant .mnt-fila-reg .mnt-inp { flex: 1 1 180px; margin-bottom: 0; }
+#modal-mant .mnt-fila-reg .mnt-reg-boton { flex: 0 1 auto; }
+
+/* ---------- Botones ---------- */
+#modal-mant .btn-primario {
+  padding: 11px 16px;
+  border: none;
+  border-radius: 9px;
+  background: var(--m-grad);
+  color: #04121a;
+  font-weight: 800;
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 22px rgba(34, 211, 238, 0.18);
+}
+
+#modal-mant .btn-primario:hover { filter: brightness(1.06); }
+
+#modal-mant .btn-secundario {
+  padding: 10px 15px;
+  border-radius: 9px;
+  border: 1px solid var(--m-line);
+  background: #0a1017;
+  color: #e8f0f8;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+#modal-mant .btn-secundario:hover {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.07);
+}
+
+/* ---------- Historial de servicios ---------- */
+#modal-mant .mant-hist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+#modal-mant .mant-hist-item {
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: var(--m-panel2);
+  border: 1px solid var(--m-line2);
+}
+
+#modal-mant .mant-hist-item:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+  background: #101a24;
+}
+
+#modal-mant .mant-hist-fecha {
+  font-family: var(--m-mono);
+  font-size: 0.74rem;
+  color: #cfe0ef;
+}
+
+#modal-mant .mant-hist-costo {
+  font-family: var(--m-mono);
+  font-size: 0.76rem;
+  color: var(--m-lime);
+}
+
+#modal-mant .mant-hist-desc { font-size: 0.8rem; color: #dbe7f3; }
+#modal-mant .mant-hist-km { font-size: 0.7rem; color: var(--m-muted2); font-family: var(--m-mono); }
+#modal-mant .mant-hist-dot { background: var(--m-grad); box-shadow: 0 0 10px rgba(34, 211, 238, 0.5); }
+
+/* ---------- Tablas del modal ---------- */
+#modal-mant .vivo-tabla { width: 100%; font-size: 0.78rem; }
+
+#modal-mant .vivo-tabla th {
+  padding: 9px 10px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--m-muted2);
+  background: #070b10;
+  border-bottom: 1px solid var(--m-line);
+  white-space: nowrap;
+}
+
+#modal-mant .vivo-tabla td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--m-line2);
+  color: #dbe7f3;
+  font-variant-numeric: tabular-nums;
+}
+
+#modal-mant .vivo-tabla tbody tr:hover td { background: rgba(34, 211, 238, 0.04); }
+
+#modal-mant .tabla-scroll {
+  margin-bottom: 0;
+  border: 1px solid var(--m-line);
+  border-radius: 11px;
+  background: #070b10;
+  overflow: auto;
+}
+
+#modal-mant .vacio-ligero {
+  padding: 12px;
+  font-size: 0.74rem;
+  color: var(--m-muted2);
+}
+
+/* ---------- Adaptacion a pantallas medianas y pequenas ---------- */
+@media (max-width: 1180px) {
+  #modal-mant .modal-mant-caja {
+    height: auto;
+    max-height: 92vh;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    padding: 0 18px 18px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  #modal-mant .mant-col {
+    overflow: visible;
+    padding-right: 0;
+    align-self: start;
+  }
+  #modal-mant .mant-col-b .mant-hist { flex: 0 0 auto; }
+  #modal-mant .modal-cabecera {
+    margin: 0 -18px;
+    padding: 14px 18px;
+  }
+  #modal-mant .mant-col-a,
+  #modal-mant .mant-col-b { grid-column: 1; }
+  #modal-mant .mant-veh-placa { font-size: 1.7rem; }
+}
+
+@media (max-width: 760px) {
+  #modal-mant .mant-kpis,
+  #modal-mant .mant-tel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #modal-mant .mant-veh-placa { font-size: 1.5rem; }
+  #modal-mant .mant-tel .mant-kpi-valor { font-size: 1.35rem; }
+}
+
+@media (max-width: 560px) {
+  #modal-mant { padding: 0; }
+  #modal-mant .modal-mant-caja {
+    width: 100%;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    padding: 0 14px 16px;
+  }
+  #modal-mant .modal-cabecera {
+    margin: 0 -14px;
+    padding: 12px 14px;
+  }
+  #modal-mant .mant-kpis,
+  #modal-mant .mant-tel-grid { grid-template-columns: minmax(0, 1fr); }
+  #modal-mant .mant-veh-placa { font-size: 1.35rem; }
+  #modal-mant .mant-kpi-valor { font-size: 1.15rem; }
+  #modal-mant .mant-tel .mant-kpi-valor { font-size: 1.3rem; }
+}
+
+@media (min-width: 1500px) {
+  #modal-mant .mant-veh-placa { font-size: 2.1rem; }
+  #modal-mant .mant-kpi-valor { font-size: 1.4rem; }
+  #modal-mant .mant-tel .mant-kpi-valor { font-size: 1.75rem; }
+}
+
+/* ---------- Pantallas anchas: el admin usa todo el ancho disponible ---------- */
+@media (min-width: 1300px) {
+  main { max-width: 1460px; }
+  #vista-gestion { max-width: none; }
+}
+
+@media (min-width: 1700px) {
+  main { max-width: 1840px; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+}

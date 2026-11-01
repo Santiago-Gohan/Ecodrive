@@ -9,8 +9,8 @@ const $selectVehiculo = document.getElementById('select-vehiculo');
 const $inputApikey = document.getElementById('input-apikey');
 const $btnGuardar = document.getElementById('btn-guardar');
 const $btnConectar = document.getElementById('btn-conectar');
-const $btnIniciar = document.getElementById('btn-iniciar');
-const $btnDetener = document.getElementById('btn-detener');
+const $btnIniciar = document.getElementById('btn-iniciar') || document.getElementById('tb-iniciar');
+const $btnDetener = document.getElementById('btn-detener') || document.getElementById('tb-detener');
 const $log = document.getElementById('log-obd');
 const $punto = document.getElementById('punto-estado');
 const $textoEstado = document.getElementById('texto-estado');
@@ -146,9 +146,9 @@ async function reportarEvento() {
 function iniciarChipsEvento() {
   const cont = document.getElementById('ev-chips-tipo');
   if (cont) {
-    cont.querySelectorAll('.chip').forEach((c) => {
+    cont.querySelectorAll('.chip-btn').forEach((c) => {
       c.addEventListener('click', () => {
-        cont.querySelectorAll('.chip').forEach((x) => x.classList.remove('activo'));
+        cont.querySelectorAll('.chip-btn').forEach((x) => x.classList.remove('activo'));
         c.classList.add('activo');
         tipoEventoSeleccionado = c.getAttribute('data-tipo');
       });
@@ -1294,40 +1294,74 @@ function sincronizarToolbar() {
   if (tbConectar) {
     const conectado = !!(caracteristicaEscritura || modoVirtual);
     tbConectar.classList.toggle('on', conectado);
-    tbConectar.querySelector('span').textContent = conectado ? 'Conectado' : 'Conectar';
+    const sp = tbConectar.querySelector('span');
+    if (sp) sp.textContent = conectado ? 'Conectado' : 'Conectar';
   }
   if (tbIniciar) tbIniciar.disabled = $btnIniciar.disabled;
   if (tbDetener) tbDetener.disabled = $btnDetener.disabled;
   if (tbSonido) {
     const on = sonidoActivado();
     tbSonido.classList.toggle('on', on);
-    tbSonido.querySelector('span').textContent = on ? 'Sonido' : 'Mudo';
+    const sp = tbSonido.querySelector('span');
+    if (sp) sp.textContent = on ? 'Sonido' : 'Mudo';
   }
 }
 
-document.querySelectorAll('#toolbar [data-tb]').forEach((b) => {
+/* Navegación superior: scroll a la sección + resaltado de la pestaña activa */
+const CONFIG_NAV = {
+  overview: null,
+  vincular: 'conf-vincular',
+  conectar: 'conf-conectar',
+  monitoreo: 'conf-monitoreo',
+  reportar: 'reportar-evento',
+  opiniones: 'opiniones',
+};
+
+document.querySelectorAll('.top-nav [data-tb]').forEach((b) => {
   b.addEventListener('click', () => {
-    const destino = {
-      vincular: 'conf-vincular',
-      monitoreo: 'conf-monitoreo',
-      'reportar-eventos': 'reportar-evento',
-    }[b.dataset.tb];
-    const el = destino && document.getElementById(destino);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    el.classList.add('tb-flash');
-    setTimeout(() => el.classList.remove('tb-flash'), 900);
-    document.querySelectorAll('#toolbar [data-tb]').forEach((x) => x.classList.remove('activo'));
-    b.classList.add('activo');
+    const clave = b.dataset.tb;
+    if (clave === 'overview') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const el = document.getElementById(CONFIG_NAV[clave]);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.classList.add('tb-flash');
+        setTimeout(() => el.classList.remove('tb-flash'), 900);
+      }
+    }
+    document.querySelectorAll('.top-nav [data-tb]').forEach((x) => x.classList.remove('active'));
+    b.classList.add('active');
   });
 });
+
+// Scroll-spy: mantiene sincronizada la pestaña activa con la sección visible.
+if ('IntersectionObserver' in window) {
+  const navBtns = [...document.querySelectorAll('.top-nav [data-tb]')];
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      const btn = navBtns.find((x) => CONFIG_NAV[x.dataset.tb] === visible.target.id);
+      if (btn) {
+        navBtns.forEach((x) => x.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    },
+    { rootMargin: '-140px 0px -55% 0px', threshold: [0.15, 0.4, 0.75] }
+  );
+  ['conf-vincular', 'conf-conectar', 'conf-monitoreo', 'reportar-evento', 'opiniones'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+}
 
 const tbConectar = document.getElementById('tb-conectar');
 if (tbConectar) tbConectar.addEventListener('click', () => $btnConectar.click());
 const tbIniciar = document.getElementById('tb-iniciar');
-if (tbIniciar) tbIniciar.addEventListener('click', () => { if (!$btnIniciar.disabled) $btnIniciar.click(); });
+if (tbIniciar && tbIniciar !== $btnIniciar) tbIniciar.addEventListener('click', () => { if (!$btnIniciar.disabled) $btnIniciar.click(); });
 const tbDetener = document.getElementById('tb-detener');
-if (tbDetener) tbDetener.addEventListener('click', () => { if (!$btnDetener.disabled) $btnDetener.click(); });
+if (tbDetener && tbDetener !== $btnDetener) tbDetener.addEventListener('click', () => { if (!$btnDetener.disabled) $btnDetener.click(); });
 const tbResumen = document.getElementById('tb-resumen');
 if (tbResumen) tbResumen.addEventListener('click', () => {
   if (jornada && jornada.lecturas > 0) mostrarResumenJornada(jornada);
