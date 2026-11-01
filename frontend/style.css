@@ -155,6 +155,62 @@ body {
   flex-wrap: wrap;
   gap: 6px;
   padding-top: 4px;
+  margin-top: auto;
+}
+
+/* ---------- Orden de la flota: tarjetas iguales y arrastrables ---------- */
+.veh-card { position: relative; }
+
+.veh-drag {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.veh-drag:hover {
+  color: var(--acento);
+  border-color: var(--borde);
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.veh-card.arrastrando {
+  opacity: 0.55;
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.4);
+}
+
+.veh-card.arrastrando:hover { transform: none; }
+
+.btn-orden {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: rgba(11, 18, 32, 0.6);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--anim), color var(--anim), background var(--anim);
+}
+
+.btn-orden:hover {
+  color: var(--acento);
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.07);
 }
 
 /* ---------- Controles en vivo en tarjeta de vehículo ---------- */
@@ -1324,6 +1380,7 @@ td.celda-alerta {
 }
 
 .mant-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1332,6 +1389,36 @@ td.celda-alerta {
   background: var(--fondo2);
   border: 1px solid var(--borde);
   border-radius: 12px;
+  transition: border-color var(--anim), box-shadow var(--anim), opacity var(--anim);
+}
+
+.mant-drag {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mant-drag:hover {
+  color: var(--acento);
+  border-color: var(--borde);
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.mant-item.arrastrando {
+  opacity: 0.55;
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.4);
 }
 
 .mant-item .mant-ico {
@@ -2163,7 +2250,7 @@ td.celda-alerta {
   padding: 0 22px 22px;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   column-gap: 22px;
   row-gap: 12px;
   background:
@@ -2254,6 +2341,37 @@ td.celda-alerta {
 #modal-mant .modal-x:hover {
   color: #fff;
   border-color: rgba(239, 68, 68, 0.5);
+}
+
+#modal-mant .mant-cab-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+#modal-mant .mant-pista {
+  font-size: 0.64rem;
+  letter-spacing: 0.03em;
+  color: var(--m-muted2);
+}
+
+#modal-mant .btn-orden {
+  padding: 7px 11px;
+  border: 1px solid var(--m-line);
+  border-radius: 8px;
+  background: #0a1017;
+  color: var(--m-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+#modal-mant .btn-orden:hover {
+  color: var(--m-cyan);
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.08);
 }
 
 /* ---------- Ficha del vehiculo (ancho completo) ---------- */
@@ -2421,38 +2539,172 @@ td.celda-alerta {
   color: var(--m-lime);
 }
 
-/* ---------- Columnas de trabajo ---------- */
-#modal-mant .mant-col {
+/* ---------- Fichas de trabajo: mismo tamano, orden y arrastre ---------- */
+#modal-mant .mant-paneles {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+}
+
+#modal-mant .mant-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--m-line);
+  border-radius: 13px;
+  background: linear-gradient(180deg, var(--m-panel), #080c11);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  transition: border-color 0.16s, box-shadow 0.16s, opacity 0.16s;
+}
+
+#modal-mant .mant-panel::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid rgba(34, 211, 238, 0.3);
+  border-right: 1px solid rgba(34, 211, 238, 0.3);
+  border-top-right-radius: 3px;
+  pointer-events: none;
+}
+
+#modal-mant .mant-panel:hover {
+  border-color: rgba(34, 211, 238, 0.34);
+}
+
+#modal-mant .mant-panel.arrastrando {
+  opacity: 0.62;
+  border-color: rgba(34, 211, 238, 0.75);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.45), 0 22px 44px rgba(0, 0, 0, 0.6);
+}
+
+#modal-mant .mant-panel-cab {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  background: #070b10;
+  border-bottom: 1px solid var(--m-line2);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+#modal-mant .mant-panel.arrastrando .mant-panel-cab { cursor: grabbing; }
+
+#modal-mant .mant-panel-cab .modal-sec {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border-top: none;
+  font-size: 0.66rem;
+}
+
+#modal-mant .mant-panel-num {
+  flex: 0 0 auto;
+  font-family: var(--m-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--m-muted2);
+}
+
+#modal-mant .drag-handle {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--m-line);
+  border-radius: 7px;
+  background: #0a1017;
+  color: var(--m-muted2);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+#modal-mant .drag-handle:hover,
+#modal-mant .mant-panel-cab:hover .drag-handle {
+  color: var(--m-cyan);
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.08);
+}
+
+#modal-mant .mant-panel-cuerpo {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-width: 0;
   min-height: 0;
-  align-self: stretch;
+  padding: 13px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 6px;
   scrollbar-width: thin;
   scrollbar-color: #24323f transparent;
 }
 
-#modal-mant .mant-col::-webkit-scrollbar { width: 8px; }
-#modal-mant .mant-col::-webkit-scrollbar-thumb {
+#modal-mant .mant-panel-cuerpo::-webkit-scrollbar { width: 8px; }
+#modal-mant .mant-panel-cuerpo::-webkit-scrollbar-thumb {
   background: #22303d;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
-#modal-mant .mant-col-a { grid-column: 1; }
-#modal-mant .mant-col-b { grid-column: 2; }
+/* La telemetria se reparte 2x2 dentro de su ficha */
+#modal-mant .mant-panel .mant-tel-grid {
+  flex: 1 1 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-height: 0;
+}
 
-#modal-mant .mant-col-b .mant-hist { flex: 1 1 auto; min-height: 96px; }
+#modal-mant .mant-panel .mant-tel { min-width: 0; }
 
-#modal-mant .mant-col > .modal-sec:first-child {
-  margin-top: 2px;
-  padding-top: 0;
-  border-top: none;
+/* Dentro de una ficha la tarjeta ya no necesita su propia caja */
+#modal-mant .mant-panel .mant-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+#modal-mant .mant-panel .mant-card::before,
+#modal-mant .mant-panel .mant-card::after { display: none; }
+
+/* Tablas y listas usan todo el alto disponible de la ficha */
+#modal-mant .mant-panel .tabla-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#modal-mant .mant-panel .vivo-tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#modal-mant .mant-panel .mant-hist {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 /* ---------- Tarjetas de contenido ---------- */
@@ -2655,30 +2907,34 @@ td.celda-alerta {
     overflow-y: auto;
     overflow-x: hidden;
   }
-  #modal-mant .mant-col {
-    overflow: visible;
-    padding-right: 0;
-    align-self: start;
+  #modal-mant .mant-paneles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
   }
-  #modal-mant .mant-col-b .mant-hist { flex: 0 0 auto; }
   #modal-mant .modal-cabecera {
     margin: 0 -18px;
     padding: 14px 18px;
   }
-  #modal-mant .mant-col-a,
-  #modal-mant .mant-col-b { grid-column: 1; }
   #modal-mant .mant-veh-placa { font-size: 1.7rem; }
 }
 
 @media (max-width: 760px) {
-  #modal-mant .mant-kpis,
-  #modal-mant .mant-tel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #modal-mant .mant-paneles {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    align-content: start;
+  }
+  #modal-mant .mant-panel { min-height: auto; }
+  #modal-mant .mant-panel-cuerpo { flex: 0 0 auto; overflow: visible; }
+  #modal-mant .mant-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #modal-mant .mant-veh-placa { font-size: 1.5rem; }
   #modal-mant .mant-tel .mant-kpi-valor { font-size: 1.35rem; }
+  #modal-mant .mant-pista { display: none; }
 }
 
 @media (max-width: 560px) {
   #modal-mant { padding: 0; }
+  #modal-mant .mant-paneles { grid-template-columns: minmax(0, 1fr); }
   #modal-mant .modal-mant-caja {
     width: 100%;
     max-height: 100vh;
@@ -2690,8 +2946,8 @@ td.celda-alerta {
     margin: 0 -14px;
     padding: 12px 14px;
   }
-  #modal-mant .mant-kpis,
-  #modal-mant .mant-tel-grid { grid-template-columns: minmax(0, 1fr); }
+  #modal-mant .mant-kpis { grid-template-columns: minmax(0, 1fr); }
+  #modal-mant .mant-panel .mant-tel-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
   #modal-mant .mant-veh-placa { font-size: 1.35rem; }
   #modal-mant .mant-kpi-valor { font-size: 1.15rem; }
   #modal-mant .mant-tel .mant-kpi-valor { font-size: 1.3rem; }

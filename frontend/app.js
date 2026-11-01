@@ -17,6 +17,11 @@ const $errorLogin = document.getElementById('error-login');
 const VISTAS = { dashboard: $dash, flota: $flota, opiniones: $opiniones, gestion: $gestion };
 
 function conectarSocket() {
+  if (typeof io !== 'function') {
+    // Sin socket.io (por ejemplo al abrir el panel como archivo estatico)
+    setConexion(false);
+    return;
+  }
   socket = io();
   socket.on('connect', () => {
     console.log('WebSocket conectado');
@@ -128,6 +133,13 @@ function cambiarVista(nombre) {
     setTimeout(() => mapaEco.invalidateSize(), 60);
     cargarFlota();
     cargarEventos();
+  }
+  if (nombre === 'dashboard' || nombre === 'flota') {
+    // Al volver a una vista visible se recalculan las alturas iguales
+    setTimeout(() => {
+      igualarFichas(document.getElementById('lista-mantenimientos'), '.mant-item');
+      igualarTarjetas(document.getElementById('grid-vehiculos'));
+    }, 120);
   }
 }
 
@@ -260,13 +272,14 @@ function renderProximosMantenimientos(filas) {
     return;
   }
   cont.innerHTML = items
-    .map((f) => {
+    .map((f, idx) => {
       const vencido = f.dias < 0;
       const hoy = f.dias === 0;
       const dias = vencido ? `${-f.dias} día(s) de retraso` : hoy ? '¡Hoy!' : `en ${f.dias} día(s)`;
       const ico = vencido ? '⛔' : f.dias <= 3 ? '🚨' : '🛠️';
       const detalle = `Último: ${formatearFecha(f.ultimo_mantenimiento) || '—'}`;
-      return `<div class="mant-item">
+      return `<div class="mant-item" data-orden-id="${f.id}" data-orden-inicial="${idx}">
+        <button type="button" class="mant-drag" data-drag title="Arrastrar para reordenar" aria-label="Mover ${f.placa}">&#10287;</button>
         <div class="mant-ico">${ico}</div>
         <div class="mant-info">
           <span class="mant-placa">${f.placa}</span> · ${f.nombre || '—'}<br>
@@ -276,6 +289,7 @@ function renderProximosMantenimientos(filas) {
       </div>`;
     })
     .join('');
+  ordenarMantenimientos(cont);
 }
 
 /* ---------- Mapa en vivo (Leaflet) ---------- */
@@ -815,6 +829,206 @@ function controlesVivo(v) {
   </div>`;
 }
 
+/* ---------- Fichas iguales, orden guardado y arrastre ---------- */
+const ORDEN_MANT_KEY = 'ecodrive.orden.mantenimiento';
+const ORDEN_FLOTA_KEY = 'ecodrive.orden.flota';
+const ORDEN_MANTS_KEY = 'ecodrive.orden.mantenimientos';
+let temporizadorIgualar = null;
+
+function leerOrden(key) {
+  try {
+    const crudo = localStorage.getItem(key);
+    const lista = crudo ? JSON.parse(crudo) : [];
+    return Array.isArray(lista) ? lista.map(String) : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function guardarOrden(key, ids) {
+  try {
+    localStorage.setItem(key, JSON.stringify(ids));
+  } catch (err) {
+    /* almacenamiento lleno o bloqueado: se ignora */
+  }
+}
+
+function idsEnOrden(contenedor) {
+  return [...contenedor.querySelectorAll('[data-orden-id]')].map((el) => el.dataset.ordenId);
+}
+
+/* Reubica las fichas segun el orden guardado; las nuevas quedan al final. */
+function aplicarOrden(contenedor, key) {
+  const orden = leerOrden(key);
+  if (!orden.length) return;
+  const mapa = new Map();
+  [...contenedor.querySelectorAll('[data-orden-id]')].forEach((el) => {
+    const id = el.dataset.ordenId;
+    if (id && !mapa.has(id)) mapa.set(id, el);
+  });
+  if (mapa.size < 2) return;
+  const vistos = new Set();
+  orden.forEach((id) => {
+    const el = mapa.get(id);
+    if (el && !vistos.has(id)) {
+      contenedor.appendChild(el);
+      vistos.add(id);
+    }
+  });
+  mapa.forEach((el, id) => {
+    if (!vistos.has(id)) contenedor.appendChild(el);
+  });
+}
+
+function numerarFichas(contenedor) {
+  [...contenedor.querySelectorAll('.mant-panel')].forEach((panel, i) => {
+    const num = panel.querySelector('.mant-panel-num');
+    if (num) num.textContent = String(i + 1).padStart(2, '0');
+  });
+}
+
+/* Arrastre por puntero (raton y tactil) usando el asa [data-drag]. */
+function activarArrastre(contenedor, key) {
+  if (!contenedor || contenedor.dataset.arrastre === 'on') return;
+  contenedor.dataset.arrastre = 'on';
+  let activo = null;
+  let puntero = null;
+
+  const soltar = (ev) => {
+    if (!activo || (ev && ev.pointerId !== puntero)) return;
+    activo.classList.remove('arrastrando');
+    activo.style.pointerEvents = '';
+    activo = null;
+    puntero = null;
+    guardarOrden(key, idsEnOrden(contenedor));
+    numerarFichas(contenedor);
+  };
+
+  contenedor.addEventListener('pointerdown', (ev) => {
+    const asa = ev.target.closest('[data-drag]');
+    if (!asa || !contenedor.contains(asa)) return;
+    const ficha = asa.closest('[data-orden-id]');
+    if (!ficha || !contenedor.contains(ficha)) return;
+    ev.preventDefault();
+    activo = ficha;
+    puntero = ev.pointerId;
+    ficha.classList.add('arrastrando');
+    try {
+      asa.setPointerCapture(ev.pointerId);
+    } catch (err) {
+      /* sin captura el arrastre sigue funcionando por burbujeo */
+    }
+  });
+
+  contenedor.addEventListener('pointermove', (ev) => {
+    if (!activo || ev.pointerId !== puntero) return;
+    ev.preventDefault();
+    // Auto-scroll al acercarse al borde de la ventana (listas largas)
+    const margen = 90;
+    if (ev.clientY < margen) window.scrollBy(0, -14);
+    else if (ev.clientY > window.innerHeight - margen) window.scrollBy(0, 14);
+    activo.style.pointerEvents = 'none';
+    const bajo = document.elementFromPoint(ev.clientX, ev.clientY);
+    activo.style.pointerEvents = '';
+    if (!bajo) return;
+    const destino = bajo.closest('[data-orden-id]');
+    if (!destino || destino === activo || !contenedor.contains(destino)) return;
+    const caja = destino.getBoundingClientRect();
+    const centroX = caja.left + caja.width / 2;
+    const centroY = caja.top + caja.height / 2;
+    const mismaFila = Math.abs(ev.clientY - centroY) < caja.height / 3;
+    const despues = mismaFila ? ev.clientX > centroX : ev.clientY > centroY;
+    contenedor.insertBefore(activo, despues ? destino.nextSibling : destino);
+  });
+
+  contenedor.addEventListener('pointerup', soltar);
+  contenedor.addEventListener('pointercancel', soltar);
+  contenedor.addEventListener('lostpointercapture', soltar);
+}
+
+/* Todas las tarjetas de un contenedor con la misma altura. */
+function igualarFichas(contenedor, selector) {
+  if (!contenedor) return;
+  const fichas = [...contenedor.querySelectorAll(selector)];
+  if (!fichas.length) return;
+  fichas.forEach((f) => { f.style.height = 'auto'; });
+  const alto = Math.max(...fichas.map((f) => Math.ceil(f.getBoundingClientRect().height)));
+  if (!alto) return;
+  fichas.forEach((f) => { f.style.height = alto + 'px'; });
+}
+
+function igualarTarjetas(contenedor) {
+  igualarFichas(contenedor, '.veh-card');
+}
+
+function ordenarFlota(contenedor) {
+  if (!contenedor) return;
+  aplicarOrden(contenedor, ORDEN_FLOTA_KEY);
+  activarArrastre(contenedor, ORDEN_FLOTA_KEY);
+  igualarTarjetas(contenedor);
+}
+
+function ordenarMantenimientos(contenedor) {
+  if (!contenedor) return;
+  aplicarOrden(contenedor, ORDEN_MANTS_KEY);
+  activarArrastre(contenedor, ORDEN_MANTS_KEY);
+  igualarFichas(contenedor, '.mant-item');
+}
+
+function iniciarFichasMantenimiento() {
+  const cont = document.getElementById('mant-paneles');
+  if (!cont) return;
+  [...cont.querySelectorAll('[data-orden-id]')].forEach((el, i) => {
+    el.dataset.ordenInicial = String(i);
+  });
+  aplicarOrden(cont, ORDEN_MANT_KEY);
+  numerarFichas(cont);
+  activarArrastre(cont, ORDEN_MANT_KEY);
+
+  document.getElementById('mant-orden-reset')?.addEventListener('click', () => {
+    try { localStorage.removeItem(ORDEN_MANT_KEY); } catch (err) { /* ignora */ }
+    [...cont.querySelectorAll('[data-orden-id]')]
+      .sort((a, b) => Number(a.dataset.ordenInicial) - Number(b.dataset.ordenInicial))
+      .forEach((el) => cont.appendChild(el));
+    numerarFichas(cont);
+    toast('Orden de las fichas restablecido', 'ok');
+  });
+}
+
+function iniciarOrdenFlota() {
+  document.getElementById('flota-orden-reset')?.addEventListener('click', () => {
+    try { localStorage.removeItem(ORDEN_FLOTA_KEY); } catch (err) { /* ignora */ }
+    const grid = document.getElementById('grid-vehiculos');
+    if (!grid) return;
+    [...grid.querySelectorAll('[data-orden-id]')]
+      .sort((a, b) => Number(a.dataset.ordenInicial) - Number(b.dataset.ordenInicial))
+      .forEach((el) => grid.appendChild(el));
+    igualarTarjetas(grid);
+    toast('Orden de la flota restablecido', 'ok');
+  });
+
+  window.addEventListener('resize', () => {
+    clearTimeout(temporizadorIgualar);
+    temporizadorIgualar = setTimeout(() => {
+      igualarTarjetas(document.getElementById('grid-vehiculos'));
+      igualarFichas(document.getElementById('lista-mantenimientos'), '.mant-item');
+    }, 160);
+  });
+}
+
+function iniciarOrdenMantenimientos() {
+  document.getElementById('mants-orden-reset')?.addEventListener('click', () => {
+    try { localStorage.removeItem(ORDEN_MANTS_KEY); } catch (err) { /* ignora */ }
+    const cont = document.getElementById('lista-mantenimientos');
+    if (!cont) return;
+    [...cont.querySelectorAll('[data-orden-id]')]
+      .sort((a, b) => Number(a.dataset.ordenInicial) - Number(b.dataset.ordenInicial))
+      .forEach((el) => cont.appendChild(el));
+    igualarFichas(cont, '.mant-item');
+    toast('Orden de los mantenimientos restablecido', 'ok');
+  });
+}
+
 function renderVehiculos(filas) {
   const grid = document.getElementById('grid-vehiculos');
   const aviso = document.getElementById('msg-flota-vacio');
@@ -826,14 +1040,15 @@ function renderVehiculos(filas) {
   }
   grid.innerHTML = filas
     .map(
-      (v) => {
+      (v, idx) => {
         const mnt = infoMnt(v);
         const salud = saludVehiculo(v);
         const tipo = (v.tipo_vehiculo || 'CARRO').charAt(0) + (v.tipo_vehiculo || 'CARRO').slice(1).toLowerCase();
         const comb = v.combustible ? v.combustible.charAt(0) + v.combustible.slice(1).toLowerCase() : null;
         const iniciales = String(v.placa).slice(0, 2).toUpperCase();
-        return `<div class="veh-card">
+        return `<div class="veh-card" data-orden-id="${v.id}" data-orden-inicial="${idx}">
         <div class="veh-cab">
+          <button type="button" class="veh-drag" data-drag title="Arrastrar para reordenar" aria-label="Mover tarjeta de ${v.placa}">&#10287;</button>
           <div class="veh-avatar ${salud.clase}" title="Salud: ${salud.texto}">${iniciales}</div>
           <div class="veh-id">
             <strong class="veh-placa">${v.placa}</strong>
@@ -898,6 +1113,8 @@ function renderVehiculos(filas) {
   grid.querySelectorAll('[data-del]').forEach((btn) =>
     btn.addEventListener('click', () => eliminarVehiculo(btn.dataset.del, btn.dataset.placa))
   );
+
+  ordenarFlota(grid);
 }
 
 function infoMnt(v) {
@@ -1937,3 +2154,8 @@ if (document.querySelector('[data-vista="reportes"]')) {
     }, 50);
   });
 }
+
+/* ---------- Fichas reordenables (modal, flota y mantenimientos) ---------- */
+iniciarFichasMantenimiento();
+iniciarOrdenFlota();
+iniciarOrdenMantenimientos();

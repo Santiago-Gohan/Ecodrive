@@ -111,7 +111,10 @@
     <section class="tarjeta" id="tarjeta-mantenimientos">
       <div class="tarjeta-cabecera">
         <h2>🛠️ Próximos mantenimientos</h2>
-        <span class="pista-grafica">Vencidos y siguientes 15 días</span>
+        <div class="cabecera-derecha">
+          <span class="pista-grafica">Vencidos y siguientes 15 días</span>
+          <button id="mants-orden-reset" class="btn-orden" type="button" title="Volver al orden original de las fichas">&#8634; Restablecer orden</button>
+        </div>
       </div>
       <div id="lista-mantenimientos" class="mants"><p class="vacio-ligero">Cargando…</p></div>
     </section>
@@ -152,6 +155,7 @@
     <section class="tarjeta">
       <div class="tarjeta-cabecera">
         <h2>Gestión de flota</h2>
+        <button id="flota-orden-reset" class="btn-orden" type="button" title="Volver al orden original de las tarjetas">&#8634; Restablecer orden</button>
       </div>
       <div class="form-alta">
         <input type="text" id="nueva-placa" placeholder="Placa (ej: DEF-456)" />
@@ -266,7 +270,11 @@
     <div class="modal-caja modal-mant-caja">
       <div class="modal-cabecera">
         <h3>Mantenimiento vehicular</h3>
-        <button id="modal-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
+        <div class="mant-cab-acciones">
+          <span class="mant-pista">Arrastra &#10287; para ordenar</span>
+          <button id="mant-orden-reset" class="btn-orden" type="button" title="Volver al orden original de las fichas">&#8634; Restablecer orden</button>
+          <button id="modal-cerrar" class="modal-x" aria-label="Cerrar">&times;</button>
+        </div>
       </div>
 
       <div class="mant-veh">
@@ -305,93 +313,136 @@
         </div>
       </div>
 
-      <h4 class="modal-sec">Telemetría actual</h4>
-      <div class="mant-tel-grid">
-        <div class="mant-kpi mant-tel">
-          <span class="mant-kpi-label">Temperatura motor</span>
-          <span class="mant-kpi-valor" id="mant-tel-ect">--</span>
-          <div class="mant-barra"><div class="mant-barra-relleno" id="mant-tel-ect-barra" style="width:0%"></div></div>
-          <span class="mant-kpi-sub" id="mant-tel-ect-sub">Sin lecturas</span>
-        </div>
-        <div class="mant-kpi mant-tel">
-          <span class="mant-kpi-label">RPM</span>
-          <span class="mant-kpi-valor" id="mant-tel-rpm">--</span>
-          <div class="mant-barra"><div class="mant-barra-relleno" id="mant-tel-rpm-barra" style="width:0%"></div></div>
-          <span class="mant-kpi-sub" id="mant-tel-rpm-sub">Última lectura</span>
-        </div>
-        <div class="mant-kpi mant-tel">
-          <span class="mant-kpi-label">Combustible</span>
-          <span class="mant-kpi-valor" id="mant-tel-comb">--</span>
-          <div class="mant-barra"><div class="mant-barra-relleno" id="mant-tel-comb-barra" style="width:0%"></div></div>
-          <span class="mant-kpi-sub" id="mant-tel-comb-sub">Sin dato</span>
-        </div>
-        <div class="mant-kpi mant-tel">
-          <span class="mant-kpi-label">Última lectura</span>
-          <span class="mant-kpi-valor mant-tel-fecha" id="mant-tel-fecha">--</span>
-          <span class="mant-kpi-sub" id="mant-tel-alertas">0 alertas activas</span>
-        </div>
-      </div>
-
-      <div class="mant-col mant-col-a">
-        <h4 class="modal-sec">Programación</h4>
-        <div class="mant-card">
-          <div class="modal-grid2">
-            <div>
-              <label class="modal-label">Próximo mantenimiento</label>
-              <input type="date" id="mant-proximo" />
-            </div>
-            <div>
-              <label class="modal-label">Intervalo de servicio (días)</label>
-              <input type="number" id="mant-intervalo" min="7" max="3650" placeholder="180" />
+      <div class="mant-paneles" id="mant-paneles">
+        <section class="mant-panel" data-orden-id="telemetria">
+          <div class="mant-panel-cab">
+            <span class="mant-panel-num">01</span>
+            <h4 class="modal-sec">Telemetría actual</h4>
+            <button type="button" class="drag-handle" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de telemetría">&#10287;</button>
+          </div>
+          <div class="mant-panel-cuerpo">
+            <div class="mant-tel-grid">
+              <div class="mant-kpi mant-tel">
+                <span class="mant-kpi-label">Temperatura motor</span>
+                <span class="mant-kpi-valor" id="mant-tel-ect">--</span>
+                <div class="mant-barra"><div class="mant-barra-relleno" id="mant-tel-ect-barra" style="width:0%"></div></div>
+                <span class="mant-kpi-sub" id="mant-tel-ect-sub">Sin lecturas</span>
+              </div>
+              <div class="mant-kpi mant-tel">
+                <span class="mant-kpi-label">RPM</span>
+                <span class="mant-kpi-valor" id="mant-tel-rpm">--</span>
+                <div class="mant-barra"><div class="mant-barra-relleno" id="mant-tel-rpm-barra" style="width:0%"></div></div>
+                <span class="mant-kpi-sub" id="mant-tel-rpm-sub">Última lectura</span>
+              </div>
+              <div class="mant-kpi mant-tel">
+                <span class="mant-kpi-label">Combustible</span>
+                <span class="mant-kpi-valor" id="mant-tel-comb">--</span>
+                <div class="mant-barra"><div class="mant-barra-relleno" id="mant-tel-comb-barra" style="width:0%"></div></div>
+                <span class="mant-kpi-sub" id="mant-tel-comb-sub">Sin dato</span>
+              </div>
+              <div class="mant-kpi mant-tel">
+                <span class="mant-kpi-label">Última lectura</span>
+                <span class="mant-kpi-valor mant-tel-fecha" id="mant-tel-fecha">--</span>
+                <span class="mant-kpi-sub" id="mant-tel-alertas">0 alertas activas</span>
+              </div>
             </div>
           </div>
-          <div>
-            <label class="modal-label">Plan de mantenimiento</label>
-            <textarea id="mant-plan" rows="2" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. Revisión de frenos y refrigerante..."></textarea>
-          </div>
-          <div class="modal-acciones">
-            <button id="mant-guardar" class="btn-primario">Guardar programación</button>
-            <button id="mant-cancelar" class="btn-secundario">Cerrar</button>
-          </div>
-        </div>
+        </section>
 
-        <h4 class="modal-sec">Registrar servicio</h4>
-        <div class="mant-card mnt-reg">
-          <div class="modal-grid2">
-            <input type="date" id="mnt-fecha" class="mnt-inp" />
-            <input type="number" id="mnt-odometro" class="mnt-inp" min="0" placeholder="Odómetro (km)" />
+        <section class="mant-panel" data-orden-id="programacion">
+          <div class="mant-panel-cab">
+            <span class="mant-panel-num">02</span>
+            <h4 class="modal-sec">Programación</h4>
+            <button type="button" class="drag-handle" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de programación">&#10287;</button>
           </div>
-          <input type="text" id="mnt-desc" class="mnt-inp" placeholder="Descripción del servicio (ej. cambio de aceite y filtros)" />
-          <div class="mnt-fila-reg">
-            <input type="number" id="mnt-costo" class="mnt-inp" min="0" step="0.01" placeholder="Costo del servicio ($)" />
-            <button id="mnt-registrar" class="btn-primario mnt-reg-boton">Registrar servicio</button>
+          <div class="mant-panel-cuerpo">
+            <div class="modal-grid2">
+              <div>
+                <label class="modal-label">Próximo mantenimiento</label>
+                <input type="date" id="mant-proximo" />
+              </div>
+              <div>
+                <label class="modal-label">Intervalo de servicio (días)</label>
+                <input type="number" id="mant-intervalo" min="7" max="3650" placeholder="180" />
+              </div>
+            </div>
+            <div>
+              <label class="modal-label">Plan de mantenimiento</label>
+              <textarea id="mant-plan" rows="3" placeholder="Ej: Cambio de aceite cada 6 meses o 10.000 km. Revisión de frenos y refrigerante..."></textarea>
+            </div>
+            <div class="modal-acciones">
+              <button id="mant-guardar" class="btn-primario">Guardar programación</button>
+              <button id="mant-cancelar" class="btn-secundario">Cerrar</button>
+            </div>
           </div>
-          <div class="mnt-fila-reg">
-            <button id="mant-crear-ot" class="btn-secundario mnt-reg-boton">Crear orden de trabajo (taller)</button>
+        </section>
+
+        <section class="mant-panel" data-orden-id="registrar">
+          <div class="mant-panel-cab">
+            <span class="mant-panel-num">03</span>
+            <h4 class="modal-sec">Registrar servicio</h4>
+            <button type="button" class="drag-handle" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de registro de servicio">&#10287;</button>
           </div>
-        </div>
+          <div class="mant-panel-cuerpo">
+            <div class="mnt-reg">
+              <div class="modal-grid2">
+                <input type="date" id="mnt-fecha" class="mnt-inp" />
+                <input type="number" id="mnt-odometro" class="mnt-inp" min="0" placeholder="Odómetro (km)" />
+              </div>
+              <input type="text" id="mnt-desc" class="mnt-inp" placeholder="Descripción del servicio (ej. cambio de aceite y filtros)" />
+              <div class="mnt-fila-reg">
+                <input type="number" id="mnt-costo" class="mnt-inp" min="0" step="0.01" placeholder="Costo del servicio ($)" />
+                <button id="mnt-registrar" class="btn-primario mnt-reg-boton">Registrar servicio</button>
+              </div>
+              <div class="mnt-fila-reg">
+                <button id="mant-crear-ot" class="btn-secundario mnt-reg-boton">Crear orden de trabajo (taller)</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      </div>
+        <section class="mant-panel" data-orden-id="historial">
+          <div class="mant-panel-cab">
+            <span class="mant-panel-num">04</span>
+            <h4 class="modal-sec">Historial de servicios <span class="mant-total" id="mant-total"></span></h4>
+            <button type="button" class="drag-handle" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de historial">&#10287;</button>
+          </div>
+          <div class="mant-panel-cuerpo">
+            <div id="hist-mantenimientos" class="mant-hist"><p class="vacio-ligero">Cargando…</p></div>
+          </div>
+        </section>
 
-      <div class="mant-col mant-col-b">
-        <h4 class="modal-sec">Historial de servicios <span class="mant-total" id="mant-total"></span></h4>
-        <div id="hist-mantenimientos" class="mant-hist"><p class="vacio-ligero">Cargando…</p></div>
+        <section class="mant-panel" data-orden-id="lecturas">
+          <div class="mant-panel-cab">
+            <span class="mant-panel-num">05</span>
+            <h4 class="modal-sec">Últimas lecturas de telemetría</h4>
+            <button type="button" class="drag-handle" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de lecturas">&#10287;</button>
+          </div>
+          <div class="mant-panel-cuerpo">
+            <div class="tabla-scroll mant-hist-tabla">
+              <table class="vivo-tabla">
+                <thead><tr><th>Fecha</th><th>ECT (°C)</th><th>RPM</th><th>Combustible</th></tr></thead>
+                <tbody id="mant-telemetria"><tr><td colspan="4" class="vacio-ligero">Cargando…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-        <h4 class="modal-sec">Últimas lecturas de telemetría</h4>
-        <div class="tabla-scroll mant-hist-tabla">
-          <table class="vivo-tabla">
-            <thead><tr><th>Fecha</th><th>ECT (°C)</th><th>RPM</th><th>Combustible</th></tr></thead>
-            <tbody id="mant-telemetria"><tr><td colspan="4" class="vacio-ligero">Cargando…</td></tr></tbody>
-          </table>
-        </div>
-
-        <h4 class="modal-sec">Alertas del vehículo</h4>
-        <div class="tabla-scroll mant-hist-tabla">
-          <table class="vivo-tabla">
-            <thead><tr><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
-            <tbody id="mant-alertas"><tr><td colspan="5" class="vacio-ligero">Cargando…</td></tr></tbody>
-          </table>
-        </div>
+        <section class="mant-panel" data-orden-id="alertas">
+          <div class="mant-panel-cab">
+            <span class="mant-panel-num">06</span>
+            <h4 class="modal-sec">Alertas del vehículo</h4>
+            <button type="button" class="drag-handle" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de alertas">&#10287;</button>
+          </div>
+          <div class="mant-panel-cuerpo">
+            <div class="tabla-scroll mant-hist-tabla">
+              <table class="vivo-tabla">
+                <thead><tr><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+                <tbody id="mant-alertas"><tr><td colspan="5" class="vacio-ligero">Cargando…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
