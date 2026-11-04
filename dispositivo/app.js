@@ -1376,3 +1376,189 @@ if (tbSonido) tbSonido.addEventListener('click', () => {
 
 setInterval(sincronizarToolbar, 800);
 sincronizarToolbar();
+
+/* ---------- Fichas del tablero: mismo tamano, orden guardado y arrastre ---------- */
+const ORDEN_PANEL_KEY = 'ecodrive.orden.conductor';
+let temporizadorPanel = null;
+
+function leerOrdenPanel() {
+  try {
+    const crudo = localStorage.getItem(ORDEN_PANEL_KEY);
+    const lista = crudo ? JSON.parse(crudo) : [];
+    return Array.isArray(lista) ? lista.map(String) : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function guardarOrdenPanel(ids) {
+  try {
+    localStorage.setItem(ORDEN_PANEL_KEY, JSON.stringify(ids));
+  } catch (err) {
+    /* almacenamiento bloqueado: se ignora */
+  }
+}
+
+function fichasPanel() {
+  const dash = document.querySelector('.dashboard');
+  if (!dash) return [];
+  return [...dash.querySelectorAll('[data-orden-id]')];
+}
+
+function idsPanel() {
+  return fichasPanel().map((f) => f.dataset.ordenId);
+}
+
+function columnasPanel() {
+  const dash = document.querySelector('.dashboard');
+  if (!dash) return 1;
+  const cols = getComputedStyle(dash).gridTemplateColumns;
+  if (!cols || cols === 'none') return 1;
+  return cols.split(' ').filter(Boolean).length;
+}
+
+/* Reubica las fichas segun el orden guardado; las nuevas quedan al final. */
+function aplicarOrdenPanel() {
+  const dash = document.querySelector('.dashboard');
+  if (!dash) return;
+  const orden = leerOrdenPanel();
+  const fichas = fichasPanel();
+  if (!orden.length || fichas.length < 2) return;
+  const mapa = new Map();
+  fichas.forEach((f) => {
+    const id = f.dataset.ordenId;
+    if (id && !mapa.has(id)) mapa.set(id, f);
+  });
+  const vistos = new Set();
+  orden.forEach((id) => {
+    const el = mapa.get(id);
+    if (el && !vistos.has(id)) {
+      dash.appendChild(el);
+      vistos.add(id);
+    }
+  });
+  mapa.forEach((el, id) => {
+    if (!vistos.has(id)) dash.appendChild(el);
+  });
+}
+
+function numerarPanel() {
+  fichasPanel().forEach((f, i) => {
+    const num = f.querySelector('.card-num');
+    if (num) num.textContent = String(i + 1).padStart(2, '0');
+  });
+}
+
+/* Todas las fichas del tablero con el mismo alto (solo en rejilla). */
+function igualarPanel() {
+  const fichas = fichasPanel();
+  if (!fichas.length) return;
+  fichas.forEach((f) => {
+    f.style.height = '';
+    f.style.minHeight = '';
+  });
+  if (columnasPanel() < 2) return;
+  const alto = Math.max(...fichas.map((f) => Math.ceil(f.getBoundingClientRect().height)));
+  if (!alto) return;
+  fichas.forEach((f) => { f.style.minHeight = alto + 'px'; });
+}
+
+/* Arrastre por puntero (raton y tactil) desde el asa [data-drag]. */
+function activarArrastrePanel() {
+  const dash = document.querySelector('.dashboard');
+  if (!dash || dash.dataset.arrastre === 'on') return;
+  dash.dataset.arrastre = 'on';
+  let activa = null;
+  let puntero = null;
+
+  const soltar = (ev) => {
+    if (!activa || (ev && ev.pointerId !== puntero)) return;
+    activa.classList.remove('arrastrando');
+    activa.style.pointerEvents = '';
+    activa = null;
+    puntero = null;
+    guardarOrdenPanel(idsPanel());
+    numerarPanel();
+  };
+
+  dash.addEventListener('pointerdown', (ev) => {
+    const asa = ev.target.closest('[data-drag]');
+    if (!asa || !dash.contains(asa)) return;
+    const ficha = asa.closest('[data-orden-id]');
+    if (!ficha || !dash.contains(ficha)) return;
+    ev.preventDefault();
+    activa = ficha;
+    puntero = ev.pointerId;
+    ficha.classList.add('arrastrando');
+    try {
+      asa.setPointerCapture(ev.pointerId);
+    } catch (err) {
+      /* sin captura el arrastre sigue funcionando por burbujeo */
+    }
+  });
+
+  dash.addEventListener('pointermove', (ev) => {
+    if (!activa || ev.pointerId !== puntero) return;
+    ev.preventDefault();
+    const margen = 90;
+    if (ev.clientY < margen) window.scrollBy(0, -14);
+    else if (ev.clientY > window.innerHeight - margen) window.scrollBy(0, 14);
+    activa.style.pointerEvents = 'none';
+    const bajo = document.elementFromPoint(ev.clientX, ev.clientY);
+    activa.style.pointerEvents = '';
+    if (!bajo) return;
+    const destino = bajo.closest('[data-orden-id]');
+    if (!destino || destino === activa || !dash.contains(destino)) return;
+    const caja = destino.getBoundingClientRect();
+    const centroX = caja.left + caja.width / 2;
+    const centroY = caja.top + caja.height / 2;
+    const mismaFila = Math.abs(ev.clientY - centroY) < caja.height / 3;
+    const despues = mismaFila ? ev.clientX > centroX : ev.clientY > centroY;
+    const padre = destino.parentElement;
+    if (!padre || !dash.contains(padre)) return;
+    padre.insertBefore(activa, despues ? destino.nextSibling : destino);
+  });
+
+  dash.addEventListener('pointerup', soltar);
+  dash.addEventListener('pointercancel', soltar);
+  dash.addEventListener('lostpointercapture', soltar);
+}
+
+function iniciarPanelFichas() {
+  const dash = document.querySelector('.dashboard');
+  const fichas = fichasPanel();
+  if (!dash || !fichas.length) return;
+  // Todas las fichas pasan a ser hijas directas del tablero (el envoltorio es display:contents)
+  fichas.forEach((f) => dash.appendChild(f));
+  fichas.forEach((f, i) => { f.dataset.ordenInicial = String(i); });
+
+  aplicarOrdenPanel();
+  numerarPanel();
+  activarArrastrePanel();
+  igualarPanel();
+
+  const reset = document.getElementById('panel-orden-reset');
+  if (reset) {
+    reset.addEventListener('click', () => {
+      try { localStorage.removeItem(ORDEN_PANEL_KEY); } catch (err) { /* ignora */ }
+      const dash = document.querySelector('.dashboard');
+      if (!dash) return;
+      fichasPanel()
+        .sort((a, b) => Number(a.dataset.ordenInicial) - Number(b.dataset.ordenInicial))
+        .forEach((el) => dash.appendChild(el));
+      numerarPanel();
+      igualarPanel();
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    clearTimeout(temporizadorPanel);
+    temporizadorPanel = setTimeout(igualarPanel, 160);
+  });
+  window.addEventListener('load', igualarPanel);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(igualarPanel).catch(() => {});
+  }
+}
+
+iniciarPanelFichas();

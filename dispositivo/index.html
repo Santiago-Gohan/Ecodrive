@@ -24,6 +24,7 @@
           <span class="status-dot" id="punto-estado"></span>
           <span id="texto-estado">Sin conexión</span>
         </div>
+        <button id="panel-orden-reset" class="header-btn" type="button" title="Volver al orden original de las fichas">&#8634; Orden</button>
         <button id="btn-tour" class="header-btn">Tour guiado</button>
         <a href="/apk/EcoDrive-v1.0.apk" class="header-btn">Descargar APK</a>
         <a href="https://wa.me/573125886290?text=Hola%2C%20necesito%20soporte%20con%20EcoDrive" target="_blank" rel="noopener" class="header-btn">Soporte</a>
@@ -42,8 +43,8 @@
 
   <main class="dashboard">
     <!-- Vehicle Overview -->
-    <section class="card vehicle-card">
-      <div class="card-header">
+    <section class="card vehicle-card" data-orden-id="vehiculo">
+      <div class="card-header"><span class="card-num">01</span>
         <div>
           <h2 class="card-title">Información del Vehículo</h2>
           <p class="card-subtitle">Estado actual en tiempo real</p>
@@ -54,7 +55,7 @@
             <span>En línea</span>
           </div>
         </div>
-      </div>
+      <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de vehiculo">&#10287;</button></div>
       <div class="vehicle-grid">
         <div class="vehicle-info">
           <div class="vehicle-plate" id="ficha-placa">SIN VINCULAR</div>
@@ -92,13 +93,13 @@
 
     <div class="grid-two">
       <!-- Quick Actions -->
-      <section class="card">
-        <div class="card-header">
+      <section class="card" data-orden-id="acciones">
+        <div class="card-header"><span class="card-num">02</span>
           <div>
             <h2 class="card-title">Acciones Rápidas</h2>
             <p class="card-subtitle">Control del dispositivo</p>
           </div>
-        </div>
+        <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de acciones">&#10287;</button></div>
         <div class="action-grid">
           <button class="action-btn" id="tb-conectar">
             <div class="action-icon">🔌</div>
@@ -132,13 +133,13 @@
       </section>
 
       <!-- Connection Status -->
-      <section class="card">
-        <div class="card-header">
+      <section class="card" data-orden-id="conexion">
+        <div class="card-header"><span class="card-num">03</span>
           <div>
             <h2 class="card-title">Estado de Conexión</h2>
             <p class="card-subtitle">Diagnóstico del sistema</p>
           </div>
-        </div>
+        <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de conexion">&#10287;</button></div>
         <div class="status-list">
           <div class="status-item">
             <span class="status-label">GPS</span>
@@ -169,13 +170,13 @@
     </div>
 
     <!-- Configuration Sections -->
-    <section class="card" id="conf-vincular">
-      <div class="card-header">
+    <section class="card" id="conf-vincular" data-orden-id="vincular">
+      <div class="card-header"><span class="card-num">04</span>
         <div>
           <h2 class="card-title">Vincular Vehículo</h2>
           <p class="card-subtitle">Conecta tu vehículo con el sistema</p>
         </div>
-      </div>
+      <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de vincular">&#10287;</button></div>
       <div class="card-body">
         <div class="form-group">
           <label class="form-label">Vehículo registrado</label>
@@ -221,13 +222,13 @@
       </div>
     </section>
 
-    <section class="card" id="conf-conectar">
-      <div class="card-header">
+    <section class="card" id="conf-conectar" data-orden-id="conectar">
+      <div class="card-header"><span class="card-num">05</span>
         <div>
           <h2 class="card-title">Conexión OBD-II</h2>
           <p class="card-subtitle">Conectar adaptador Bluetooth</p>
         </div>
-      </div>
+      <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de conectar">&#10287;</button></div>
       <div class="card-body">
         <ol class="steps">
           <li>Enciende el vehículo y conecta el adaptador ELM327</li>
@@ -255,13 +256,13 @@
       </div>
     </section>
 
-    <section class="card" id="conf-monitoreo">
-      <div class="card-header">
+    <section class="card" id="conf-monitoreo" data-orden-id="monitoreo">
+      <div class="card-header"><span class="card-num">06</span>
         <div>
           <h2 class="card-title">Monitoreo en Vivo</h2>
           <p class="card-subtitle">Parámetros del motor en tiempo real</p>
         </div>
-      </div>
+      <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de monitoreo">&#10287;</button></div>
       <div class="card-body">
         <div class="gauges-grid">
           <div class="gauge-card">
@@ -299,13 +300,13 @@
       </div>
     </section>
 
-    <section class="card" id="reportar-evento">
-      <div class="card-header">
+    <section class="card" id="reportar-evento" data-orden-id="reportar">
+      <div class="card-header"><span class="card-num">07</span>
         <div>
           <h2 class="card-title">Reportar en la Vía</h2>
           <p class="card-subtitle">Alertas comunitarias</p>
         </div>
-      </div>
+      <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de reportar">&#10287;</button></div>
       <div class="card-body">
         <div class="chip-group" id="ev-chips-tipo">
           <button class="chip-btn" data-tipo="POLICIA">🚓 Policía</button>
@@ -320,13 +321,13 @@
       </div>
     </section>
 
-    <section class="card" id="opiniones">
-      <div class="card-header">
+    <section class="card" id="opiniones" data-orden-id="opiniones">
+      <div class="card-header"><span class="card-num">08</span>
         <div>
           <h2 class="card-title">Tu Opinión</h2>
           <p class="card-subtitle">Ayúdanos a mejorar</p>
         </div>
-      </div>
+      <button type="button" class="drag-asa" data-drag title="Arrastrar para reordenar" aria-label="Mover ficha de opiniones">&#10287;</button></div>
       <div class="card-body">
         <label class="form-label">¿Quién eres?</label>
         <div class="chip-group" id="op-chips-rol">

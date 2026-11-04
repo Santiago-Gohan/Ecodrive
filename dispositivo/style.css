@@ -222,7 +222,8 @@ body {
   gap: 14px;
 }
 
-.grid-two { display: grid; gap: 14px; grid-template-columns: 1fr; }
+/* Las dos tarjetas de esta fila pasan a ser fichas normales del tablero */
+.grid-two { display: contents; }
 
 /* ---------- Tarjetas ---------- */
 .card {
@@ -1079,24 +1080,18 @@ body {
     max-width: var(--ancho-app);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+    align-items: stretch;
     gap: 16px;
   }
-  .dashboard > .vehicle-card,
-  .dashboard > #conf-monitoreo,
-  .dashboard > #conf-vincular { grid-column: 1 / -1; }
-  .grid-two { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .card { padding: 20px; }
-  .vehicle-grid { grid-template-columns: 1fr 1.35fr; }
-  .vehicle-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .action-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .vehicle-grid { grid-template-columns: minmax(0, 1fr); }
+  .vehicle-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1300px) {
   :root { --ancho-app: 1680px; }
   .dashboard { max-width: var(--ancho-app); grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dashboard > .vehicle-card { grid-column: 1 / -1; }
-  .dashboard > #conf-vincular { grid-column: span 2; }
 }
 
 @media (min-width: 1750px) {
@@ -1105,10 +1100,6 @@ body {
     max-width: var(--ancho-app);
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .dashboard > .vehicle-card,
-  .dashboard > #conf-monitoreo,
-  .dashboard > #conf-vincular { grid-column: 1 / -1; }
-  .grid-two { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 }
 
 @media (max-width: 420px) {
@@ -1123,4 +1114,60 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Fichas del panel: mismo tamano, orden y arrastre ---------- */
+.card {
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+/* La esquina tecnica choca con el asa de arrastre */
+.card::after { display: none; }
+
+.card-num {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.card-header > div:not(.card-actions) { flex: 1 1 auto; min-width: 0; }
+
+.drag-asa {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.drag-asa:hover,
+.card-header:hover .drag-asa {
+  color: var(--acento);
+  border-color: var(--line);
+  background: rgba(34, 211, 238, 0.07);
+}
+
+.card.arrastrando {
+  opacity: 0.62;
+  border-color: rgba(34, 211, 238, 0.75);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.45), 0 22px 44px rgba(0, 0, 0, 0.55);
+}
+
+.card.arrastrando .drag-asa { cursor: grabbing; }
+
+@media (max-width: 899px) {
+  .card { height: auto !important; }
 }
