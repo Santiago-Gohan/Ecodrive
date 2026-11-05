@@ -12,9 +12,9 @@
   pointer-events: none;
   border-radius: 12px;
   box-shadow:
-    0 0 0 9999px rgba(9, 12, 20, 0.72),
-    0 0 0 3px rgba(34, 211, 238, 0.95),
-    0 0 26px 6px rgba(34, 211, 238, 0.35);
+    0 0 0 9999px rgba(16, 35, 29, 0.45),
+    0 0 0 3px rgba(16, 185, 129, 0.95),
+    0 0 26px 6px rgba(16, 185, 129, 0.35);
   transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
 }
 
@@ -26,7 +26,7 @@
   background: #ffffff;
   color: #1f2937;
   border-radius: 14px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 24px 60px rgba(16, 35, 29, 0.18);
   padding: 20px 20px 16px;
   font-family: 'Inter', system-ui, sans-serif;
   transition: top 0.25s ease, left 0.25s ease;
@@ -38,7 +38,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #0369ea;
+  color: #047857;
   margin-bottom: 6px;
   padding-right: 22px;
 }
@@ -102,12 +102,12 @@
 }
 
 .tour-next {
-  background: #0369ea;
+  background: #047857;
   color: #ffffff;
-  border: 1px solid #2483fc;
+  border: 1px solid #10b981;
 }
 
-.tour-next:hover { background: #0256c4; }
+.tour-next:hover { background: #065f46; }
 
 .tour-x {
   position: absolute;
@@ -143,8 +143,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(90deg, #22d3ee, #34d399);
-  color: #04121d;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  color: #ffffff;
   border: none;
   border-radius: 10px;
   padding: 9px 15px;

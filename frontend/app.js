@@ -390,10 +390,10 @@ function actualizarEventos(filas) {
 }
 
 function colorMarcador(ect) {
-  if (ect === null) return '#64748b';
+  if (ect === null) return '#94a3b8';
   if (ect > 105) return '#ef4444';
   if (ect >= 95) return '#f59e0b';
-  return '#22d3ee';
+  return '#10b981';
 }
 
 function actualizarMarcadores(filas) {
@@ -432,7 +432,7 @@ function actualizarMarcadores(filas) {
 /* ---------- Gráfica en vivo de ECT ---------- */
 const GRAFICA_MAX_PUNTOS = 40;
 const almacenGrafica = new Map(); // placa -> [{ t, ect }]
-const COLORES_PLACA = ['#22d3ee', '#34d399', '#f59e0b', '#a78bfa', '#f472b6', '#fb923c'];
+const COLORES_PLACA = ['#10b981', '#34d399', '#f59e0b', '#a78bfa', '#f472b6', '#fb923c'];
 
 function registrarPuntoGraficas(filas) {
   const t = Date.now();
@@ -475,13 +475,13 @@ function dibujarGrafica() {
   // Rejilla y etiquetas Y
   for (let v = yMin; v <= yMax; v += 5) {
     const y = Y(v);
-    ctx.strokeStyle = 'rgba(148,163,184,0.15)';
+    ctx.strokeStyle = 'rgba(16,35,29,0.10)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(padL, y);
     ctx.lineTo(W - padR, y);
     ctx.stroke();
-    ctx.fillStyle = '#8fa0b8';
+    ctx.fillStyle = '#5f746c';
     ctx.font = '11px Segoe UI, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`${v}°`, padL - 8, y + 4);
@@ -490,7 +490,7 @@ function dibujarGrafica() {
   // Umbral crítico 105 °C (línea roja punteada)
   const y105 = Y(105);
   ctx.setLineDash([6, 5]);
-  ctx.strokeStyle = 'rgba(239,68,68,0.75)';
+  ctx.strokeStyle = 'rgba(220,38,38,0.45)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(padL, y105);
@@ -503,7 +503,7 @@ function dibujarGrafica() {
   ctx.fillText('Límite 105 °C', W - padR - 88, y105 - 6);
 
   if (!almacenGrafica.size) {
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = '#94a3b8';
     ctx.font = '13px Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Esperando lecturas de telemetría…', W / 2, H / 2);
@@ -524,7 +524,7 @@ function dibujarGrafica() {
   const xPix = (t) => padL + ((t - tMin) / (tMax - tMin)) * (W - padL - padR);
 
   // Etiquetas de hora (mín y máx)
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = '#94a3b8';
   ctx.font = '11px Segoe UI, sans-serif';
   ctx.textAlign = 'left';
   ctx.fillText(new Date(tMin).toLocaleTimeString('es-CO'), padL, H - 8);
@@ -683,21 +683,21 @@ function dibujarVivoCanvas() {
 
   for (let val = yMin; val <= yMax; val += 10) {
     const y = Y(val);
-    ctx.strokeStyle = 'rgba(148,163,184,0.14)';
+    ctx.strokeStyle = 'rgba(16,35,29,0.10)';
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
-    ctx.fillStyle = '#8fa0b8';
+    ctx.fillStyle = '#5f746c';
     ctx.font = '10px Segoe UI, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(val + '°', padL - 6, y + 3);
   }
   const y105 = Y(105);
   ctx.setLineDash([5, 4]);
-  ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+  ctx.strokeStyle = 'rgba(220,38,38,0.45)';
   ctx.beginPath(); ctx.moveTo(padL, y105); ctx.lineTo(W - padR, y105); ctx.stroke();
   ctx.setLineDash([]);
 
   if (vivoSerie.length < 2) {
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = '#94a3b8';
     ctx.font = '13px Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Esperando lecturas…', W / 2, H / 2);
@@ -716,7 +716,7 @@ function dibujarVivoCanvas() {
     const grad = ctx.createLinearGradient(0, y, 0, baseY);
     if (p.ect > 105) { grad.addColorStop(0, '#f43f5e'); grad.addColorStop(1, '#b91c1c'); }
     else if (p.ect >= 95) { grad.addColorStop(0, '#fbbf24'); grad.addColorStop(1, '#d97706'); }
-    else { grad.addColorStop(0, '#22d3ee'); grad.addColorStop(1, '#0891b2'); }
+    else { grad.addColorStop(0, '#10b981'); grad.addColorStop(1, '#0d9488'); }
     ctx.fillStyle = grad;
     const x = cx - barW / 2;
     const r = Math.min(3, barW / 2);
@@ -732,12 +732,12 @@ function dibujarVivoCanvas() {
   });
 
   const ult = vivoSerie[n - 1];
-  ctx.fillStyle = '#8fa0b8';
+  ctx.fillStyle = '#5f746c';
   ctx.font = '10px Segoe UI, sans-serif';
   ctx.textAlign = 'left';
   ctx.fillText(new Date(vivoSerie[0].t).toLocaleTimeString('es-CO'), padL, H - 6);
   ctx.textAlign = 'right';
-  ctx.fillStyle = ult.ect > 105 ? '#ef4444' : ult.ect >= 95 ? '#fbbf24' : '#22d3ee';
+  ctx.fillStyle = ult.ect > 105 ? '#ef4444' : ult.ect >= 95 ? '#fbbf24' : '#10b981';
   ctx.font = 'bold 11px Segoe UI, sans-serif';
   ctx.fillText(`${ult.ect} °C · ${new Date(ult.t).toLocaleTimeString('es-CO')}`, W - padR, H - 6);
 }

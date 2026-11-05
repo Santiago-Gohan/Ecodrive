@@ -436,10 +436,10 @@ function statusOk(textoTexto = 'Adaptador conectado') {
 }
 
 function statusOff() {
-  $punto.style.background = '#64748b';
+  $punto.style.background = '#94a3b8';
   $textoEstado.textContent = 'Sin conexión';
   const pf = document.getElementById('conexion-ficha');
-  if (pf) { pf.classList.remove('on'); const p = pf.querySelector('.punto'); if (p) p.style.background = '#64748b'; }
+  if (pf) { pf.classList.remove('on'); const p = pf.querySelector('.punto'); if (p) p.style.background = '#94a3b8'; }
   actualizarFichaVehiculo();
 }
 
@@ -648,16 +648,16 @@ function dibujarResumenJornada(j) {
 
   for (let val = yMin; val <= yMax; val += 10) {
     const y = Y(val);
-    ctx.strokeStyle = 'rgba(148,163,184,0.14)';
+    ctx.strokeStyle = 'rgba(16,35,29,0.10)';
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
-    ctx.fillStyle = '#8fa0b8';
+    ctx.fillStyle = '#5f746c';
     ctx.font = '9px Segoe UI, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(val + '°', padL - 5, y + 3);
   }
   const y105 = Y(105);
   ctx.setLineDash([5, 4]);
-  ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+  ctx.strokeStyle = 'rgba(220,38,38,0.45)';
   ctx.beginPath(); ctx.moveTo(padL, y105); ctx.lineTo(W - padR, y105); ctx.stroke();
   ctx.setLineDash([]);
 
@@ -672,12 +672,12 @@ function dibujarResumenJornada(j) {
     const grad = ctx.createLinearGradient(0, y, 0, baseY);
     if (ect > 105) { grad.addColorStop(0, '#f43f5e'); grad.addColorStop(1, '#b91c1c'); }
     else if (ect >= 95) { grad.addColorStop(0, '#fbbf24'); grad.addColorStop(1, '#d97706'); }
-    else { grad.addColorStop(0, '#22d3ee'); grad.addColorStop(1, '#0891b2'); }
+    else { grad.addColorStop(0, '#10b981'); grad.addColorStop(1, '#0d9488'); }
     ctx.fillStyle = grad;
     ctx.fillRect(cx - barW / 2, y, barW, h);
   });
 
-  ctx.fillStyle = '#8fa0b8';
+  ctx.fillStyle = '#5f746c';
   ctx.font = '9px Segoe UI, sans-serif';
   ctx.textAlign = 'left';
   ctx.fillText('inicio', padL, H - 5);
@@ -925,7 +925,7 @@ function llenarMedidor(id, frac, color) {
 function actualizarMedidores(ect, rpm, nivel) {
   if (ect !== null) {
     const frac = Math.max(0, Math.min(1, (ect - 20) / 100)); // 20 °C -> 0, 120 °C -> 1
-    const color = ect > 105 ? '#ef4444' : ect >= 95 ? '#f59e0b' : '#22d3ee';
+    const color = ect > 105 ? '#ef4444' : ect >= 95 ? '#f59e0b' : '#10b981';
     llenarMedidor('fill-ect', frac, color);
   }
   if (rpm !== null) {
@@ -1166,7 +1166,7 @@ function conectarVirtual() {
 function reiniciarMedidores() {
   $valEct.textContent = '--';
   $valRpm.textContent = '--';
-  llenarMedidor('fill-ect', 0, '#22d3ee');
+  llenarMedidor('fill-ect', 0, '#10b981');
   llenarMedidor('fill-rpm', 0, '#34d399');
   const barra = document.getElementById('barra-combustible');
   if (barra) barra.style.width = '0%';
